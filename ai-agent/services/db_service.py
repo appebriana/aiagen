@@ -11,7 +11,9 @@ def get_db_connection():
         host=os.getenv("DB_HOST", "127.0.0.1"),
         user=os.getenv("DB_USERNAME", "root"),
         password=os.getenv("DB_PASSWORD", ""),
-        database=os.getenv("DB_DATABASE", "aiagen")
+        database=os.getenv("DB_DATABASE", "aiagen"),
+        charset="utf8mb4",
+        collation="utf8mb4_unicode_ci"
     )
 
 def get_department_settings(department_id: str):
