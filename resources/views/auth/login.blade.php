@@ -40,16 +40,27 @@
             </label>
         </div>
 
-        <div class="flex items-center justify-end mt-4">
+        <div class="mt-8">
+            <x-primary-button class="w-full justify-center">
+                {{ __('Masuk ke Akun') }}
+            </x-primary-button>
+        </div>
+
+        <div class="mt-6 flex flex-col gap-3 items-center text-sm">
             @if (Route::has('password.request'))
-                <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}">
+                <a class="text-slate-500 hover:text-primary-600 transition-colors" href="{{ route('password.request') }}">
                     {{ __('Lupa password?') }}
                 </a>
             @endif
 
-            <x-primary-button class="ms-3">
-                {{ __('Masuk') }}
-            </x-primary-button>
+            @if (Route::has('register'))
+                <p class="text-slate-500">
+                    Belum punya akun? 
+                    <a href="{{ route('register') }}" class="font-semibold text-primary-600 hover:text-primary-700 transition-colors">
+                        Daftar Sekarang
+                    </a>
+                </p>
+            @endif
         </div>
     </form>
 </x-guest-layout>

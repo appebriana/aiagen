@@ -139,14 +139,19 @@
             <p x-show="passwordConfirmation.length > 0 && passwordMatch" x-cloak class="mt-1 text-xs text-green-600">Password cocok!</p>
         </div>
 
-        <div class="flex items-center justify-end mt-4">
-            <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('login') }}">
-                {{ __('Sudah punya akun?') }}
-            </a>
-
-            <x-primary-button class="ms-4" ::disabled="!canSubmit">
-                {{ __('Daftar') }}
+        <div class="mt-8">
+            <x-primary-button class="w-full justify-center" ::disabled="!canSubmit">
+                {{ __('Buat Akun Sekarang') }}
             </x-primary-button>
+        </div>
+
+        <div class="mt-6 text-center text-sm">
+            <p class="text-slate-500">
+                Sudah punya akun? 
+                <a href="{{ route('login') }}" class="font-semibold text-primary-600 hover:text-primary-700 transition-colors">
+                    Masuk ke Akun
+                </a>
+            </p>
         </div>
     </form>
 
