@@ -65,7 +65,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                 </div>
-                <span class="text-2xl font-bold font-outfit tracking-tight text-slate-900 uppercase">AI<span class="text-primary-600">AGEN</span></span>
+                <span class="text-xl md:text-2xl font-bold font-outfit tracking-tight text-slate-900 uppercase">AI<span class="text-primary-600">AGEN</span></span>
             </div>
 
             <nav class="hidden md:flex items-center gap-8">
@@ -106,11 +106,11 @@
                     </span>
                     AI Agent Terintegrasi WhatsApp
                 </div>
-                <h1 class="text-5xl lg:text-7xl font-bold font-outfit leading-[1.1] text-slate-900 tracking-tight">
+                <h1 class="text-4xl md:text-5xl lg:text-7xl font-bold font-outfit leading-[1.2] lg:leading-[1.1] text-slate-900 tracking-tight">
                     Otomatisasi Chat <br>
                     <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-indigo-600">Tanpa Batas</span>
                 </h1>
-                <p class="text-xl text-slate-600 leading-relaxed max-w-lg">
+                <p class="text-lg md:text-xl text-slate-600 leading-relaxed max-w-lg">
                     Tingkatkan efisiensi layanan pelanggan Anda dengan AI Agent cerdas yang mampu menjawab pertanyaan 24/7 langsung melalui WhatsApp.
                 </p>
                 <div class="flex flex-col sm:flex-row items-center gap-4">
@@ -157,7 +157,7 @@
         <div class="container mx-auto px-6">
             <div class="text-center max-w-3xl mx-auto mb-16 space-y-4">
                 <h2 class="text-sm font-bold text-primary-600 uppercase tracking-widest">Kenapa Memilih AIAGEN?</h2>
-                <h3 class="text-4xl font-bold font-outfit text-slate-900">Solusi Modern Layanan Pelanggan</h3>
+                <h3 class="text-3xl md:text-4xl font-bold font-outfit text-slate-900">Solusi Modern Layanan Pelanggan</h3>
                 <p class="text-slate-600 text-lg">Kami mengintegrasikan teknologi AI terbaru dengan platform chat paling populer di dunia.</p>
             </div>
 

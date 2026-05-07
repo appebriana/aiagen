@@ -34,7 +34,7 @@ const client = new Client({
         dataPath: './.wwebjs_auth'
     }),
     puppeteer: {
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--no-zygote'],
         headless: true
     }
 });
@@ -85,6 +85,8 @@ client.on('message', async msg => {
     
     const isGroup = msg.from.includes('@g.us');
     if (msg.from === 'status@broadcast') return;
+
+    console.log(`[${DEVICE_NAME}] Pesan Masuk dari ${msg.from}: ${msg.body}`);
 
     // --- FITUR HUMAN-LIKE DIHAPUS DARI SINI ---
     // (Akan dipanggil via API oleh Python agar tidak muncul saat MUTE)
