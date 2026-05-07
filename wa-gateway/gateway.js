@@ -119,6 +119,7 @@ client.on('message', async msg => {
             sender: msg.from,
             message: msg.body,
             department_id: DEPARTMENT_ID,
+            gateway_port: PORT,
             pushname: msg._data?.notifyName || null,
             is_held_by_label: isHeld
         });
@@ -189,8 +190,8 @@ app.post('/send', async (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`[${DEVICE_NAME}] API Gateway aktif di Port ${PORT}`);
+app.listen(PORT, '127.0.0.1', () => {
+    console.log(`[${DEVICE_NAME}] API Gateway aktif di Port ${PORT} (127.0.0.1)`);
 });
 
 // Jalankan inisialisasi segera saat script dimulai

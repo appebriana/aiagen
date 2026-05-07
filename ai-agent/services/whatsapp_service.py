@@ -5,14 +5,14 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Point to our Node.js WA Gateway Bridge
-async def send_whatsapp_message(to_number: str, text: str, department_id: str = "1"):
+async def send_whatsapp_message(to_number: str, text: str, department_id: str = "1", gateway_port: int = None):
     """
     Kirim perintah balik ke Node.js WA Gateway untuk membalas pesan.
-    Port dihitung dinamis: 3000 + (ID Departemen - 1)
+    Menggunakan gateway_port dari payload webhook jika tersedia.
     """
     try:
-        # Hitung port sesuai logika manager.js
-        port = 3000 + (int(department_id) - 1)
+        # Gunakan port dari webhook jika ada, jika tidak fallback ke perhitungan manual
+        port = gateway_port if gateway_port else 3000 + (int(department_id) - 1)
         gateway_url = f"http://127.0.0.1:{port}/send"
         
         payload = {
@@ -28,12 +28,12 @@ async def send_whatsapp_message(to_number: str, text: str, department_id: str = 
         print(error_msg)
         return {"status": "error", "message": error_msg}
 
-async def send_typing_indicator(to_number: str, department_id: str):
+async def send_typing_indicator(to_number: str, department_id: str, gateway_port: int = None):
     """
     Kirim perintah ke Node.js WA Gateway untuk memunculkan status 'Mengetik...'.
     """
     try:
-        port = 3000 + (int(department_id) - 1)
+        port = gateway_port if gateway_port else 3000 + (int(department_id) - 1)
         gateway_url = f"http://127.0.0.1:{port}/typing"
         
         async with httpx.AsyncClient() as client:

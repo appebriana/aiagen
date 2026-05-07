@@ -24,6 +24,7 @@ async def handle_webhook(request: Request):
     customer_id = data.get("sender") or data.get("from")
     msg_body = data.get("message") or data.get("body")
     department_id = data.get("department_id", "default")
+    gateway_port = data.get("gateway_port")
     pushname = data.get("pushname")
     
     if customer_id and msg_body:
@@ -53,12 +54,12 @@ async def handle_webhook(request: Request):
         print(f"[Dept: {department_id}] Pesan dari {customer_id}: {msg_body}")
         
         # Munculkan status "Mengetik" di WA (Hanya jika tidak mute)
-        await send_typing_indicator(customer_id, department_id)
+        await send_typing_indicator(customer_id, department_id, gateway_port)
 
         # Perintah khusus
         if msg_body.lower() == "/reset":
             clear_memory(customer_id, department_id)
-            await send_whatsapp_message(customer_id, "Ingatan chat departemen ini telah dihapus.", department_id)
+            await send_whatsapp_message(customer_id, "Ingatan chat departemen ini telah dihapus.", department_id, gateway_port)
             return {"status": "cleared"}
         
         # Ambil balasan AI (Kirim data customer juga)
@@ -74,7 +75,7 @@ async def handle_webhook(request: Request):
                 ai_reply = ai_reply.replace(match.group(0), "").strip()
 
         # Kirim balik
-        result = await send_whatsapp_message(customer_id, ai_reply, department_id)
+        result = await send_whatsapp_message(customer_id, ai_reply, department_id, gateway_port)
         
         if result and result.get("status") == "success":
             return {"status": "success", "ai_reply": ai_reply}
