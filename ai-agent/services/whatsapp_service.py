@@ -13,7 +13,7 @@ async def send_whatsapp_message(to_number: str, text: str, department_id: str = 
     try:
         # Hitung port sesuai logika manager.js
         port = 3000 + (int(department_id) - 1)
-        gateway_url = f"http://localhost:{port}/send"
+        gateway_url = f"http://127.0.0.1:{port}/send"
         
         payload = {
             "target": to_number,
@@ -34,7 +34,7 @@ async def send_typing_indicator(to_number: str, department_id: str):
     """
     try:
         port = 3000 + (int(department_id) - 1)
-        gateway_url = f"http://localhost:{port}/typing"
+        gateway_url = f"http://127.0.0.1:{port}/typing"
         
         async with httpx.AsyncClient() as client:
             await client.post(gateway_url, json={"target": to_number}, timeout=5.0)

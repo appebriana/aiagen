@@ -20,7 +20,7 @@ let initRequested = false;
 // Ambil nama perangkat asli dari DB agar log rapi
 async function fetchDeviceName() {
     try {
-        const settingsRes = await axios.get(`http://localhost:8000/settings/${DEPARTMENT_ID}`);
+        const settingsRes = await axios.get(`http://127.0.0.1:8000/settings/${DEPARTMENT_ID}`);
         if (settingsRes.data && settingsRes.data.name) {
             DEVICE_NAME = settingsRes.data.name;
         }
@@ -41,7 +41,7 @@ const client = new Client({
 
 async function updateDbStatus(status) {
     try {
-        await axios.post(`http://localhost:8000/update-status/${DEPARTMENT_ID}`, { status });
+        await axios.post(`http://127.0.0.1:8000/update-status/${DEPARTMENT_ID}`, { status });
     } catch (e) {}
 }
 
@@ -92,7 +92,7 @@ client.on('message', async msg => {
     // (Akan dipanggil via API oleh Python agar tidak muncul saat MUTE)
 
     try {
-        const settingsRes = await axios.get(`http://localhost:8000/settings/${DEPARTMENT_ID}`);
+        const settingsRes = await axios.get(`http://127.0.0.1:8000/settings/${DEPARTMENT_ID}`);
         currentDeptSettings = settingsRes.data;
         if (currentDeptSettings && currentDeptSettings.ai_name) {
             aiNameTrigger = `/${currentDeptSettings.ai_name.toLowerCase().replace(/\s+/g, '')}`;
@@ -115,7 +115,7 @@ client.on('message', async msg => {
             isHeld = labels.some(l => l.name.toUpperCase().includes('HOLD'));
         } catch (labelError) {}
 
-        await axios.post('http://localhost:8000/webhook', {
+        await axios.post('http://127.0.0.1:8000/webhook', {
             sender: msg.from,
             message: msg.body,
             department_id: DEPARTMENT_ID,
