@@ -72,7 +72,7 @@ class ConnectionController extends Controller
     {
         // Ambil status terkini dari DB (sudah disync otomatis oleh Gateway via Python)
         $device->refresh();
-        $port = 3000 + ($device->id - 1);
+        $port = 3000 + ($device->department_id - 1);
         
         $result = [
             'status' => $device->status ?? 'disconnected',
@@ -83,7 +83,7 @@ class ConnectionController extends Controller
         // Jika belum connected, coba ambil QR dari Gateway
         if ($device->status !== 'connected') {
             try {
-                $response = Http::timeout(3)->get("http://localhost:{$port}/status");
+                $response = Http::timeout(3)->get("http://127.0.0.1:{$port}/status");
                 $gatewayData = $response->json();
                 
                 if (isset($gatewayData['status']) && $gatewayData['status'] === 'ready') {
@@ -107,10 +107,10 @@ class ConnectionController extends Controller
             abort(403);
         }
 
-        $port = 3000 + ($device->id - 1);
+        $port = 3000 + ($device->department_id - 1);
         
         try {
-            Http::timeout(5)->post("http://localhost:{$port}/disconnect");
+            Http::timeout(5)->post("http://127.0.0.1:{$port}/disconnect");
         } catch (\Exception $e) {
             // Gateway mungkin tidak aktif, tetap update DB
         }
@@ -126,10 +126,10 @@ class ConnectionController extends Controller
             abort(403);
         }
 
-        $port = 3000 + ($device->id - 1);
+        $port = 3000 + ($device->department_id - 1);
         
         try {
-            Http::timeout(5)->post("http://localhost:{$port}/init");
+            Http::timeout(5)->post("http://127.0.0.1:{$port}/init");
             return response()->json(['status' => 'success']);
         } catch (\Exception $e) {
             return response()->json(['status' => 'error', 'message' => 'Gateway tidak merespons']);
