@@ -191,12 +191,21 @@ app.post('/send', async (req, res) => {
     }
 });
 
-app.listen(PORT, '127.0.0.1', () => {
+const server = app.listen(PORT, '127.0.0.1', () => {
     console.log(`[${DEVICE_NAME}] API Gateway aktif di Port ${PORT} (127.0.0.1)`);
+    
+    // Baru inisialisasi WhatsApp SETELAH server HTTP berhasil jalan
+    console.log(`[${DEVICE_NAME}] Mencoba inisialisasi sesi...`);
+    client.initialize().catch(err => {
+        console.error(`[${DEVICE_NAME}] Gagal inisialisasi awal:`, err.message);
+    });
 });
 
-// Jalankan inisialisasi segera saat script dimulai
-console.log(`[${DEVICE_NAME}] Mencoba inisialisasi sesi...`);
-client.initialize().catch(err => {
-    console.error(`[${DEVICE_NAME}] Gagal inisialisasi awal:`, err.message);
+server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+        console.error(`[${DEVICE_NAME}] Port ${PORT} sudah digunakan oleh proses lain. Keluar...`);
+        process.exit(1);
+    } else {
+        throw err;
+    }
 });
