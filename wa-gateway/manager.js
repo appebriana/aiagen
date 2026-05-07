@@ -56,7 +56,7 @@ async function startManager() {
 }
 
 function spawnGateway(device) {
-    const port = 3000 + (parseInt(device.department_id) - 1);
+    const port = 3000 + (parseInt(device.id) - 1);
     
     console.log(`[MANAGER] Menjalankan Gateway Baru: ID ${device.id} | Name: ${device.name} | Port: ${port}`);
 

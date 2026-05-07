@@ -41,7 +41,7 @@ const client = new Client({
 
 async function updateDbStatus(status) {
     try {
-        await axios.post(`http://127.0.0.1:8000/update-status/${DEPARTMENT_ID}`, { status });
+        await axios.post(`http://127.0.0.1:8000/update-device-status/${DEVICE_ID}`, { status });
     } catch (e) {}
 }
 
@@ -119,6 +119,7 @@ client.on('message', async msg => {
             sender: msg.from,
             message: msg.body,
             department_id: DEPARTMENT_ID,
+            device_id: DEVICE_ID,
             gateway_port: PORT,
             pushname: msg._data?.notifyName || null,
             is_held_by_label: isHeld

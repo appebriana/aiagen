@@ -72,7 +72,7 @@ class ConnectionController extends Controller
     {
         // Ambil status terkini dari DB (sudah disync otomatis oleh Gateway via Python)
         $device->refresh();
-        $port = 3000 + ($device->department_id - 1);
+        $port = 3000 + ($device->id - 1);
         
         $result = [
             'status' => $device->status ?? 'disconnected',
@@ -107,7 +107,7 @@ class ConnectionController extends Controller
             abort(403);
         }
 
-        $port = 3000 + ($device->department_id - 1);
+        $port = 3000 + ($device->id - 1);
         
         try {
             Http::timeout(5)->post("http://127.0.0.1:{$port}/disconnect");
@@ -126,7 +126,7 @@ class ConnectionController extends Controller
             abort(403);
         }
 
-        $port = 3000 + ($device->department_id - 1);
+        $port = 3000 + ($device->id - 1);
         
         try {
             Http::timeout(5)->post("http://127.0.0.1:{$port}/init");

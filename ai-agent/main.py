@@ -110,7 +110,27 @@ async def update_status(department_id: str, data: dict):
         print(f"Gagal update status di DB: {e}")
         return {"status": "error", "message": str(e)}
 
+@app.post("/update-device-status/{device_id}")
+async def update_device_status(device_id: str, data: dict):
+    """Update status untuk SATU device spesifik berdasarkan ID perangkat."""
+    from services.db_service import get_db_connection
+    status = data.get("status", "disconnected")
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE whatsapp_devices SET status = %s, updated_at = NOW() WHERE id = %s",
+            (status, device_id)
+        )
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return {"status": "success"}
+    except Exception as e:
+        print(f"Gagal update device status di DB: {e}")
+        return {"status": "error", "message": str(e)}
+
 if __name__ == "__main__":
     import uvicorn
     port = int(os.getenv("PORT", 8000))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    uvicorn.run(app, host="127.0.0.1", port=port)
