@@ -1,4 +1,5 @@
-require('dotenv').config({ path: '../.env' });
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
 const mysql = require('mysql2/promise');
 const { spawn } = require('child_process');
 
@@ -59,15 +60,14 @@ function spawnGateway(device) {
     
     console.log(`[MANAGER] Menjalankan Gateway Baru: ID ${device.id} | Name: ${device.name} | Port: ${port}`);
 
-    const child = spawn('node', ['gateway.js'], {
+    const child = spawn(process.execPath, [path.join(__dirname, 'gateway.js')], {
         env: { 
             ...process.env, 
             DEVICE_ID: device.id,
             DEPARTMENT_ID: device.department_id,
             PORT: port
         },
-        stdio: 'inherit',
-        shell: true
+        stdio: 'inherit'
     });
 
     // Simpan ke daftar proses
