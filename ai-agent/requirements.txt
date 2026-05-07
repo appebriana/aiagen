@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+openai
+python-dotenv
+httpx
+pydantic
+langchain
+langchain-openai
+faiss-cpu
+pypdf
+tiktoken

@@ -1,0 +1,17 @@
+PROFIL TOKO AIAGEN
+==================
+Alamat: Jl. Raya AI No. 123, Jakarta Selatan.
+Jam Operasional: Senin - Jumat (09.00 - 18.00), Sabtu (09.00 - 15.00), Minggu Libur.
+
+DAFTAR PRODUK & HARGA
+--------------------
+1. AI Chatbot Basic - Rp 500.000 / bulan
+   Fitur: Respon otomatis, Memory dasar.
+2. AI Chatbot Pro - Rp 1.500.000 / bulan
+   Fitur: Respon otomatis, Memory, RAG (Baca Dokumen), Integrasi multi-platform.
+3. Custom AI Agent - Mulai dari Rp 5.000.000 (One-time payment)
+   Fitur: Sesuai kebutuhan bisnis.
+
+PROMO BULAN INI
+---------------
+Diskon 20% untuk pelanggan baru yang mengambil paket Pro tahunan!
