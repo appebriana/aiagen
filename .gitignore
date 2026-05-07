@@ -28,3 +28,6 @@ Thumbs.db
 /wa-gateway/.wwebjs_auth
 /wa-gateway/.wwebjs_cache
 /wa-gateway/sessions
+
+/ai-agent/venv
+/ai-agent/__pycache__
