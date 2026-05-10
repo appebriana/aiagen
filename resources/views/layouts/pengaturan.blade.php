@@ -121,31 +121,38 @@
                 </nav>
             </aside>
 
-            {{-- ═══ MOBILE BOTTOM NAV ═══ --}}
-            <div class="lg:hidden fixed bottom-0 left-0 right-0 z-[100] bg-white/80 backdrop-blur-lg border-t border-secondary-200 px-6 py-3 flex items-center justify-around shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+            {{-- ═══ MOBILE BOTTOM NAV (Floating Pill) ═══ --}}
+            <div class="lg:hidden fixed bottom-4 left-4 right-4 z-[100] bg-white/90 backdrop-blur-xl border border-white/50 px-6 py-2.5 flex items-center justify-around shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-3xl transition-all duration-500">
                 <a href="{{ auth()->user()->isAdmin() ? route('admin.dashboard') : route('pengguna.dashboard') }}" 
-                   class="flex flex-col items-center gap-1 {{ request()->routeIs('*.dashboard') && !request()->is('*/ai-agen*') && !request()->is('*/pengaturan*') && !request()->is('*/laporan*') ? 'text-primary-600' : 'text-secondary-400' }}">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                    <span class="text-[10px] font-bold">Beranda</span>
+                   class="relative flex flex-col items-center gap-1 transition-all duration-300 group {{ request()->routeIs('*.dashboard') && !request()->is('*/ai-agen*') && !request()->is('*/laporan*') && !request()->is('*/pengaturan*') ? 'text-primary-600 scale-110 -translate-y-1' : 'text-secondary-400 hover:text-primary-500 hover:scale-105' }}">
+                    <div class="p-1.5 rounded-2xl transition-all duration-300 {{ request()->routeIs('*.dashboard') && !request()->is('*/ai-agen*') && !request()->is('*/laporan*') && !request()->is('*/pengaturan*') ? 'bg-primary-100/50' : 'group-hover:bg-secondary-50' }}">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    </div>
+                    <span class="text-[9px] font-bold tracking-wider opacity-90">BERANDA</span>
                 </a>
                 
                 <button @click="mobileSidebar = !mobileSidebar" 
-                        :class="mobileSidebar ? 'text-primary-600' : 'text-secondary-400'"
-                        class="flex flex-col items-center gap-1 transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-                    <span class="text-[10px] font-bold">Menu</span>
+                        class="relative flex flex-col items-center gap-1 transition-all duration-300 group {{ $mobileSidebar ?? false ? 'text-primary-600 scale-110 -translate-y-1' : 'text-secondary-400 hover:text-primary-500 hover:scale-105' }}">
+                    <div class="p-1.5 rounded-2xl transition-all duration-300 group-hover:bg-secondary-50" :class="mobileSidebar ? 'bg-primary-100/50' : ''">
+                        <svg class="w-6 h-6 transition-transform duration-300" :class="mobileSidebar ? 'rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                    </div>
+                    <span class="text-[9px] font-bold tracking-wider opacity-90">MENU</span>
                 </button>
 
                 <a href="{{ auth()->user()->isAdmin() ? route('admin.ai-agen.index') : route('pengguna.ai-agen.index') }}" 
-                   class="flex flex-col items-center gap-1 {{ request()->is('*/ai-agen*') || request()->is('*/laporan*') ? 'text-primary-600' : 'text-secondary-400' }}">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                    <span class="text-[10px] font-bold">AI Agen</span>
+                   class="relative flex flex-col items-center gap-1 transition-all duration-300 group {{ request()->is('*/ai-agen*') || request()->is('*/laporan*') ? 'text-primary-600 scale-110 -translate-y-1' : 'text-secondary-400 hover:text-primary-500 hover:scale-105' }}">
+                    <div class="p-1.5 rounded-2xl transition-all duration-300 {{ request()->is('*/ai-agen*') || request()->is('*/laporan*') ? 'bg-primary-100/50' : 'group-hover:bg-secondary-50' }}">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    </div>
+                    <span class="text-[9px] font-bold tracking-wider opacity-90">AI AGEN</span>
                 </a>
                 
                 <a href="{{ auth()->user()->isAdmin() ? route('admin.pengaturan.index') : route('pengguna.pengaturan.index') }}" 
-                   class="flex flex-col items-center gap-1 {{ request()->is('*/pengaturan*') || request()->routeIs('*.profile.*') ? 'text-primary-600' : 'text-secondary-400' }}">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                    <span class="text-[10px] font-bold">Setting</span>
+                   class="relative flex flex-col items-center gap-1 transition-all duration-300 group {{ request()->is('*/pengaturan*') || request()->routeIs('*.profile.*') ? 'text-primary-600 scale-110 -translate-y-1' : 'text-secondary-400 hover:text-primary-500 hover:scale-105' }}">
+                    <div class="p-1.5 rounded-2xl transition-all duration-300 {{ request()->is('*/pengaturan*') || request()->routeIs('*.profile.*') ? 'bg-primary-100/50' : 'group-hover:bg-secondary-50' }}">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    </div>
+                    <span class="text-[9px] font-bold tracking-wider opacity-90">SETTING</span>
                 </a>
             </div>
 
