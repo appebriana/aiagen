@@ -65,6 +65,21 @@ class KnowledgeController extends Controller
         return redirect()->back()->with('success', 'Dokumen berhasil diunggah ke Departemen ' . $dept->name);
     }
 
+    public function download(KnowledgeFile $knowledgeFile)
+    {
+        if ($knowledgeFile->user_id !== auth()->id() && !auth()->user()->isAdmin()) {
+            abort(403);
+        }
+
+        $filePath = base_path($knowledgeFile->file_path);
+
+        if (!File::exists($filePath)) {
+            return redirect()->back()->with('error', 'File tidak ditemukan di server.');
+        }
+
+        return response()->download($filePath, $knowledgeFile->original_name);
+    }
+
     public function destroy(KnowledgeFile $knowledgeFile)
     {
         if ($knowledgeFile->user_id !== auth()->id() && !auth()->user()->isAdmin()) {

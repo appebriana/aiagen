@@ -21,7 +21,7 @@
 
         <div class="min-h-screen bg-secondary-200 flex" x-data="{ sidebarOpen: true, mobileSidebar: false }">
 
-            {{-- ═══ SIDEBAR ═══ --}}
+            {{-- ═══ SIDEBAR (Desktop) ═══ --}}
             <aside
                 :class="sidebarOpen ? 'w-64' : 'w-20'"
                 class="hidden lg:flex lg:flex-col bg-primary-900 text-white transition-all duration-300 ease-in-out fixed inset-y-0 left-0 z-30">
@@ -47,12 +47,13 @@
                               {{ request()->routeIs('pengguna.dashboard') ? 'bg-primary-700 text-white' : 'text-primary-300 hover:bg-primary-800 hover:text-white' }}">
                         <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                         <span x-show="sidebarOpen" x-cloak>Dashboard</span>
-                                  <a href="{{ route('pengguna.ai-agen.index') }}"
+                    </a>
+                    <a href="{{ route('pengguna.ai-agen.index') }}"
                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
-                               {{ request()->routeIs('pengguna.ai-agen.index') ? 'bg-primary-700 text-white' : 'text-primary-300 hover:bg-primary-800 hover:text-white' }}">
+                               {{ request()->routeIs('pengguna.ai-agen.index') || request()->is('*/ai-agen*') || request()->is('*/laporan*') ? 'bg-primary-700 text-white' : 'text-primary-300 hover:bg-primary-800 hover:text-white' }}">
                         <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                         <span x-show="sidebarOpen" x-cloak>AI Agen</span>
-                    </a>      </div>
+                    </a>
                 </nav>
 
                 {{-- User Info --}}
@@ -76,13 +77,15 @@
             </aside>
 
             {{-- ═══ MOBILE SIDEBAR OVERLAY ═══ --}}
-            <div x-show="mobileSidebar" x-cloak class="fixed inset-0 z-40 lg:hidden" @click="mobileSidebar = false">
+            <div x-show="mobileSidebar" x-cloak class="fixed inset-0 z-[60] lg:hidden" @click="mobileSidebar = false">
                 <div class="fixed inset-0 bg-black/50" x-transition.opacity></div>
             </div>
+            
+            {{-- ═══ MOBILE SIDEBAR DRAWER ═══ --}}
             <aside x-show="mobileSidebar" x-cloak
                    x-transition:enter="transition ease-out duration-300" x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0"
                    x-transition:leave="transition ease-in duration-200" x-transition:leave-start="translate-x-0" x-transition:leave-end="-translate-x-full"
-                   class="fixed inset-y-0 left-0 z-50 w-64 bg-primary-900 text-white lg:hidden">
+                   class="fixed inset-y-0 left-0 z-[70] w-64 bg-primary-900 text-white lg:hidden flex flex-col">
                 <div class="flex items-center justify-between h-16 px-4 border-b border-primary-800">
                     <a href="{{ route('pengguna.dashboard') }}" class="flex items-center gap-3">
                         <div class="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center"><svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3z"/></svg></div>
@@ -108,6 +111,41 @@
                 </nav>
             </aside>
 
+            {{-- ═══ MOBILE BOTTOM NAV (Floating Pill) ═══ --}}
+            <div class="lg:hidden fixed bottom-4 left-4 right-4 z-[100] bg-white/90 backdrop-blur-xl border border-white/50 px-6 py-2.5 flex items-center justify-around shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-3xl transition-all duration-500">
+                <a href="{{ route('pengguna.dashboard') }}" 
+                   class="relative flex flex-col items-center gap-1 transition-all duration-300 group {{ request()->routeIs('pengguna.dashboard') && !request()->is('*/ai-agen*') && !request()->is('*/pengaturan*') ? 'text-primary-600 scale-110 -translate-y-1' : 'text-secondary-400 hover:text-primary-500 hover:scale-105' }}">
+                    <div class="p-1.5 rounded-2xl transition-all duration-300 {{ request()->routeIs('pengguna.dashboard') && !request()->is('*/ai-agen*') && !request()->is('*/pengaturan*') ? 'bg-primary-100/50' : 'group-hover:bg-secondary-50' }}">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    </div>
+                    <span class="text-[9px] font-bold tracking-wider opacity-90">BERANDA</span>
+                </a>
+                
+                <button @click="mobileSidebar = !mobileSidebar" 
+                        class="relative flex flex-col items-center gap-1 transition-all duration-300 group {{ $mobileSidebar ?? false ? 'text-primary-600 scale-110 -translate-y-1' : 'text-secondary-400 hover:text-primary-500 hover:scale-105' }}">
+                    <div class="p-1.5 rounded-2xl transition-all duration-300 group-hover:bg-secondary-50" :class="mobileSidebar ? 'bg-primary-100/50' : ''">
+                        <svg class="w-6 h-6 transition-transform duration-300" :class="mobileSidebar ? 'rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                    </div>
+                    <span class="text-[9px] font-bold tracking-wider opacity-90">MENU</span>
+                </button>
+
+                <a href="{{ route('pengguna.ai-agen.index') }}" 
+                   class="relative flex flex-col items-center gap-1 transition-all duration-300 group {{ request()->is('*/ai-agen*') || request()->is('*/laporan*') ? 'text-primary-600 scale-110 -translate-y-1' : 'text-secondary-400 hover:text-primary-500 hover:scale-105' }}">
+                    <div class="p-1.5 rounded-2xl transition-all duration-300 {{ request()->is('*/ai-agen*') || request()->is('*/laporan*') ? 'bg-primary-100/50' : 'group-hover:bg-secondary-50' }}">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    </div>
+                    <span class="text-[9px] font-bold tracking-wider opacity-90">AI AGEN</span>
+                </a>
+                
+                <a href="{{ route('pengguna.pengaturan.index') }}" 
+                   class="relative flex flex-col items-center gap-1 transition-all duration-300 group {{ request()->is('*/pengaturan*') || request()->routeIs('pengguna.profile.*') ? 'text-primary-600 scale-110 -translate-y-1' : 'text-secondary-400 hover:text-primary-500 hover:scale-105' }}">
+                    <div class="p-1.5 rounded-2xl transition-all duration-300 {{ request()->is('*/pengaturan*') || request()->routeIs('pengguna.profile.*') ? 'bg-primary-100/50' : 'group-hover:bg-secondary-50' }}">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    </div>
+                    <span class="text-[9px] font-bold tracking-wider opacity-90">SETTING</span>
+                </a>
+            </div>
+
             {{-- ═══ MAIN CONTENT ═══ --}}
             <div class="flex-1 flex flex-col transition-all duration-300 min-w-0 overflow-hidden" :class="sidebarOpen ? 'lg:ml-64' : 'lg:ml-20'">
 
@@ -122,11 +160,11 @@
                         @endisset
                     </div>
 
-                    <div class="flex items-center gap-2">
-                        <a href="{{ route('pengguna.dashboard') }}" class="px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors {{ request()->routeIs('pengguna.dashboard') && !request()->is('*/ai-agen*') && !request()->is('*/pengaturan*') ? 'bg-primary-100 text-primary-700' : 'text-secondary-600 hover:bg-secondary-100' }}">
+                    <div class="hidden lg:flex items-center gap-2">
+                        <a href="{{ route('pengguna.dashboard') }}" class="px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors {{ request()->routeIs('pengguna.dashboard') && !request()->is('*/ai-agen*') && !request()->is('*/pengaturan*') && !request()->is('*/laporan*') ? 'bg-primary-100 text-primary-700' : 'text-secondary-600 hover:bg-secondary-100' }}">
                             Dashboard
                         </a>
-                        <a href="{{ route('pengguna.ai-agen.index') }}" class="px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors {{ request()->is('*/ai-agen*') ? 'bg-primary-100 text-primary-700' : 'text-secondary-600 hover:bg-secondary-100' }}">
+                        <a href="{{ route('pengguna.ai-agen.index') }}" class="px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors {{ request()->is('*/ai-agen*') || request()->is('*/laporan*') ? 'bg-primary-100 text-primary-700' : 'text-secondary-600 hover:bg-secondary-100' }}">
                             AI Agen
                         </a>
                         <a href="{{ route('pengguna.pengaturan.index') }}" class="px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors {{ request()->is('*/pengaturan*') || request()->routeIs('pengguna.profile.*') ? 'bg-primary-100 text-primary-700' : 'text-secondary-600 hover:bg-secondary-100' }}">
@@ -139,7 +177,7 @@
                 </header>
 
                 {{-- Page Content --}}
-                <main class="flex-1 p-4 sm:p-6 lg:p-8">
+                <main class="flex-1 p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8">
                     {{ $slot }}
                 </main>
             </div>

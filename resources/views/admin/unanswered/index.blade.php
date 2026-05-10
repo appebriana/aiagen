@@ -4,38 +4,38 @@
     <div x-data="unansweredManager()" class="space-y-6 relative">
         
         {{-- ═══ FILTER SECTION ═══ --}}
-        <div class="bg-white rounded-2xl shadow-sm border border-secondary-200 p-6">
-            <form action="{{ route(Auth::user()->role . '.ai-agen.unanswered.index') }}" method="GET" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
-                <div class="lg:col-span-1">
-                    <label class="block text-xs font-bold text-secondary-500 uppercase tracking-widest mb-2">Cari Pertanyaan/HP</label>
+        <div class="bg-white rounded-2xl shadow-sm border border-secondary-200 p-4 md:p-6">
+            <form action="{{ route(Auth::user()->role . '.ai-agen.unanswered.index') }}" method="GET" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+                <div class="sm:col-span-2 lg:col-span-1">
+                    <label class="block text-[10px] font-bold text-secondary-500 uppercase tracking-widest mb-1.5">Cari Pertanyaan/HP</label>
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Ketik kata kunci..." 
-                        class="w-full px-4 py-2 rounded-xl border-secondary-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 text-sm">
+                        class="w-full px-4 py-2.5 rounded-xl border-secondary-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 text-sm">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-secondary-500 uppercase tracking-widest mb-2">Mulai Tanggal</label>
+                    <label class="block text-[10px] font-bold text-secondary-500 uppercase tracking-widest mb-1.5">Mulai Tanggal</label>
                     <input type="date" name="date_start" value="{{ request('date_start') }}" 
-                        class="w-full px-4 py-2 rounded-xl border-secondary-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 text-sm">
+                        class="w-full px-4 py-2.5 rounded-xl border-secondary-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 text-sm">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-secondary-500 uppercase tracking-widest mb-2">Sampai Tanggal</label>
+                    <label class="block text-[10px] font-bold text-secondary-500 uppercase tracking-widest mb-1.5">Sampai Tanggal</label>
                     <input type="date" name="date_end" value="{{ request('date_end') }}" 
-                        class="w-full px-4 py-2 rounded-xl border-secondary-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 text-sm">
+                        class="w-full px-4 py-2.5 rounded-xl border-secondary-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 text-sm">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-secondary-500 uppercase tracking-widest mb-2">Status</label>
-                    <select name="status" class="w-full px-4 py-2 rounded-xl border-secondary-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 text-sm">
+                    <label class="block text-[10px] font-bold text-secondary-500 uppercase tracking-widest mb-1.5">Status</label>
+                    <select name="status" class="w-full px-4 py-2.5 rounded-xl border-secondary-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 text-sm">
                         <option value="">Semua Status</option>
                         <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Menunggu</option>
                         <option value="answered" {{ request('status') == 'answered' ? 'selected' : '' }}>Terjawab</option>
                     </select>
                 </div>
                 <div class="flex gap-2">
-                    <button type="submit" class="flex-1 px-4 py-2 bg-primary-600 text-white rounded-xl font-bold text-sm hover:bg-primary-700 transition-all flex items-center justify-center gap-2">
+                    <button type="submit" class="flex-1 px-4 py-2.5 bg-primary-600 text-white rounded-xl font-bold text-sm hover:bg-primary-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary-500/20">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                         Filter
                     </button>
                     <a href="{{ route(Auth::user()->role . '.ai-agen.unanswered.export-pdf', request()->all()) }}" 
-                       class="px-4 py-2 bg-red-50 text-red-600 border border-red-100 rounded-xl font-bold text-sm hover:bg-red-100 transition-all flex items-center justify-center gap-2"
+                       class="px-4 py-2.5 bg-red-50 text-red-600 border border-red-100 rounded-xl font-bold text-sm hover:bg-red-100 transition-all flex items-center justify-center gap-2"
                        title="Export ke PDF sesuai filter">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
                         PDF
@@ -44,80 +44,141 @@
             </form>
         </div>
 
-        {{-- ═══ TABLE SECTION ═══ --}}
-        <div class="bg-white rounded-2xl shadow-sm border border-secondary-200 overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-secondary-50 border-b border-secondary-200">
-                            <th class="px-6 py-4 w-10">
-                                <input type="checkbox" x-model="allSelected" @change="toggleAll()" class="rounded border-secondary-300 text-primary-600 focus:ring-primary-500">
-                            </th>
-                            <th class="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-wider">Tanggal</th>
-                            <th class="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-wider">Pengirim</th>
-                            <th class="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-wider">Departemen</th>
-                            <th class="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-wider">Pertanyaan</th>
-                            <th class="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-wider text-right">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-secondary-200">
-                        @forelse($questions as $item)
-                            <tr class="hover:bg-secondary-50/50 transition-colors" :class="selectedIds.includes({{ $item->id }}) ? 'bg-primary-50/50' : ''">
-                                <td class="px-6 py-4">
-                                    <input type="checkbox" value="{{ $item->id }}" x-model="selectedIds" class="rounded border-secondary-300 text-primary-600 focus:ring-primary-500">
-                                </td>
-                                <td class="px-6 py-4 text-sm text-secondary-600 whitespace-nowrap">{{ $item->created_at->format('d/m/Y H:i') }}</td>
-                                <td class="px-6 py-4 text-sm font-medium text-secondary-900">
-                                    @if($item->customer)
-                                        <div class="flex flex-col">
-                                            <span class="font-bold">{{ $item->customer->nickname ?: $item->customer->name }}</span>
-                                            <span class="text-[10px] text-secondary-400">{{ $item->sender }}</span>
-                                        </div>
-                                    @else
-                                        {{ $item->sender ?? 'Anonim' }}
-                                    @endif
-                                </td>
-                                <td class="px-6 py-4 text-sm text-secondary-600">{{ $item->department->name }}</td>
-                                <td class="px-6 py-4 text-sm text-secondary-600 max-w-xs truncate" title="{{ $item->question }}">{{ $item->question }}</td>
-                                <td class="px-6 py-4">
-                                    @if($item->is_answered)
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                            Terjawab
-                                        </span>
-                                    @else
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                                            Menunggu
-                                        </span>
-                                    @endif
-                                </td>
-                                <td class="px-6 py-4 text-right space-x-2 whitespace-nowrap">
-                                    <button type="button" 
-                                        onclick="openAnswerModal({{ $item->id }}, '{{ addslashes($item->question) }}', '{{ addslashes($item->answer) }}')"
-                                        class="p-2 rounded-xl text-primary-600 hover:bg-primary-50 transition-all"
-                                        title="Beri Jawaban">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                    </button>
-                                    <form action="{{ route(Auth::user()->role . '.ai-agen.unanswered.destroy', $item->id) }}" method="POST" class="inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="p-2 rounded-xl text-red-500 hover:bg-red-50 transition-all" onclick="return confirm('Hapus pertanyaan ini?')">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        {{-- ═══ LIST SECTION ═══ --}}
+        <div class="space-y-4">
+            {{-- Desktop Table --}}
+            <div class="hidden md:block bg-white rounded-2xl shadow-sm border border-secondary-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-secondary-50 border-b border-secondary-200">
+                                <th class="px-6 py-4 w-10">
+                                    <input type="checkbox" x-model="allSelected" @change="toggleAll()" class="rounded border-secondary-300 text-primary-600 focus:ring-primary-500">
+                                </th>
+                                <th class="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-wider">Tanggal</th>
+                                <th class="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-wider">Pengirim</th>
+                                <th class="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-wider">Departemen</th>
+                                <th class="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-wider">Pertanyaan</th>
+                                <th class="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-wider text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-secondary-200">
+                            @forelse($questions as $item)
+                                <tr class="hover:bg-secondary-50/50 transition-colors" :class="selectedIds.includes({{ $item->id }}) ? 'bg-primary-50/50' : ''">
+                                    <td class="px-6 py-4">
+                                        <input type="checkbox" value="{{ $item->id }}" x-model="selectedIds" class="rounded border-secondary-300 text-primary-600 focus:ring-primary-500">
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-secondary-600 whitespace-nowrap">{{ $item->created_at->format('d/m/Y H:i') }}</td>
+                                    <td class="px-6 py-4 text-sm font-medium text-secondary-900">
+                                        @if($item->customer)
+                                            <div class="flex flex-col">
+                                                <span class="font-bold">{{ $item->customer->nickname ?: $item->customer->name }}</span>
+                                                <span class="text-[10px] text-secondary-400">{{ $item->sender }}</span>
+                                            </div>
+                                        @else
+                                            {{ $item->sender ?? 'Anonim' }}
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-secondary-600">{{ $item->department->name }}</td>
+                                    <td class="px-6 py-4 text-sm text-secondary-600 max-w-xs truncate" title="{{ $item->question }}">{{ $item->question }}</td>
+                                    <td class="px-6 py-4">
+                                        @if($item->is_answered)
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                Terjawab
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                                                Menunggu
+                                            </span>
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-4 text-right space-x-2 whitespace-nowrap">
+                                        <button type="button" 
+                                            onclick="openAnswerModal({{ $item->id }}, '{{ addslashes($item->question) }}', '{{ addslashes($item->answer) }}')"
+                                            class="p-2 rounded-xl text-primary-600 hover:bg-primary-50 transition-all"
+                                            title="Beri Jawaban">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                         </button>
-                                    </form>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="7" class="px-6 py-12 text-center text-secondary-400 italic">Data tidak ditemukan.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                                        <form action="{{ route(Auth::user()->role . '.ai-agen.unanswered.destroy', $item->id) }}" method="POST" class="inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="p-2 rounded-xl text-red-500 hover:bg-red-50 transition-all" onclick="return confirm('Hapus pertanyaan ini?')">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="7" class="px-6 py-12 text-center text-secondary-400 italic">Data tidak ditemukan.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {{-- Mobile Card List --}}
+            <div class="md:hidden space-y-4">
+                @forelse($questions as $item)
+                    <div class="bg-white rounded-2xl shadow-sm border border-secondary-200 p-5 relative transition-all"
+                         :class="selectedIds.includes({{ $item->id }}) ? 'border-primary-500 ring-1 ring-primary-500' : ''">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center gap-3">
+                                <input type="checkbox" value="{{ $item->id }}" x-model="selectedIds" class="rounded border-secondary-300 text-primary-600 focus:ring-primary-500">
+                                <div>
+                                    <p class="text-[10px] text-secondary-400 font-bold uppercase tracking-widest">{{ $item->created_at->format('d M Y, H:i') }}</p>
+                                    <h4 class="text-sm font-bold text-secondary-900">
+                                        @if($item->customer)
+                                            {{ $item->customer->nickname ?: $item->customer->name }}
+                                        @else
+                                            {{ $item->sender ?? 'Anonim' }}
+                                        @endif
+                                    </h4>
+                                </div>
+                            </div>
+                            @if($item->is_answered)
+                                <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-[9px] font-bold uppercase">Terjawab</span>
+                            @else
+                                <span class="px-2 py-1 bg-amber-100 text-amber-700 rounded text-[9px] font-bold uppercase tracking-wider">Menunggu</span>
+                            @endif
+                        </div>
+
+                        <div class="bg-secondary-50 rounded-xl p-3 mb-4">
+                            <p class="text-xs text-secondary-500 font-bold uppercase tracking-widest mb-1">Pertanyaan</p>
+                            <p class="text-sm text-secondary-700 line-clamp-3 italic">"{{ $item->question }}"</p>
+                        </div>
+
+                        <div class="flex items-center justify-between">
+                            <span class="px-2 py-1 bg-secondary-100 text-secondary-600 rounded text-[10px] font-bold uppercase">
+                                {{ $item->department->name }}
+                            </span>
+                            <div class="flex items-center gap-1">
+                                <button type="button" 
+                                    onclick="openAnswerModal({{ $item->id }}, '{{ addslashes($item->question) }}', '{{ addslashes($item->answer) }}')"
+                                    class="p-2 bg-primary-50 text-primary-600 rounded-xl">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                </button>
+                                <form action="{{ route(Auth::user()->role . '.ai-agen.unanswered.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Hapus pertanyaan ini?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="p-2 bg-red-50 text-red-500 rounded-xl">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <div class="bg-white p-12 rounded-2xl border border-secondary-200 text-center text-secondary-400 text-sm">
+                        Data tidak ditemukan.
+                    </div>
+                @endforelse
             </div>
             
             @if($questions->hasPages())
-                <div class="px-6 py-4 bg-secondary-50 border-t border-secondary-200">
+                <div class="px-6 py-4 bg-white rounded-2xl border border-secondary-200">
                     {{ $questions->links() }}
                 </div>
             @endif
@@ -132,29 +193,30 @@
              x-transition:leave-start="translate-y-0 opacity-100"
              x-transition:leave-end="translate-y-20 opacity-0"
              style="display: none;"
-             class="fixed bottom-8 left-1/2 -translate-x-1/2 z-40">
-            <div class="bg-secondary-900 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-6 border border-white/10 backdrop-blur-md">
-                <div class="flex items-center gap-3 border-r border-white/20 pr-6">
-                    <span class="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-sm font-bold" x-text="selectedIds.length"></span>
-                    <span class="text-sm font-medium">Terpilih</span>
+             class="fixed bottom-20 md:bottom-8 left-1/2 -translate-x-1/2 z-[90] w-[90%] md:w-auto">
+            <div class="bg-secondary-900/90 text-white px-4 md:px-6 py-4 rounded-2xl shadow-2xl flex items-center justify-between md:justify-start gap-4 md:gap-6 border border-white/10 backdrop-blur-md">
+                <div class="flex items-center gap-3 md:border-r md:border-white/20 md:pr-6">
+                    <span class="w-7 h-7 bg-primary-500 rounded-full flex items-center justify-center text-xs font-bold shadow-lg shadow-primary-500/40" x-text="selectedIds.length"></span>
+                    <span class="text-xs md:text-sm font-medium">Terpilih</span>
                 </div>
-                <div class="flex items-center gap-3">
-                    <button @click="bulkDelete()" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm font-bold transition-all flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                        Hapus Masal
+                <div class="flex items-center gap-2 md:gap-3">
+                    <button @click="bulkDelete()" class="px-3 md:px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl text-[11px] md:text-sm font-bold transition-all flex items-center gap-2">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        <span class="hidden sm:inline">Hapus Masal</span>
+                        <span class="sm:hidden">Hapus</span>
                     </button>
-                    <button @click="selectedIds = []; allSelected = false" class="text-sm text-secondary-400 hover:text-white transition-colors">Batal</button>
+                    <button @click="selectedIds = []; allSelected = false" class="text-xs text-secondary-400 hover:text-white transition-colors">Batal</button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Modal Answer -->
-    <div id="answerModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+    <div id="answerModal" class="fixed inset-0 z-[110] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen p-4 text-center">
             <div class="fixed inset-0 bg-secondary-900/60 backdrop-blur-sm transition-opacity" aria-hidden="true" onclick="closeAnswerModal()"></div>
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-            <div class="inline-block align-middle bg-white rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-secondary-200">
+            
+            <div class="inline-block align-middle bg-white rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:max-w-lg sm:w-full border border-secondary-200">
                 <form id="answerForm" method="POST">
                     @csrf
                     @method('PUT')
@@ -181,7 +243,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="bg-secondary-50 px-6 py-4 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+                    <div class="bg-secondary-50 px-6 py-4 pb-12 sm:pb-4 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
                         <button type="button" onclick="closeAnswerModal()" class="w-full sm:w-auto px-6 py-2.5 rounded-xl border border-secondary-300 bg-white text-sm font-bold text-secondary-700 hover:bg-secondary-50 transition-colors">Batal</button>
                         <button type="submit" class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-primary-600 text-sm font-bold text-white hover:bg-primary-700 shadow-lg shadow-primary-600/20 transition-all">Simpan Jawaban</button>
                     </div>

@@ -21,7 +21,7 @@
 
         <div class="min-h-screen bg-secondary-200 flex" x-data="{ sidebarOpen: true, mobileSidebar: false }">
 
-            {{-- ═══ SIDEBAR ═══ --}}
+            {{-- ═══ SIDEBAR (Desktop) ═══ --}}
             <aside
                 :class="sidebarOpen ? 'w-64' : 'w-20'"
                 class="hidden lg:flex lg:flex-col bg-primary-900 text-white transition-all duration-300 ease-in-out fixed inset-y-0 left-0 z-30">
@@ -63,7 +63,9 @@
                               {{ request()->routeIs('*.ai-agen.knowledge.index') ? 'bg-primary-700 text-white' : 'text-primary-300 hover:bg-primary-800 hover:text-white' }}">
                         <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
                         <span x-show="sidebarOpen" x-cloak>Knowledge Base</span>
-                                <a href="{{ auth()->user()->isAdmin() ? route('admin.ai-agen.connections.index') : route('pengguna.ai-agen.connections.index') }}"
+                    </a>
+
+                    <a href="{{ auth()->user()->isAdmin() ? route('admin.ai-agen.connections.index') : route('pengguna.ai-agen.connections.index') }}"
                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
                                {{ request()->routeIs('*.ai-agen.connections.index') ? 'bg-primary-700 text-white' : 'text-primary-300 hover:bg-primary-800 hover:text-white' }}">
                         <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
@@ -72,12 +74,12 @@
 
                     <a href="{{ auth()->user()->isAdmin() ? route('admin.ai-agen.unanswered.index') : route('pengguna.ai-agen.unanswered.index') }}"
                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
-                                {{ request()->routeIs('*.unanswered.*') ? 'bg-primary-700 text-white' : 'text-primary-300 hover:bg-primary-800 hover:text-white' }}">
+                                 {{ request()->routeIs('*.unanswered.*') ? 'bg-primary-700 text-white' : 'text-primary-300 hover:bg-primary-800 hover:text-white' }}">
                         <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                         <span x-show="sidebarOpen" x-cloak>Pesan Tidak Terjawab</span>
                     </a>
 
-                    {{-- Laporan Menu Dropdown --}}
+                    {{-- Laporan Menu --}}
                     <div x-data="{ open: {{ request()->routeIs('*.laporan.*') ? 'true' : 'false' }} }">
                         <button @click="open = !open"
                                 class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
@@ -95,7 +97,7 @@
                             </a>
                         </div>
                     </div>
-                </nav>        </nav>
+                </nav>
 
                 {{-- User Info --}}
                 <div class="border-t border-primary-800 p-4">
@@ -118,63 +120,87 @@
             </aside>
 
             {{-- ═══ MOBILE SIDEBAR OVERLAY ═══ --}}
-            <div x-show="mobileSidebar" x-cloak class="fixed inset-0 z-40 lg:hidden" @click="mobileSidebar = false">
+            <div x-show="mobileSidebar" x-cloak class="fixed inset-0 z-[60] lg:hidden" @click="mobileSidebar = false">
                 <div class="fixed inset-0 bg-black/50" x-transition.opacity></div>
             </div>
+            
+            {{-- ═══ MOBILE SIDEBAR DRAWER ═══ --}}
             <aside x-show="mobileSidebar" x-cloak
                    x-transition:enter="transition ease-out duration-300" x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0"
                    x-transition:leave="transition ease-in duration-200" x-transition:leave-start="translate-x-0" x-transition:leave-end="-translate-x-full"
-                   class="fixed inset-y-0 left-0 z-50 w-64 bg-primary-900 text-white lg:hidden">
+                   class="fixed inset-y-0 left-0 z-[70] w-64 bg-primary-900 text-white lg:hidden flex flex-col">
                 <div class="flex items-center justify-between h-16 px-4 border-b border-primary-800">
                     <a href="#" class="flex items-center gap-3">
                         <div class="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center"><svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3z"/></svg></div>
-                        <span class="text-lg font-bold">AIAGEN</span>
+                        <span class="text-lg font-bold uppercase tracking-widest">AIAGEN</span>
                     </a>
                     <button @click="mobileSidebar = false" class="text-primary-400 hover:text-white">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
                 <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-                    <a href="{{ auth()->user()->isAdmin() ? route('admin.ai-agen.index') : route('pengguna.ai-agen.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-primary-300 hover:bg-primary-800 hover:text-white">
+                    <a href="{{ auth()->user()->isAdmin() ? route('admin.ai-agen.index') : route('pengguna.ai-agen.index') }}" 
+                       class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('*.ai-agen.index') ? 'bg-primary-700 text-white' : 'text-primary-300 hover:bg-primary-800 hover:text-white' }}">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                         <span>Dashboard</span>
                     </a>
-                    <a href="{{ auth()->user()->isAdmin() ? route('admin.ai-agen.departments.index') : route('pengguna.ai-agen.departments.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-primary-300 hover:bg-primary-800 hover:text-white">
+                    <a href="{{ auth()->user()->isAdmin() ? route('admin.ai-agen.departments.index') : route('pengguna.ai-agen.departments.index') }}" 
+                       class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('*.departments.*') ? 'bg-primary-700 text-white' : 'text-primary-300 hover:bg-primary-800 hover:text-white' }}">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                         <span>Departemen</span>
                     </a>
-                    <a href="{{ auth()->user()->isAdmin() ? route('admin.ai-agen.knowledge.index') : route('pengguna.ai-agen.knowledge.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-primary-300 hover:bg-primary-800 hover:text-white">
+                    <a href="{{ auth()->user()->isAdmin() ? route('admin.ai-agen.knowledge.index') : route('pengguna.ai-agen.knowledge.index') }}" 
+                       class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('*.knowledge.*') ? 'bg-primary-700 text-white' : 'text-primary-300 hover:bg-primary-800 hover:text-white' }}">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
                         <span>Knowledge Base</span>
                     </a>
-                    <a href="{{ auth()->user()->isAdmin() ? route('admin.ai-agen.connections.index') : route('pengguna.ai-agen.connections.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-primary-300 hover:bg-primary-800 hover:text-white">
+                    <a href="{{ auth()->user()->isAdmin() ? route('admin.ai-agen.connections.index') : route('pengguna.ai-agen.connections.index') }}" 
+                       class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('*.connections.*') ? 'bg-primary-700 text-white' : 'text-primary-300 hover:bg-primary-800 hover:text-white' }}">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                         <span>Connection</span>
                     </a>
-                    <a href="{{ auth()->user()->isAdmin() ? route('admin.ai-agen.unanswered.index') : route('pengguna.ai-agen.unanswered.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('*.unanswered.index') ? 'bg-primary-700 text-white' : 'text-primary-300 hover:bg-primary-800 hover:text-white' }}">
+                    <a href="{{ auth()->user()->isAdmin() ? route('admin.ai-agen.unanswered.index') : route('pengguna.ai-agen.unanswered.index') }}" 
+                       class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('*.unanswered.*') ? 'bg-primary-700 text-white' : 'text-primary-300 hover:bg-primary-800 hover:text-white' }}">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                         <span>Pesan Tidak Terjawab</span>
                     </a>
-                    {{-- Laporan Menu Dropdown (Mobile) --}}
-                    <div x-data="{ open: {{ request()->routeIs('*.laporan.*') ? 'true' : 'false' }} }">
-                        <button @click="open = !open"
-                                class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
-                                       {{ request()->routeIs('*.laporan.*') ? 'bg-primary-800 text-white' : 'text-primary-300 hover:bg-primary-800 hover:text-white' }}">
-                            <div class="flex items-center gap-3">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                <span>Laporan</span>
-                            </div>
-                            <svg :class="open ? 'rotate-180' : ''" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                        </button>
-                        <div x-show="open" x-cloak x-transition class="mt-1 ml-4 pl-4 border-l border-primary-700 space-y-1">
-                            <a href="{{ auth()->user()->isAdmin() ? '#' : route('pengguna.laporan.interaksi') }}"
-                               class="block px-3 py-2 rounded-md text-xs font-medium {{ request()->routeIs('*.laporan.interaksi') ? 'text-white bg-primary-700' : 'text-primary-400 hover:text-white hover:bg-primary-800' }}">
-                                Laporan Interaksi
-                            </a>
-                        </div>
-                    </div>
                 </nav>
             </aside>
+
+            {{-- ═══ MOBILE BOTTOM NAV (Floating Pill) ═══ --}}
+            <div class="lg:hidden fixed bottom-4 left-4 right-4 z-[100] bg-white/90 backdrop-blur-xl border border-white/50 px-6 py-2.5 flex items-center justify-around shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-3xl transition-all duration-500">
+                <a href="{{ auth()->user()->isAdmin() ? route('admin.dashboard') : route('pengguna.dashboard') }}" 
+                   class="relative flex flex-col items-center gap-1 transition-all duration-300 group {{ request()->routeIs('*.dashboard') && !request()->is('*/ai-agen*') && !request()->is('*/laporan*') && !request()->is('*/pengaturan*') ? 'text-primary-600 scale-110 -translate-y-1' : 'text-secondary-400 hover:text-primary-500 hover:scale-105' }}">
+                    <div class="p-1.5 rounded-2xl transition-all duration-300 {{ request()->routeIs('*.dashboard') && !request()->is('*/ai-agen*') && !request()->is('*/laporan*') && !request()->is('*/pengaturan*') ? 'bg-primary-100/50' : 'group-hover:bg-secondary-50' }}">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    </div>
+                    <span class="text-[9px] font-bold tracking-wider opacity-90">BERANDA</span>
+                </a>
+                
+                <button @click="mobileSidebar = !mobileSidebar" 
+                        class="relative flex flex-col items-center gap-1 transition-all duration-300 group {{ $mobileSidebar ?? false ? 'text-primary-600 scale-110 -translate-y-1' : 'text-secondary-400 hover:text-primary-500 hover:scale-105' }}">
+                    <div class="p-1.5 rounded-2xl transition-all duration-300 group-hover:bg-secondary-50" :class="mobileSidebar ? 'bg-primary-100/50' : ''">
+                        <svg class="w-6 h-6 transition-transform duration-300" :class="mobileSidebar ? 'rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                    </div>
+                    <span class="text-[9px] font-bold tracking-wider opacity-90">MENU</span>
+                </button>
+
+                <a href="{{ auth()->user()->isAdmin() ? route('admin.ai-agen.index') : route('pengguna.ai-agen.index') }}" 
+                   class="relative flex flex-col items-center gap-1 transition-all duration-300 group {{ request()->is('*/ai-agen*') || request()->is('*/laporan*') ? 'text-primary-600 scale-110 -translate-y-1' : 'text-secondary-400 hover:text-primary-500 hover:scale-105' }}">
+                    <div class="p-1.5 rounded-2xl transition-all duration-300 {{ request()->is('*/ai-agen*') || request()->is('*/laporan*') ? 'bg-primary-100/50' : 'group-hover:bg-secondary-50' }}">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    </div>
+                    <span class="text-[9px] font-bold tracking-wider opacity-90">AI AGEN</span>
+                </a>
+                
+                <a href="{{ auth()->user()->isAdmin() ? route('admin.pengaturan.index') : route('pengguna.pengaturan.index') }}" 
+                   class="relative flex flex-col items-center gap-1 transition-all duration-300 group {{ request()->is('*/pengaturan*') || request()->routeIs('*.profile.*') ? 'text-primary-600 scale-110 -translate-y-1' : 'text-secondary-400 hover:text-primary-500 hover:scale-105' }}">
+                    <div class="p-1.5 rounded-2xl transition-all duration-300 {{ request()->is('*/pengaturan*') || request()->routeIs('*.profile.*') ? 'bg-primary-100/50' : 'group-hover:bg-secondary-50' }}">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    </div>
+                    <span class="text-[9px] font-bold tracking-wider opacity-90">SETTING</span>
+                </a>
+            </div>
 
             {{-- ═══ MAIN CONTENT ═══ --}}
             <div class="flex-1 flex flex-col transition-all duration-300 min-w-0 overflow-hidden" :class="sidebarOpen ? 'lg:ml-64' : 'lg:ml-20'">
@@ -186,11 +212,11 @@
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                         </button>
                         @isset($header)
-                            <h1 class="text-lg font-semibold text-secondary-900">{{ $header }}</h1>
+                            <h1 class="text-lg font-semibold text-secondary-900 uppercase tracking-tight">{{ $header }}</h1>
                         @endisset
                     </div>
 
-                    <div class="flex items-center gap-2">
+                    <div class="hidden lg:flex items-center gap-2">
                         <a href="{{ auth()->user()->isAdmin() ? route('admin.dashboard') : route('pengguna.dashboard') }}" 
                            class="px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors {{ request()->routeIs('*.dashboard') && !request()->is('*/ai-agen*') && !request()->is('*/pengaturan*') && !request()->is('*/laporan*') ? 'bg-primary-100 text-primary-700' : 'text-secondary-600 hover:bg-secondary-100' }}">
                             Dashboard
@@ -210,7 +236,7 @@
                 </header>
 
                 {{-- Page Content --}}
-                <main class="flex-1 p-4 sm:p-6 lg:p-8">
+                <main class="flex-1 p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8">
                     {{ $slot }}
                 </main>
             </div>

@@ -47,6 +47,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
         
         Route::get('/knowledge', [KnowledgeController::class, 'index'])->name('knowledge.index');
         Route::post('/knowledge', [KnowledgeController::class, 'store'])->name('knowledge.store');
+        Route::get('/knowledge/{knowledgeFile}/download', [KnowledgeController::class, 'download'])->name('knowledge.download');
         Route::delete('/knowledge/{knowledgeFile}', [KnowledgeController::class, 'destroy'])->name('knowledge.destroy');
 
         Route::get('/departments', [DepartmentController::class, 'index'])->name('departments.index');
@@ -100,12 +101,11 @@ Route::middleware(['auth', 'verified', 'role:pengguna'])->prefix('pengguna')->na
 
     // AI Agen Section
     Route::prefix('ai-agen')->name('ai-agen.')->group(function () {
-        Route::get('/', function () {
-            return view('pengguna.ai-agen.index');
-        })->name('index');
+        Route::get('/', [DashboardController::class, 'aiAgenIndex'])->name('index');
 
         Route::get('/knowledge', [KnowledgeController::class, 'index'])->name('knowledge.index');
         Route::post('/knowledge', [KnowledgeController::class, 'store'])->name('knowledge.store');
+        Route::get('/knowledge/{knowledgeFile}/download', [KnowledgeController::class, 'download'])->name('knowledge.download');
         Route::delete('/knowledge/{knowledgeFile}', [KnowledgeController::class, 'destroy'])->name('knowledge.destroy');
 
         Route::get('/departments', [DepartmentController::class, 'index'])->name('departments.index');

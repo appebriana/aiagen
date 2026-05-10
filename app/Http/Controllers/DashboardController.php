@@ -93,4 +93,19 @@ class DashboardController extends Controller
             'chartData', 'totalDepartments', 'totalTokens'
         ));
     }
+
+    public function aiAgenIndex()
+    {
+        $userId = auth()->id();
+        $deptIds = Department::where('user_id', $userId)->pluck('id');
+        
+        $stats = [
+            'total_interactions' => DB::table('ai_chat_logs')->whereIn('department_id', $deptIds)->count(),
+            'today_interactions' => DB::table('ai_chat_logs')->whereIn('department_id', $deptIds)->whereDate('created_at', Carbon::today())->count(),
+            'total_departments' => $deptIds->count(),
+            'total_knowledge' => DB::table('knowledge_files')->whereIn('department_id', $deptIds)->count(),
+        ];
+
+        return view('pengguna.ai-agen.index', compact('stats'));
+    }
 }

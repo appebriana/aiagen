@@ -4,26 +4,64 @@
     </x-slot>
 
     <div class="space-y-6">
+        {{-- Stats Overview --}}
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="bg-white p-6 rounded-2xl border border-secondary-200 shadow-sm">
+                <p class="text-xs font-bold text-secondary-500 uppercase tracking-wider mb-1">Total Interaksi</p>
+                <h4 class="text-2xl font-black text-secondary-900">{{ number_format($stats['total_interactions']) }}</h4>
+            </div>
+            <div class="bg-white p-6 rounded-2xl border border-secondary-200 shadow-sm">
+                <p class="text-xs font-bold text-primary-600 uppercase tracking-wider mb-1">Interaksi Hari Ini</p>
+                <h4 class="text-2xl font-black text-primary-600">{{ number_format($stats['today_interactions']) }}</h4>
+            </div>
+            <div class="bg-white p-6 rounded-2xl border border-secondary-200 shadow-sm">
+                <p class="text-xs font-bold text-secondary-500 uppercase tracking-wider mb-1">Departemen</p>
+                <h4 class="text-2xl font-black text-secondary-900">{{ number_format($stats['total_departments']) }}</h4>
+            </div>
+            <div class="bg-white p-6 rounded-2xl border border-secondary-200 shadow-sm">
+                <p class="text-xs font-bold text-secondary-500 uppercase tracking-wider mb-1">File Knowledge</p>
+                <h4 class="text-2xl font-black text-secondary-900">{{ number_format($stats['total_knowledge']) }}</h4>
+            </div>
+        </div>
+
         {{-- Hero Section --}}
-        <div class="bg-white rounded-2xl shadow-sm border border-secondary-200 overflow-hidden">
+        <div class="bg-white rounded-2xl shadow-sm border border-secondary-200 overflow-hidden bg-gradient-to-br from-white to-primary-50/30">
             <div class="p-8 flex flex-col md:flex-row items-center gap-8">
-                <div class="w-24 h-24 bg-primary-100 text-primary-600 rounded-3xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-primary-500/20">
+                <div class="w-24 h-24 bg-primary-600 text-white rounded-3xl flex items-center justify-center flex-shrink-0 shadow-xl shadow-primary-600/20">
                     <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                 </div>
                 <div class="text-center md:text-left flex-1">
                     <h2 class="text-2xl font-bold text-secondary-900 mb-2">Halo, {{ Auth::user()->name }}!</h2>
-                    <p class="text-secondary-500 max-w-2xl">Mulai gunakan AI Agen untuk membalas pesan pelanggan secara otomatis. Saat ini kami menyediakan integrasi khusus untuk <strong>WhatsApp</strong>.</p>
+                    <p class="text-secondary-500 max-w-2xl leading-relaxed text-sm">Kelola kecerdasan buatan Anda untuk melayani pelanggan secara otomatis melalui WhatsApp. Semakin banyak data yang Anda berikan, semakin pintar AI Anda.</p>
                 </div>
                 <div class="flex-shrink-0">
                     <div class="px-4 py-2 bg-primary-100 text-primary-700 rounded-full text-xs font-bold flex items-center gap-2">
-                        Member {{ ucfirst(Auth::user()->role) }}
+                        <span class="w-2 h-2 bg-primary-600 rounded-full animate-pulse"></span>
+                        AI Agent Active
                     </div>
                 </div>
             </div>
         </div>
 
-        {{-- Platform Grid --}}
+        {{-- Platform & Tools Grid --}}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {{-- Laporan Interaksi (New & Featured) --}}
+            <div class="bg-primary-600 rounded-2xl shadow-lg shadow-primary-600/20 p-6 relative overflow-hidden group hover:-translate-y-1 transition-all duration-300">
+                <div class="absolute -right-4 -bottom-4 text-white/10 group-hover:scale-110 transition-transform">
+                    <svg class="w-32 h-32" fill="currentColor" viewBox="0 0 24 24"><path d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                </div>
+                <div class="w-12 h-12 bg-white/20 backdrop-blur-md text-white rounded-xl flex items-center justify-center mb-4">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-2">Laporan Interaksi</h3>
+                <p class="text-sm text-primary-100 mb-6 leading-relaxed">Lihat statistik performa AI, grafik harian, hingga detail riwayat percakapan pelanggan.</p>
+                <div class="flex items-center justify-between">
+                    <a href="{{ route('pengguna.laporan.interaksi') }}" class="inline-flex items-center px-4 py-2 bg-white text-primary-600 text-xs font-bold rounded-lg hover:bg-primary-50 transition-colors">
+                        Buka Laporan &rarr;
+                    </a>
+                </div>
+            </div>
+
             {{-- Knowledge Base (Active for user) --}}
             <div class="bg-white rounded-2xl shadow-sm border border-secondary-200 p-6 relative overflow-hidden group hover:shadow-xl transition-all duration-300">
                 <div class="absolute top-0 right-0 p-3">

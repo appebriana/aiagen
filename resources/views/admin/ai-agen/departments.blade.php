@@ -23,7 +23,7 @@
                 <p class="text-sm text-secondary-500">Kelola unit kerja dan pemisahan pengetahuan AI.</p>
             </div>
             <button @click="showCreateModal = true" 
-                    class="px-5 py-2.5 bg-primary-600 text-white text-sm font-bold rounded-xl hover:bg-primary-700 transition-all shadow-lg shadow-primary-500/20 flex items-center gap-2">
+                    class="w-full md:w-auto px-5 py-2.5 bg-primary-600 text-white text-sm font-bold rounded-xl hover:bg-primary-700 transition-all shadow-lg shadow-primary-500/20 flex items-center justify-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                 Tambah Departemen
             </button>
@@ -55,110 +55,180 @@
         </div>
         @endif
 
-        {{-- Table Section --}}
-        <div class="bg-white rounded-2xl shadow-sm border border-secondary-200 overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-secondary-50/50 border-b border-secondary-100">
-                            @if(auth()->user()->isAdmin())
-                            <th class="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-wider">Pemilik</th>
-                            @endif
-                            <th class="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-wider">Nama Departemen</th>
-                            <th class="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-wider text-center">Data</th>
-                            <th class="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-wider text-center">AI Agent</th>
-                            <th class="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-wider text-right">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-secondary-100">
-                        @forelse($departments as $dept)
-                            <tr class="hover:bg-secondary-50/30 transition-colors group">
+        {{-- Table/Card Section --}}
+        <div class="space-y-4">
+            {{-- Desktop Table --}}
+            <div class="hidden md:block bg-white rounded-2xl shadow-sm border border-secondary-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-secondary-50/50 border-b border-secondary-100">
                                 @if(auth()->user()->isAdmin())
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex items-center gap-2">
-                                        <div class="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 text-[10px] font-bold">
-                                            {{ strtoupper(substr($dept->user->name, 0, 1)) }}
-                                        </div>
-                                        <span class="text-sm font-medium text-secondary-900">{{ $dept->user->name }}</span>
-                                    </div>
-                                </td>
+                                <th class="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-wider">Pemilik</th>
                                 @endif
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="text-sm font-bold text-secondary-900">{{ $dept->name }}</span>
-                                    <p class="text-[10px] text-secondary-400">{{ $dept->description ?: 'Tanpa keterangan' }}</p>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <div class="flex items-center justify-center gap-4">
-                                        <div class="text-center" title="Dokumen Knowledge">
-                                            <span class="text-xs font-bold text-secondary-900">{{ $dept->knowledge_files_count }}</span>
-                                            <p class="text-[8px] text-secondary-400 uppercase font-bold">File</p>
+                                <th class="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-wider">Nama Departemen</th>
+                                <th class="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-wider text-center">Data</th>
+                                <th class="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-wider text-center">AI Agent</th>
+                                <th class="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-wider text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-secondary-100">
+                            @forelse($departments as $dept)
+                                <tr class="hover:bg-secondary-50/30 transition-colors group">
+                                    @if(auth()->user()->isAdmin())
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 text-[10px] font-bold">
+                                                {{ strtoupper(substr($dept->user->name, 0, 1)) }}
+                                            </div>
+                                            <span class="text-sm font-medium text-secondary-900">{{ $dept->user->name }}</span>
                                         </div>
-                                        <div class="text-center" title="Device WhatsApp">
-                                            <span class="text-xs font-bold text-secondary-900">{{ $dept->whatsapp_devices_count }}</span>
-                                            <p class="text-[8px] text-secondary-400 uppercase font-bold">Device</p>
+                                    </td>
+                                    @endif
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="text-sm font-bold text-secondary-900">{{ $dept->name }}</span>
+                                        <p class="text-[10px] text-secondary-400">{{ $dept->description ?: 'Tanpa keterangan' }}</p>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center justify-center gap-4">
+                                            <div class="text-center" title="Dokumen Knowledge">
+                                                <span class="text-xs font-bold text-secondary-900">{{ $dept->knowledge_files_count }}</span>
+                                                <p class="text-[8px] text-secondary-400 uppercase font-bold">File</p>
+                                            </div>
+                                            <div class="text-center" title="Device WhatsApp">
+                                                <span class="text-xs font-bold text-secondary-900">{{ $dept->whatsapp_devices_count }}</span>
+                                                <p class="text-[8px] text-secondary-400 uppercase font-bold">Device</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 text-center">
-                                    <div class="flex flex-col items-center">
-                                        <span class="text-[10px] font-bold text-primary-600">{{ $dept->ai_name ?: 'AI Agent' }}</span>
-                                        @if($dept->reply_to_groups)
-                                            <span class="px-1.5 py-0.5 bg-blue-100 text-blue-600 rounded text-[8px] font-bold uppercase mt-1">Group OK</span>
-                                        @endif
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 text-right">
-                                    <div class="flex items-center justify-end gap-1 transition-opacity">
-                                        <button @click="openEdit({ 
-                                            id: '{{ $dept->id }}', 
-                                            name: '{{ $dept->name }}', 
-                                            description: '{{ $dept->description }}', 
-                                            user_id: '{{ $dept->user_id }}',
-                                            ai_name: '{{ $dept->ai_name }}',
-                                            ai_job_description: '{{ $dept->ai_job_description }}',
-                                            reply_to_groups: {{ $dept->reply_to_groups ? 'true' : 'false' }},
-                                            is_24_hours: {{ $dept->is_24_hours ? 'true' : 'false' }},
-                                            open_time: '{{ $dept->open_time }}',
-                                            close_time: '{{ $dept->close_time }}'
-                                        })" 
-                                                class="p-2 text-secondary-400 hover:text-primary-600 transition-colors" title="Pengaturan AI & Departemen">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                        </button>
-                                        <form action="{{ auth()->user()->isAdmin() ? route('admin.ai-agen.departments.destroy', $dept) : route('pengguna.ai-agen.departments.destroy', $dept) }}" method="POST" onsubmit="return confirm('Hapus departemen ini?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="p-2 text-secondary-400 hover:text-red-500 transition-colors">
-                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                    </td>
+                                    <td class="px-6 py-4 text-center">
+                                        <div class="flex flex-col items-center">
+                                            <span class="text-[10px] font-bold text-primary-600">{{ $dept->ai_name ?: 'AI Agent' }}</span>
+                                            @if($dept->reply_to_groups)
+                                                <span class="px-1.5 py-0.5 bg-blue-100 text-blue-600 rounded text-[8px] font-bold uppercase mt-1">Group OK</span>
+                                            @endif
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 text-right">
+                                        <div class="flex items-center justify-end gap-1">
+                                            <button @click="openEdit({ 
+                                                id: '{{ $dept->id }}', 
+                                                name: '{{ $dept->name }}', 
+                                                description: '{{ $dept->description }}', 
+                                                user_id: '{{ $dept->user_id }}',
+                                                ai_name: '{{ $dept->ai_name }}',
+                                                ai_job_description: '{{ $dept->ai_job_description }}',
+                                                reply_to_groups: {{ $dept->reply_to_groups ? 'true' : 'false' }},
+                                                is_24_hours: {{ $dept->is_24_hours ? 'true' : 'false' }},
+                                                open_time: '{{ $dept->open_time }}',
+                                                close_time: '{{ $dept->close_time }}'
+                                            })" 
+                                                    class="p-2 text-secondary-400 hover:text-primary-600 transition-colors">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                             </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="{{ auth()->user()->isAdmin() ? 5 : 4 }}" class="px-6 py-12 text-center text-secondary-400">
-                                    Belum ada departemen yang terdaftar.
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                                            <form action="{{ auth()->user()->isAdmin() ? route('admin.ai-agen.departments.destroy', $dept) : route('pengguna.ai-agen.departments.destroy', $dept) }}" method="POST" onsubmit="return confirm('Hapus departemen ini?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="p-2 text-secondary-400 hover:text-red-500 transition-colors">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="{{ auth()->user()->isAdmin() ? 5 : 4 }}" class="px-6 py-12 text-center text-secondary-400">
+                                        Belum ada departemen yang terdaftar.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {{-- Mobile Card List --}}
+            <div class="grid grid-cols-1 gap-4 md:hidden">
+                @forelse($departments as $dept)
+                    <div class="bg-white p-5 rounded-2xl border border-secondary-200 shadow-sm space-y-4">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <h3 class="text-base font-bold text-secondary-900">{{ $dept->name }}</h3>
+                                <p class="text-xs text-secondary-500 mt-0.5 line-clamp-2">{{ $dept->description ?: 'Tanpa keterangan' }}</p>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <button @click="openEdit({ 
+                                    id: '{{ $dept->id }}', 
+                                    name: '{{ $dept->name }}', 
+                                    description: '{{ $dept->description }}', 
+                                    user_id: '{{ $dept->user_id }}',
+                                    ai_name: '{{ $dept->ai_name }}',
+                                    ai_job_description: '{{ $dept->ai_job_description }}',
+                                    reply_to_groups: {{ $dept->reply_to_groups ? 'true' : 'false' }},
+                                    is_24_hours: {{ $dept->is_24_hours ? 'true' : 'false' }},
+                                    open_time: '{{ $dept->open_time }}',
+                                    close_time: '{{ $dept->close_time }}'
+                                })" 
+                                        class="p-2 bg-primary-50 text-primary-600 rounded-lg">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                </button>
+                                <form action="{{ auth()->user()->isAdmin() ? route('admin.ai-agen.departments.destroy', $dept) : route('pengguna.ai-agen.departments.destroy', $dept) }}" method="POST" onsubmit="return confirm('Hapus departemen ini?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="p-2 bg-red-50 text-red-500 rounded-lg">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3 pt-3 border-t border-secondary-100">
+                            <div class="bg-secondary-50 p-2.5 rounded-xl text-center">
+                                <p class="text-[9px] font-bold text-secondary-400 uppercase tracking-wider mb-1">Knowledge</p>
+                                <span class="text-sm font-black text-secondary-900">{{ $dept->knowledge_files_count }} <span class="text-[10px] font-medium text-secondary-500">File</span></span>
+                            </div>
+                            <div class="bg-secondary-50 p-2.5 rounded-xl text-center">
+                                <p class="text-[9px] font-bold text-secondary-400 uppercase tracking-wider mb-1">WhatsApp</p>
+                                <span class="text-sm font-black text-secondary-900">{{ $dept->whatsapp_devices_count }} <span class="text-[10px] font-medium text-secondary-500">Device</span></span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between pt-1">
+                            <div class="flex items-center gap-2">
+                                <div class="w-6 h-6 rounded-full bg-primary-600 flex items-center justify-center text-[10px] font-bold text-white shadow-sm shadow-primary-600/30">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                </div>
+                                <span class="text-xs font-bold text-primary-700">{{ $dept->ai_name ?: 'AI Agent' }}</span>
+                            </div>
+                            @if(auth()->user()->isAdmin())
+                                <div class="flex items-center gap-1.5 bg-secondary-100 px-2.5 py-1 rounded-lg">
+                                    <span class="text-[10px] font-medium text-secondary-600">Owner: <span class="font-bold">{{ $dept->user->name }}</span></span>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                @empty
+                    <div class="bg-white p-12 rounded-2xl border border-secondary-200 text-center text-secondary-400 text-sm">
+                        Belum ada departemen yang terdaftar.
+                    </div>
+                @endforelse
             </div>
         </div>
 
         {{-- Create Modal --}}
-        <div x-show="showCreateModal" class="fixed inset-0 z-50 overflow-y-auto" x-cloak>
+        <div x-show="showCreateModal" class="fixed inset-0 z-[110] overflow-y-auto" x-cloak>
             <div class="flex items-center justify-center min-h-screen p-4 text-center">
                 <div class="fixed inset-0 bg-secondary-900/60 transition-opacity" @click="showCreateModal = false"></div>
                 <div class="inline-block align-middle bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:max-w-xl sm:w-full">
                     <form action="{{ auth()->user()->isAdmin() ? route('admin.ai-agen.departments.store') : route('pengguna.ai-agen.departments.store') }}" method="POST">
                         @csrf
-                        <div class="bg-white px-6 py-6">
-                            <h3 class="text-lg font-bold text-secondary-900 mb-4">Tambah Departemen Baru</h3>
+                        <div class="px-5 py-5 sm:px-6 sm:py-6">
+                            <h3 class="text-base sm:text-lg font-bold text-secondary-900 mb-4">Tambah Departemen Baru</h3>
                             <div class="space-y-4">
                                 @if(auth()->user()->isAdmin())
                                 <div>
-                                    <label class="block text-xs font-bold text-secondary-700 uppercase mb-2">Pemilik Departemen <span class="text-red-500">*</span></label>
+                                    <label class="block text-[10px] font-bold text-secondary-700 uppercase mb-1.5 ml-1">Pemilik Departemen <span class="text-red-500">*</span></label>
                                     <select name="user_id" required class="w-full bg-secondary-50 border border-secondary-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500">
                                         <option value="">-- Pilih User --</option>
                                         @foreach($users as $user)
@@ -168,18 +238,18 @@
                                 </div>
                                 @endif
                                 <div>
-                                    <label class="block text-xs font-bold text-secondary-700 uppercase mb-2">Nama Departemen <span class="text-red-500">*</span></label>
+                                    <label class="block text-[10px] font-bold text-secondary-700 uppercase mb-1.5 ml-1">Nama Departemen <span class="text-red-500">*</span></label>
                                     <input type="text" name="name" required placeholder="Contoh: Sales Team"
                                            class="w-full bg-secondary-50 border border-secondary-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500">
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-secondary-700 uppercase mb-2">Keterangan</label>
+                                    <label class="block text-[10px] font-bold text-secondary-700 uppercase mb-1.5 ml-1">Keterangan</label>
                                     <textarea name="description" rows="2" placeholder="Jelaskan tugas departemen ini..."
                                               class="w-full bg-secondary-50 border border-secondary-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500"></textarea>
                                 </div>
                             </div>
                         </div>
-                        <div class="bg-secondary-50 px-6 py-4 flex justify-end gap-3">
+                        <div class="bg-secondary-50 px-6 py-4 pb-10 sm:pb-4 flex justify-end gap-3">
                             <button type="button" @click="showCreateModal = false" class="text-sm font-bold text-secondary-500">Batal</button>
                             <button type="submit" class="px-6 py-2 bg-primary-600 text-white text-sm font-bold rounded-xl hover:bg-primary-700">Simpan</button>
                         </div>
@@ -189,18 +259,20 @@
         </div>
 
         {{-- Edit & Settings Modal --}}
-        <div x-show="showEditModal" class="fixed inset-0 z-50 overflow-y-auto" x-cloak>
+        <div x-show="showEditModal" class="fixed inset-0 z-[110] overflow-y-auto" x-cloak>
             <div class="flex items-center justify-center min-h-screen p-4 text-center">
                 <div class="fixed inset-0 bg-secondary-900/60 transition-opacity" @click="showEditModal = false"></div>
                 <div class="inline-block align-middle bg-white rounded-2xl text-left shadow-xl transform transition-all sm:max-w-xl sm:w-full">
                     <form :action="('{{ auth()->user()->isAdmin() ? route('admin.ai-agen.departments.update', ':id') : route('pengguna.ai-agen.departments.update', ':id') }}').replace(':id', currentDept.id)" method="POST">
                         @csrf
                         @method('PUT')
-                        <div class="max-h-[80vh] overflow-y-auto">
-                            <div class="bg-white px-6 py-6">
-                                <h3 class="text-lg font-bold text-secondary-900 mb-6 flex items-center gap-2">
-                                    <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                    Pengaturan Departemen & AI
+                        <div class="max-h-[85vh] overflow-y-auto">
+                            <div class="px-5 py-5 sm:px-6 sm:py-6">
+                                <h3 class="text-base sm:text-lg font-bold text-secondary-900 mb-6 flex items-center gap-2">
+                                    <div class="p-2 bg-primary-100 rounded-lg">
+                                        <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                    </div>
+                                    <span>Pengaturan Departemen & AI</span>
                                 </h3>
                                 
                                 <div class="space-y-6">
@@ -298,7 +370,7 @@
                                     </div>
                             </div>
                         </div>
-                        <div class="bg-secondary-50 px-6 py-4 flex justify-end gap-3">
+                        <div class="bg-secondary-50 px-6 py-4 pb-10 sm:pb-4 flex justify-end gap-3">
                             <button type="button" @click="showEditModal = false" class="text-sm font-bold text-secondary-500">Batal</button>
                             <button type="submit" class="px-6 py-2 bg-primary-600 text-white text-sm font-bold rounded-xl hover:bg-primary-700 shadow-lg shadow-primary-500/20">Simpan Perubahan</button>
                         </div>

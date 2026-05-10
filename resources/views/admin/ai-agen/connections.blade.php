@@ -7,7 +7,7 @@
 
     <div class="space-y-6" x-data="connectionManager()">
         <!-- Tab Navigation -->
-        <div class="bg-white rounded-2xl shadow-sm border border-secondary-200 p-2 flex gap-2 overflow-x-auto">
+        <div class="bg-white rounded-2xl shadow-sm border border-secondary-200 p-2 flex gap-2 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:display-none">
             @foreach(['whatsapp' => 'WhatsApp', 'telegram' => 'Telegram', 'facebook' => 'Facebook', 'instagram' => 'Instagram', 'tiktok' => 'TikTok'] as $id => $label)
                 <button @click="tab = '{{ $id }}'" 
                         :class="tab === '{{ $id }}' ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/20' : 'text-secondary-500 hover:bg-secondary-50'"
@@ -32,117 +32,183 @@
             </div>
 
             @if(auth()->user()->isAdmin())
-                {{-- Admin Table View --}}
-                <div class="bg-white rounded-2xl shadow-sm border border-secondary-200 overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-secondary-50/50 border-b border-secondary-100">
-                                    <th class="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-wider">Pemilik</th>
-                                    <th class="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-wider">Nama Perangkat</th>
-                                    <th class="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-wider">Departemen</th>
-                                    <th class="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-wider">Nomor</th>
-                                    <th class="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-wider text-center">Status</th>
-                                    <th class="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-wider text-right">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-secondary-100">
-                                @forelse($whatsappDevices as $device)
-                                    <tr class="hover:bg-secondary-50/30 transition-colors group">
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="flex items-center gap-2">
-                                                <div class="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 text-[10px] font-bold">
-                                                    {{ strtoupper(substr($device->user->name, 0, 1)) }}
+                {{-- Admin View Section --}}
+                <div class="space-y-4">
+                    {{-- Desktop Table --}}
+                    <div class="hidden md:block bg-white rounded-2xl shadow-sm border border-secondary-200 overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-secondary-50/50 border-b border-secondary-100">
+                                        <th class="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-wider">Pemilik</th>
+                                        <th class="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-wider">Nama Perangkat</th>
+                                        <th class="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-wider">Departemen</th>
+                                        <th class="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-wider">Nomor</th>
+                                        <th class="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-wider text-center">Status</th>
+                                        <th class="px-6 py-4 text-xs font-bold text-secondary-500 uppercase tracking-wider text-right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-secondary-100">
+                                    @forelse($whatsappDevices as $device)
+                                        <tr class="hover:bg-secondary-50/30 transition-colors group">
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="flex items-center gap-2">
+                                                    <div class="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 text-[10px] font-bold">
+                                                        {{ strtoupper(substr($device->user->name, 0, 1)) }}
+                                                    </div>
+                                                    <span class="text-sm font-medium text-secondary-900">{{ $device->user->name }}</span>
                                                 </div>
-                                                <span class="text-sm font-medium text-secondary-900">{{ $device->user->name }}</span>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="text-sm font-bold text-secondary-900">{{ $device->name }}</span>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="px-2 py-1 bg-secondary-100 text-secondary-600 rounded text-[10px] font-bold uppercase">
-                                                {{ $device->department->name }}
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="text-xs text-secondary-500 font-mono">{{ $device->phone_number ?: '-' }}</span>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-center">
-                                            <span class="px-2 py-1 {{ $device->status == 'connected' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }} rounded text-[10px] font-bold uppercase tracking-wider">
-                                                {{ $device->status }}
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-4 text-right">
-                                            <div class="flex items-center justify-end gap-2">
-                                                @if($device->status == 'disconnected')
-                                                    <button @click="fetchQR({{ $device->id }})" class="p-1.5 bg-primary-50 text-primary-600 rounded-lg hover:bg-primary-100 transition-colors" title="Hubungkan">
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
-                                                    </button>
-                                                @else
-                                                    <form action="{{ route('admin.ai-agen.connections.whatsapp.disconnect', $device) }}" method="POST" onsubmit="return confirm('Putuskan koneksi WhatsApp ini?')">
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="text-sm font-bold text-secondary-900">{{ $device->name }}</span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="px-2 py-1 bg-secondary-100 text-secondary-600 rounded text-[10px] font-bold uppercase">
+                                                    {{ $device->department->name }}
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="text-xs text-secondary-500 font-mono">{{ $device->phone_number ?: '-' }}</span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                                <span class="px-2 py-1 {{ $device->status == 'connected' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }} rounded text-[10px] font-bold uppercase tracking-wider">
+                                                    {{ $device->status }}
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 text-right">
+                                                <div class="flex items-center justify-end gap-2">
+                                                    @if($device->status == 'disconnected')
+                                                        <button @click="fetchQR({{ $device->id }})" class="p-1.5 bg-primary-50 text-primary-600 rounded-lg hover:bg-primary-100 transition-colors" title="Hubungkan">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                                                        </button>
+                                                    @else
+                                                        <form action="{{ route('admin.ai-agen.connections.whatsapp.disconnect', $device) }}" method="POST" onsubmit="return confirm('Putuskan koneksi WhatsApp ini?')">
+                                                            @csrf
+                                                            <button type="submit" class="p-1.5 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100 transition-colors" title="Putuskan Koneksi">
+                                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                                                            </button>
+                                                        </form>
+                                                    @endif
+                                                    <form action="{{ route('admin.ai-agen.connections.whatsapp.destroy', $device) }}" method="POST" onsubmit="return confirm('Hapus perangkat ini?')">
                                                         @csrf
-                                                        <button type="submit" class="p-1.5 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100 transition-colors" title="Putuskan Koneksi">
-                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                                                        @method('DELETE')
+                                                        <button type="submit" class="p-1.5 text-secondary-400 hover:text-red-500 transition-colors">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                                         </button>
                                                     </form>
-                                                @endif
-                                                <form action="{{ route('admin.ai-agen.connections.whatsapp.destroy', $device) }}" method="POST" onsubmit="return confirm('Hapus perangkat ini?')">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="p-1.5 text-secondary-400 hover:text-red-500 transition-colors">
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="6" class="px-6 py-12 text-center text-secondary-400">Belum ada perangkat WhatsApp.</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="6" class="px-6 py-12 text-center text-secondary-400">Belum ada perangkat WhatsApp.</td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {{-- Mobile Card List --}}
+                    <div class="grid grid-cols-1 gap-4 md:hidden">
+                        @forelse($whatsappDevices as $device)
+                            <div class="bg-white p-5 rounded-2xl border border-secondary-200 shadow-sm space-y-4">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-xl bg-green-50 text-green-600 flex items-center justify-center">
+                                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.414 0 .018 5.394 0 12.03a11.81 11.81 0 001.576 5.922L0 24l6.117-1.605a11.803 11.803 0 005.925 1.583h.005c6.635 0 12.032-5.393 12.035-12.029a11.79 11.79 0 00-3.526-8.508z"/></svg>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-sm font-bold text-secondary-900">{{ $device->name }}</h4>
+                                            <p class="text-[10px] text-secondary-500 font-mono">{{ $device->phone_number ?: 'Nomor belum terdeteksi' }}</p>
+                                        </div>
+                                    </div>
+                                    <span class="px-2 py-1 {{ $device->status == 'connected' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }} rounded text-[9px] font-bold uppercase tracking-wider">
+                                        {{ $device->status }}
+                                    </span>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-3 pt-3 border-t border-secondary-100">
+                                    <div class="bg-secondary-50 p-2.5 rounded-xl">
+                                        <p class="text-[8px] font-bold text-secondary-400 uppercase tracking-widest mb-0.5">Departemen</p>
+                                        <p class="text-xs font-bold text-secondary-900 truncate">{{ $device->department->name }}</p>
+                                    </div>
+                                    <div class="bg-secondary-50 p-2.5 rounded-xl">
+                                        <p class="text-[8px] font-bold text-secondary-400 uppercase tracking-widest mb-0.5">Pemilik</p>
+                                        <p class="text-xs font-bold text-secondary-900 truncate">{{ $device->user->name }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-end gap-2 pt-1">
+                                    @if($device->status == 'disconnected')
+                                        <button @click="fetchQR({{ $device->id }})" class="flex-1 py-2 bg-primary-600 text-white text-[11px] font-bold rounded-xl hover:bg-primary-700 transition-all flex items-center justify-center gap-2">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                                            Hubungkan
+                                        </button>
+                                    @else
+                                        <form action="{{ route('admin.ai-agen.connections.whatsapp.disconnect', $device) }}" method="POST" onsubmit="return confirm('Putuskan koneksi WhatsApp ini?')" class="flex-1">
+                                            @csrf
+                                            <button type="submit" class="w-full py-2 bg-orange-100 text-orange-600 text-[11px] font-bold rounded-xl hover:bg-orange-200 transition-all flex items-center justify-center gap-2">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                                                Putus Koneksi
+                                            </button>
+                                        </form>
+                                    @endif
+                                    <form action="{{ route('admin.ai-agen.connections.whatsapp.destroy', $device) }}" method="POST" onsubmit="return confirm('Hapus perangkat ini?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="p-2 bg-red-50 text-red-500 rounded-xl hover:bg-red-100 transition-colors">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="bg-white p-12 rounded-2xl border border-secondary-200 text-center text-secondary-400 text-sm">
+                                Belum ada perangkat WhatsApp ditambahkan.
+                            </div>
+                        @endforelse
                     </div>
                 </div>
             @else
-                {{-- User Grid View --}}
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {{-- User View Section (Optimized) --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                     @forelse($whatsappDevices as $device)
                         <div class="bg-white rounded-2xl shadow-sm border border-secondary-200 overflow-hidden group hover:shadow-lg transition-all relative">
-                            <div class="p-6">
-                                <div class="flex items-center justify-between mb-6">
-                                    <div class="w-12 h-12 bg-green-100 text-green-600 rounded-2xl flex items-center justify-center">
-                                        <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.414 0 .018 5.394 0 12.03a11.81 11.81 0 001.576 5.922L0 24l6.117-1.605a11.803 11.803 0 005.925 1.583h.005c6.635 0 12.032-5.393 12.035-12.029a11.79 11.79 0 00-3.526-8.508z"/></svg>
+                            <div class="p-5 md:p-6">
+                                <div class="flex items-center justify-between mb-4 md:mb-6">
+                                    <div class="w-10 h-10 md:w-12 md:h-12 bg-green-100 text-green-600 rounded-xl md:rounded-2xl flex items-center justify-center">
+                                        <svg class="w-6 h-6 md:w-7 md:h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.414 0 .018 5.394 0 12.03a11.81 11.81 0 001.576 5.922L0 24l6.117-1.605a11.803 11.803 0 005.925 1.583h.005c6.635 0 12.032-5.393 12.035-12.029a11.79 11.79 0 00-3.526-8.508z"/></svg>
                                     </div>
                                     <div class="text-right">
-                                        <span class="px-2 py-1 {{ $device->status == 'connected' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }} rounded text-[10px] font-bold uppercase tracking-wider">
+                                        <span class="px-2.5 py-1 {{ $device->status == 'connected' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }} rounded-lg text-[10px] font-bold uppercase tracking-wider">
                                             {{ $device->status }}
                                         </span>
                                     </div>
                                 </div>
-                                <h3 class="text-lg font-bold text-secondary-900 mb-1">{{ $device->name }}</h3>
+                                <h3 class="text-base md:text-lg font-bold text-secondary-900 mb-1 truncate">{{ $device->name }}</h3>
                                 <p class="text-xs text-secondary-500 mb-4">Departemen: <span class="font-bold text-primary-600">{{ $device->department->name }}</span></p>
                                 
                                 <div class="space-y-3">
                                     @if($device->status == 'disconnected')
-                                        <button @click="fetchQR({{ $device->id }})" class="w-full py-2.5 bg-primary-600 text-white text-xs font-bold rounded-xl hover:bg-primary-700 transition-colors shadow-lg shadow-primary-500/20">
+                                        <button @click="fetchQR({{ $device->id }})" class="w-full py-2.5 bg-primary-600 text-white text-xs font-bold rounded-xl hover:bg-primary-700 transition-all shadow-lg shadow-primary-500/20 flex items-center justify-center gap-2">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                                             Hubungkan (Scan QR)
                                         </button>
                                     @else
                                         <form action="{{ route('pengguna.ai-agen.connections.whatsapp.disconnect', $device) }}" method="POST" onsubmit="return confirm('Putuskan koneksi WhatsApp ini?')">
                                             @csrf
-                                            <button type="submit" class="w-full py-2.5 bg-orange-500 text-white text-xs font-bold rounded-xl hover:bg-orange-600 transition-colors shadow-lg shadow-orange-500/20">
+                                            <button type="submit" class="w-full py-2.5 bg-orange-500 text-white text-xs font-bold rounded-xl hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/20 flex items-center justify-center gap-2">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
                                                 Putuskan Koneksi
                                             </button>
                                         </form>
                                     @endif
                                 </div>
                             </div>
-                            <div class="px-6 py-3 bg-secondary-50 border-t border-secondary-100 flex items-center justify-between">
-                                <span class="text-[10px] text-secondary-400 font-bold uppercase">{{ $device->phone_number ?: 'Nomor Belum Terdeteksi' }}</span>
-                                <form action="{{ route('pengguna.ai-agen.connections.whatsapp.destroy', $device) }}" method="POST">
+                            <div class="px-5 md:px-6 py-3 bg-secondary-50 border-t border-secondary-100 flex items-center justify-between">
+                                <span class="text-[10px] text-secondary-400 font-bold uppercase tracking-wider">{{ $device->phone_number ?: 'Nomor Belum Terdeteksi' }}</span>
+                                <form action="{{ route('pengguna.ai-agen.connections.whatsapp.destroy', $device) }}" method="POST" onsubmit="return confirm('Hapus perangkat ini?')">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="text-secondary-300 hover:text-red-500 transition-colors">
@@ -152,8 +218,11 @@
                             </div>
                         </div>
                     @empty
-                        <div class="md:col-span-3 py-12 text-center bg-secondary-50 rounded-3xl border-2 border-dashed border-secondary-200">
-                            <p class="text-secondary-400 font-medium">Belum ada perangkat WhatsApp ditambahkan.</p>
+                        <div class="sm:col-span-2 lg:col-span-3 py-16 text-center bg-white rounded-3xl border-2 border-dashed border-secondary-100">
+                            <div class="w-16 h-16 bg-secondary-50 text-secondary-300 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M12.05 0C5.414 0 .018 5.394 0 12.03a11.81 11.81 0 001.576 5.922L0 24l6.117-1.605a11.803 11.803 0 005.925 1.583h.005c6.635 0 12.032-5.393 12.035-12.029a11.79 11.79 0 00-3.526-8.508A11.815 11.815 0 0012.05 0z"/></svg>
+                            </div>
+                            <p class="text-secondary-400 font-bold uppercase tracking-widest text-xs">Belum ada perangkat WhatsApp ditambahkan.</p>
                         </div>
                     @endforelse
                 </div>
@@ -171,11 +240,11 @@
         </div>
 
         {{-- QR Code Modal --}}
-        <div x-show="qrModal" class="fixed inset-0 z-50 overflow-y-auto" x-cloak>
+        <div x-show="qrModal" class="fixed inset-0 z-[110] overflow-y-auto" x-cloak>
             <div class="flex items-center justify-center min-h-screen p-4 text-center">
                 <div class="fixed inset-0 bg-secondary-900/60 transition-opacity" @click="closeQR()"></div>
                 <div class="inline-block align-middle bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:max-w-md sm:w-full">
-                    <div class="p-8 text-center">
+                        <div class="p-8 pb-12 sm:pb-8 text-center">
                         <h3 class="text-xl font-bold text-secondary-900 mb-2">Scan QR Code</h3>
                         <p class="text-sm text-secondary-500 mb-8">Buka WhatsApp di ponsel Anda > Perangkat Tertaut > Tautkan Perangkat.</p>
                         <div class="relative w-64 h-64 mx-auto bg-secondary-50 rounded-2xl border-2 border-secondary-100 flex items-center justify-center overflow-hidden">
@@ -198,7 +267,7 @@
         </div>
 
         {{-- Add WA Device Modal --}}
-        <div id="addDeviceModal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div id="addDeviceModal" class="hidden fixed inset-0 z-[110] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
             <div class="flex items-center justify-center min-h-screen p-4">
                 <div class="fixed inset-0 bg-secondary-900/60 transition-opacity" @click="closeAddModal()"></div>
                 <div class="relative bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden">
@@ -234,7 +303,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="p-6 bg-secondary-50 flex justify-end gap-3">
+                        <div class="p-6 bg-secondary-50 pb-12 sm:pb-6 flex justify-end gap-3">
                             <button type="button" @click="closeAddModal()" class="text-sm font-bold text-secondary-500">Batal</button>
                             <button type="submit" class="px-6 py-2 bg-green-600 text-white text-sm font-bold rounded-xl hover:bg-green-700 shadow-lg shadow-green-500/20">Simpan</button>
                         </div>
