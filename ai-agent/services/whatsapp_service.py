@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Point to our Node.js WA Gateway Bridge
-async def send_whatsapp_message(to_number: str, text: str, department_id: str = "1", gateway_port: int = None):
+async def send_whatsapp_message(to_number: str, text: str, department_id: str = "1", gateway_port: int = None, reply_to_msg_id: str = None):
     """
     Kirim perintah balik ke Node.js WA Gateway untuk membalas pesan.
     Menggunakan gateway_port dari payload webhook jika tersedia.
@@ -19,6 +19,8 @@ async def send_whatsapp_message(to_number: str, text: str, department_id: str = 
             "target": to_number,
             "message": text
         }
+        if reply_to_msg_id:
+            payload["reply_to_msg_id"] = reply_to_msg_id
 
         async with httpx.AsyncClient() as client:
             response = await client.post(gateway_url, json=payload)

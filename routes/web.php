@@ -9,6 +9,7 @@ use App\Http\Controllers\ConnectionController;
 use App\Http\Controllers\UnansweredQuestionController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -130,6 +131,14 @@ Route::middleware(['auth', 'verified', 'role:pengguna'])->prefix('pengguna')->na
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Laporan Section
+    Route::prefix('laporan')->name('laporan.')->group(function () {
+        Route::get('/interaksi', [ReportController::class, 'interaction'])->name('interaksi');
+        Route::get('/interaksi/detail/{phone}', [ReportController::class, 'interactionDetail'])->name('interaksi.detail');
+        Route::get('/interaksi/export/excel', [ReportController::class, 'exportExcel'])->name('interaksi.export.excel');
+        Route::get('/interaksi/export/pdf', [ReportController::class, 'exportPdf'])->name('interaksi.export.pdf');
+    });
 });
 
 /*

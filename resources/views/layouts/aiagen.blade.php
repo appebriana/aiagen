@@ -63,22 +63,39 @@
                               {{ request()->routeIs('*.ai-agen.knowledge.index') ? 'bg-primary-700 text-white' : 'text-primary-300 hover:bg-primary-800 hover:text-white' }}">
                         <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
                         <span x-show="sidebarOpen" x-cloak>Knowledge Base</span>
-                    </a>
-
-                    <a href="{{ auth()->user()->isAdmin() ? route('admin.ai-agen.connections.index') : route('pengguna.ai-agen.connections.index') }}"
+                                <a href="{{ auth()->user()->isAdmin() ? route('admin.ai-agen.connections.index') : route('pengguna.ai-agen.connections.index') }}"
                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
-                              {{ request()->routeIs('*.ai-agen.connections.index') ? 'bg-primary-700 text-white' : 'text-primary-300 hover:bg-primary-800 hover:text-white' }}">
+                               {{ request()->routeIs('*.ai-agen.connections.index') ? 'bg-primary-700 text-white' : 'text-primary-300 hover:bg-primary-800 hover:text-white' }}">
                         <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                         <span x-show="sidebarOpen" x-cloak>Connection</span>
                     </a>
 
                     <a href="{{ auth()->user()->isAdmin() ? route('admin.ai-agen.unanswered.index') : route('pengguna.ai-agen.unanswered.index') }}"
                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
-                               {{ request()->routeIs('*.unanswered.*') ? 'bg-primary-700 text-white' : 'text-primary-300 hover:bg-primary-800 hover:text-white' }}">
+                                {{ request()->routeIs('*.unanswered.*') ? 'bg-primary-700 text-white' : 'text-primary-300 hover:bg-primary-800 hover:text-white' }}">
                         <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                         <span x-show="sidebarOpen" x-cloak>Pesan Tidak Terjawab</span>
                     </a>
-                </nav>
+
+                    {{-- Laporan Menu Dropdown --}}
+                    <div x-data="{ open: {{ request()->routeIs('*.laporan.*') ? 'true' : 'false' }} }">
+                        <button @click="open = !open"
+                                class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
+                                       {{ request()->routeIs('*.laporan.*') ? 'bg-primary-800 text-white' : 'text-primary-300 hover:bg-primary-800 hover:text-white' }}">
+                            <div class="flex items-center gap-3">
+                                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                <span x-show="sidebarOpen" x-cloak>Laporan</span>
+                            </div>
+                            <svg x-show="sidebarOpen" x-cloak :class="open ? 'rotate-180' : ''" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <div x-show="open && sidebarOpen" x-cloak x-transition class="mt-1 ml-4 pl-4 border-l border-primary-700 space-y-1">
+                            <a href="{{ auth()->user()->isAdmin() ? '#' : route('pengguna.laporan.interaksi') }}"
+                               class="block px-3 py-2 rounded-md text-xs font-medium {{ request()->routeIs('*.laporan.interaksi') ? 'text-white bg-primary-700' : 'text-primary-400 hover:text-white hover:bg-primary-800' }}">
+                                Laporan Interaksi
+                            </a>
+                        </div>
+                    </div>
+                </nav>        </nav>
 
                 {{-- User Info --}}
                 <div class="border-t border-primary-800 p-4">
@@ -138,11 +155,29 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                         <span>Pesan Tidak Terjawab</span>
                     </a>
+                    {{-- Laporan Menu Dropdown (Mobile) --}}
+                    <div x-data="{ open: {{ request()->routeIs('*.laporan.*') ? 'true' : 'false' }} }">
+                        <button @click="open = !open"
+                                class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
+                                       {{ request()->routeIs('*.laporan.*') ? 'bg-primary-800 text-white' : 'text-primary-300 hover:bg-primary-800 hover:text-white' }}">
+                            <div class="flex items-center gap-3">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                <span>Laporan</span>
+                            </div>
+                            <svg :class="open ? 'rotate-180' : ''" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <div x-show="open" x-cloak x-transition class="mt-1 ml-4 pl-4 border-l border-primary-700 space-y-1">
+                            <a href="{{ auth()->user()->isAdmin() ? '#' : route('pengguna.laporan.interaksi') }}"
+                               class="block px-3 py-2 rounded-md text-xs font-medium {{ request()->routeIs('*.laporan.interaksi') ? 'text-white bg-primary-700' : 'text-primary-400 hover:text-white hover:bg-primary-800' }}">
+                                Laporan Interaksi
+                            </a>
+                        </div>
+                    </div>
                 </nav>
             </aside>
 
             {{-- ═══ MAIN CONTENT ═══ --}}
-            <div class="flex-1 flex flex-col transition-all duration-300" :class="sidebarOpen ? 'lg:ml-64' : 'lg:ml-20'">
+            <div class="flex-1 flex flex-col transition-all duration-300 min-w-0 overflow-hidden" :class="sidebarOpen ? 'lg:ml-64' : 'lg:ml-20'">
 
                 {{-- Top Bar --}}
                 <header class="sticky top-0 z-20 bg-white border-b border-secondary-300 h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -157,11 +192,11 @@
 
                     <div class="flex items-center gap-2">
                         <a href="{{ auth()->user()->isAdmin() ? route('admin.dashboard') : route('pengguna.dashboard') }}" 
-                           class="px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors {{ request()->routeIs('*.dashboard') && !request()->is('*/ai-agen*') && !request()->is('*/pengaturan*') ? 'bg-primary-100 text-primary-700' : 'text-secondary-600 hover:bg-secondary-100' }}">
+                           class="px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors {{ request()->routeIs('*.dashboard') && !request()->is('*/ai-agen*') && !request()->is('*/pengaturan*') && !request()->is('*/laporan*') ? 'bg-primary-100 text-primary-700' : 'text-secondary-600 hover:bg-secondary-100' }}">
                             Dashboard
                         </a>
                         <a href="{{ auth()->user()->isAdmin() ? route('admin.ai-agen.index') : route('pengguna.ai-agen.index') }}" 
-                           class="px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors {{ request()->is('*/ai-agen*') ? 'bg-primary-100 text-primary-700' : 'text-secondary-600 hover:bg-secondary-100' }}">
+                           class="px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors {{ request()->is('*/ai-agen*') || request()->is('*/laporan*') ? 'bg-primary-100 text-primary-700' : 'text-secondary-600 hover:bg-secondary-100' }}">
                             AI Agen
                         </a>
                         <a href="{{ auth()->user()->isAdmin() ? route('admin.pengaturan.index') : route('pengguna.pengaturan.index') }}" 

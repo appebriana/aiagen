@@ -130,7 +130,9 @@ client.on('message', async msg => {
             device_id: DEVICE_ID,
             gateway_port: PORT,
             pushname: msg._data?.notifyName || null,
-            is_held_by_label: isHeld
+            is_held_by_label: isHeld,
+            author: msg.author || msg.from,
+            message_id: msg.id._serialized
         });
     } catch (error) {
         console.error(`[${DEVICE_NAME}] Gagal meneruskan ke Python:`, error.message);
@@ -189,10 +191,16 @@ app.post('/typing', async (req, res) => {
 });
 
 app.post('/send', async (req, res) => {
-    const { target, message } = req.body;
+    const { target, message, reply_to_msg_id } = req.body;
     try {
         const chat = await client.getChatById(target);
-        await chat.sendMessage(message);
+        
+        let options = {};
+        if (reply_to_msg_id) {
+            options.quotedMessageId = reply_to_msg_id;
+        }
+        
+        await chat.sendMessage(message, options);
         res.json({ status: 'success' });
     } catch (error) {
         res.status(500).json({ status: 'error', message: error.message });
