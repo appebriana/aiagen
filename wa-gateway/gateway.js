@@ -24,7 +24,7 @@ async function fetchDeviceName() {
         if (settingsRes.data && settingsRes.data.name) {
             DEVICE_NAME = settingsRes.data.name;
         }
-    } catch (e) {}
+    } catch (e) { }
 }
 fetchDeviceName();
 
@@ -42,14 +42,14 @@ const client = new Client({
 async function updateDbStatus(status) {
     try {
         await axios.post(`http://127.0.0.1:8000/update-device-status/${DEVICE_ID}`, { status });
-    } catch (e) {}
+    } catch (e) { }
 }
 
 client.on('qr', qr => {
     currentQR = qr;
     connectionStatus = 'qr_ready';
     updateDbStatus('disconnected');
-    
+
     if (initRequested) {
         console.log(`\n[${DEVICE_NAME}] === SCAN QR DI BAWAH INI ===`);
         qrcode.generate(qr, { small: true });
@@ -82,7 +82,7 @@ client.on('disconnected', (reason) => {
 client.on('message', async msg => {
     let currentDeptSettings = null;
     let aiNameTrigger = '/ai';
-    
+
     const isGroup = msg.from.includes('@g.us');
     if (msg.from === 'status@broadcast') return;
 
@@ -105,6 +105,12 @@ client.on('message', async msg => {
         if (!currentDeptSettings || !currentDeptSettings.reply_to_groups) return;
         if (!msg.body.toLowerCase().startsWith(aiNameTrigger)) return;
         msg.body = msg.body.substring(aiNameTrigger.length).trim();
+        
+        // Jika di grup hanya memanggil trigger (misal: "/ai") tanpa isi pesan,
+        // ubah menjadi "Halo" agar sistem AI tetap merespon sebagai sapaan.
+        if (msg.body === '') {
+            msg.body = 'Halo';
+        }
     }
 
     try {
@@ -143,15 +149,15 @@ app.post('/init', async (req, res) => {
     if (connectionStatus === 'ready') {
         return res.json({ status: 'already_connected' });
     }
-    
+
     initRequested = true; // Tandai bahwa user meminta QR muncul di terminal
     console.log(`[${DEVICE_NAME}] Memulai inisialisasi QR atas permintaan user...`);
-    
+
     client.initialize().catch(err => {
         console.error(`[${DEVICE_NAME}] Gagal inisialisasi:`, err.message);
         initRequested = false;
     });
-    
+
     res.json({ status: 'initializing' });
 });
 
@@ -195,7 +201,7 @@ app.post('/send', async (req, res) => {
 
 const server = app.listen(PORT, '127.0.0.1', () => {
     console.log(`[${DEVICE_NAME}] API Gateway aktif di Port ${PORT} (127.0.0.1)`);
-    
+
     // Baru inisialisasi WhatsApp SETELAH server HTTP berhasil jalan
     console.log(`[${DEVICE_NAME}] Mencoba inisialisasi sesi...`);
     client.initialize().catch(err => {
