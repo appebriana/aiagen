@@ -110,10 +110,12 @@ client.on('message', async msg => {
     try {
         let isHeld = false;
         try {
-            const contact = await msg.getContact();
-            const labels = await contact.getLabels();
+            const chat = await msg.getChat();
+            const labels = await chat.getLabels();
             isHeld = labels.some(l => l.name.toUpperCase().includes('HOLD'));
-        } catch (labelError) {}
+        } catch (labelError) {
+            console.error(`[${DEVICE_NAME}] Error checking labels:`, labelError.message);
+        }
 
         await axios.post('http://127.0.0.1:8000/webhook', {
             sender: msg.from,
