@@ -29,41 +29,35 @@ def get_department_settings(department_id: str):
         print(f"Error Database: {e}")
         return None
 
-def get_manual_answer(department_id: str, question: str):
+def get_manual_answers(department_id: str):
+    """Mengambil daftar pertanyaan yang sudah dijawab untuk referensi AI."""
     try:
-        # Cast department_id to int
         try:
             dept_id = int(department_id)
         except:
-            return None
-
-        # Clean question string
-        clean_question = question.strip()
-
+            return ""
+            
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         
-        # Ambil semua pertanyaan yang sudah dijawab untuk departemen ini
-        # Kita akan cek apakah ada pertanyaan di DB yang merupakan bagian dari pesan user
-        query = "SELECT question, answer FROM unanswered_questions WHERE department_id = %s AND is_answered = 1"
+        # Ambil 20 jawaban manual terbaru untuk departemen ini
+        query = "SELECT question, answer FROM unanswered_questions WHERE department_id = %s AND is_answered = 1 ORDER BY updated_at DESC LIMIT 20"
         cursor.execute(query, (dept_id,))
         rows = cursor.fetchall()
         cursor.close()
         conn.close()
         
-        user_msg_lower = clean_question.lower()
-        
-        for row in rows:
-            db_question = row['question'].lower().strip().rstrip('?')
-            # Pastikan pertanyaan di DB tidak kosong dan cukup panjang untuk dicocokkan (min 3 karakter)
-            if db_question and len(db_question) >= 3 and db_question in user_msg_lower:
-                print(f"[DEBUG] Found partial match: '{db_question}' in '{user_msg_lower}'")
-                return row['answer']
-                
-        return None
+        if not rows:
+            return ""
+            
+        context = "BERIKUT ADALAH JAWABAN MANUAL DARI ADMIN (Gunakan jika relevan):\n"
+        for i, row in enumerate(rows, 1):
+            context += f"{i}. Pertanyaan: {row['question']}\n   Jawaban: {row['answer']}\n"
+            
+        return context
     except Exception as e:
-        print(f"Error Database (get_manual_answer): {e}")
-        return None
+        print(f"Error Database (get_manual_answers): {e}")
+        return ""
 
 def log_unanswered_question(department_id: str, sender: str, question: str):
     try:

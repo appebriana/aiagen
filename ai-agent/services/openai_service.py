@@ -3,7 +3,7 @@ import json
 from datetime import datetime
 from openai import OpenAI
 from services.knowledge_service import get_relevant_info
-from services.db_service import get_department_settings, get_manual_answer, log_unanswered_question
+from services.db_service import get_department_settings, get_manual_answers, log_unanswered_question
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -131,13 +131,13 @@ def get_ai_response(customer_id: str, department_id: str, user_message: str, sys
         history = load_session_memory(department_id, customer_id)
         
         # 3. CARI JAWABAN MANUAL (Yang sudah diinput admin)
-        manual_answer = get_manual_answer(department_id, user_message)
+        manual_answers_context = get_manual_answers(department_id)
         
         # 4. CARI DI KNOWLEDGE BASE (RAG)
         context = get_relevant_info(department_id, user_message)
         
-        # Tambahkan Jawaban Manual ke Konteks jika ada
-        manual_context = f"\n\nJAWABAN WAJIB (Gunakan ini!):\n{manual_answer}" if manual_answer else ""
+        # Gabungkan konteks
+        full_context = manual_answers_context + "\n" + (context if context else "")
         
         # Template pesan pembuka & fallback
         introduction = f"Halo! Saya {ai_name}." if ai_name else "Halo! Saya asisten AI Anda."
@@ -154,15 +154,14 @@ def get_ai_response(customer_id: str, department_id: str, user_message: str, sys
         smart_instructions = (
             "\n\nKONTROL KONTEKS DAN LOGGING:\n"
             f"1. Jika user menyapa: Balas dengan ramah (Nama Anda: {ai_name}).\n"
-            "2. Jika ada 'JAWABAN WAJIB' di atas: Gunakan informasi tersebut secara mutlak.\n"
-            "3. Jika user bertanya tentang informasi (biaya, syarat, link, dll) dan jawabannya TIDAK ADA di 'Informasi Tambahan' maupun 'JAWABAN WAJIB': "
-            "Anda WAJIB memberikan jawaban yang sopan namun WAJIB menyertakan tag [[TIDAK_TAHU]] di dalam jawaban Anda. "
-            "Sangat penting: Jika Anda tidak tahu, Anda HARUS menyertakan [[TIDAK_TAHU]] agar admin bisa membantu menjawab nanti.\n"
+            "2. PRIORITAS UTAMA: Jika ada 'JAWABAN MANUAL DARI ADMIN' yang relevan dengan pertanyaan user, Anda WAJIB menggunakan jawaban tersebut secara mutlak.\n"
+            "3. Jika user bertanya tentang informasi (biaya, syarat, link, dll) dan jawabannya TIDAK ADA di konteks di atas: "
+            "Anda WAJIB memberikan jawaban yang sopan namun WAJIB menyertakan tag [[TIDAK_TAHU]] di dalam jawaban Anda.\n"
             "4. Jika user memberikan nama, gunakan tag [[SET_NAME: Nama]] di akhir jawaban Anda."
         )
 
         current_messages = [
-            {"role": "system", "content": full_system_prompt + manual_context + rag_prompt + smart_instructions}
+            {"role": "system", "content": full_system_prompt + "\n\nInformasi Konteks:\n" + full_context + smart_instructions}
         ]
         current_messages.extend(history)
         current_messages.append({"role": "user", "content": user_message})
