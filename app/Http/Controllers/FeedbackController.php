@@ -29,7 +29,13 @@ class FeedbackController extends Controller
     public function index()
     {
         $feedbacks = Feedback::with('user')->orderBy('created_at', 'desc')->paginate(15);
-        return view('admin.feedback.index', compact('feedbacks'));
+        $stats = [
+            'total' => Feedback::count(),
+            'draf' => Feedback::where('status', 'draf')->count(),
+            'proses' => Feedback::where('status', 'proses')->count(),
+            'selesai' => Feedback::where('status', 'selesai')->count(),
+        ];
+        return view('admin.feedback.index', compact('feedbacks', 'stats'));
     }
 
     public function updateStatus(Request $request, Feedback $feedback)
