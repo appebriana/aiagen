@@ -1,55 +1,107 @@
 <x-aiagen-layout>
     <x-slot name="header">
-        Laporan Interaksi
+        Laporan Interaksi — WhatsApp
     </x-slot>
 
+    @php
+        $isAdmin = auth()->user()->isAdmin();
+        $routePrefix = $isAdmin ? 'admin' : 'pengguna';
+    @endphp
+
     <div class="space-y-6">
+        {{-- Admin: User Selector --}}
+        @if($isAdmin)
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-secondary-200">
+            <div class="flex flex-col md:flex-row md:items-center gap-4">
+                <div class="flex-1">
+                    <h2 class="text-lg font-bold text-secondary-900 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        Pilih Akun Pengguna
+                    </h2>
+                    <p class="text-sm text-secondary-500 mt-1">Pilih pengguna untuk melihat laporan interaksi WhatsApp miliknya.</p>
+                </div>
+                <form method="GET" action="{{ route($routePrefix . '.laporan.interaksi.wa') }}" class="flex items-center gap-3">
+                    <input type="hidden" name="range" value="{{ $range }}">
+                    <input type="hidden" name="type" value="{{ $type }}">
+                    <select name="user_id" onchange="this.form.submit()"
+                            class="min-w-[250px] px-4 py-2.5 bg-white border border-secondary-300 rounded-xl text-sm font-medium text-secondary-700 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 shadow-sm">
+                        <option value="">— Pilih Pengguna —</option>
+                        @foreach($penggunaUsers as $pUser)
+                            <option value="{{ $pUser->id }}" {{ $selectedUser && $selectedUser->id == $pUser->id ? 'selected' : '' }}>
+                                {{ $pUser->name }} ({{ $pUser->username }})
+                            </option>
+                        @endforeach
+                    </select>
+                </form>
+            </div>
+            @if($selectedUser)
+            <div class="mt-4 pt-4 border-t border-secondary-100">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                        {{ strtoupper(substr($selectedUser->name, 0, 1)) }}
+                    </div>
+                    <div>
+                        <p class="font-bold text-secondary-900 text-sm">{{ $selectedUser->name }}</p>
+                        <p class="text-xs text-secondary-500">{{ $selectedUser->email }}</p>
+                    </div>
+                    <span class="ml-auto px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">Dipilih</span>
+                </div>
+            </div>
+            @endif
+        </div>
+        @endif
+
+        {{-- Show report only if user is selected (admin) or always for pengguna --}}
+        @if(!$isAdmin || $selectedUser)
         {{-- Header & Filters --}}
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-secondary-200">
             <div>
-                <h2 class="text-xl font-bold text-secondary-900">Statistik Interaksi AI</h2>
-                <p class="text-sm text-secondary-500">Pantau performa AI dalam melayani pesan pelanggan.</p>
+                <h2 class="text-xl font-bold text-secondary-900">Statistik Interaksi WhatsApp</h2>
+                <p class="text-sm text-secondary-500">Pantau performa AI dalam melayani pesan pelanggan via WhatsApp.</p>
             </div>
             
             <div class="flex flex-wrap items-center gap-3">
                 {{-- Type Tabs (Personal / Grup) --}}
                 <div class="inline-flex p-1 bg-secondary-100 rounded-xl">
-                    <a href="{{ route('pengguna.laporan.interaksi', ['type' => 'personal', 'range' => $range]) }}" 
+                    <a href="{{ route($routePrefix . '.laporan.interaksi.wa', array_merge(['type' => 'personal', 'range' => $range], $isAdmin && $selectedUser ? ['user_id' => $selectedUser->id] : [])) }}" 
                        class="px-4 py-2 text-sm font-medium rounded-lg transition-all {{ $type === 'personal' ? 'bg-white text-primary-700 shadow-sm' : 'text-secondary-600 hover:text-secondary-900' }}">
                         Personal
                     </a>
-                    <a href="{{ route('pengguna.laporan.interaksi', ['type' => 'grup', 'range' => $range]) }}" 
+                    <a href="{{ route($routePrefix . '.laporan.interaksi.wa', array_merge(['type' => 'grup', 'range' => $range], $isAdmin && $selectedUser ? ['user_id' => $selectedUser->id] : [])) }}" 
                        class="px-4 py-2 text-sm font-medium rounded-lg transition-all {{ $type === 'grup' ? 'bg-white text-primary-700 shadow-sm' : 'text-secondary-600 hover:text-secondary-900' }}">
                         Grup
                     </a>
                 </div>
 
                 {{-- Range Selector --}}
-                <div class="relative inline-block text-left" x-data="{ open: false }">
-                    <button @click="open = !open" type="button" class="inline-flex justify-center items-center gap-2 px-4 py-2 bg-white border border-secondary-300 rounded-xl text-sm font-medium text-secondary-700 hover:bg-secondary-50 shadow-sm">
+                <div class="relative inline-block text-left" x-data="{ isRangeOpen: false }">
+                    <button @click="isRangeOpen = !isRangeOpen" type="button" class="inline-flex justify-center items-center gap-2 px-4 py-2 bg-white border border-secondary-300 rounded-xl text-sm font-medium text-secondary-700 hover:bg-secondary-50 shadow-sm">
                         <svg class="w-4 h-4 text-secondary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                         <span class="capitalize">{{ $range }}</span>
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
-                    <div x-show="open" @click.away="open = false" x-cloak class="origin-top-right absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-20 overflow-hidden">
+                    <div x-show="isRangeOpen" @click.away="isRangeOpen = false" x-cloak class="origin-top-right absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-20 overflow-hidden">
                         <div class="py-1">
-                            <a href="{{ route('pengguna.laporan.interaksi', ['type' => $type, 'range' => 'harian']) }}" class="block px-4 py-2 text-sm text-secondary-700 hover:bg-secondary-100 {{ $range === 'harian' ? 'bg-primary-50 text-primary-700 font-bold' : '' }}">Harian</a>
-                            <a href="{{ route('pengguna.laporan.interaksi', ['type' => $type, 'range' => 'mingguan']) }}" class="block px-4 py-2 text-sm text-secondary-700 hover:bg-secondary-100 {{ $range === 'mingguan' ? 'bg-primary-50 text-primary-700 font-bold' : '' }}">Mingguan</a>
-                            <a href="{{ route('pengguna.laporan.interaksi', ['type' => $type, 'range' => 'bulanan']) }}" class="block px-4 py-2 text-sm text-secondary-700 hover:bg-secondary-100 {{ $range === 'bulanan' ? 'bg-primary-50 text-primary-700 font-bold' : '' }}">Bulanan</a>
-                            <a href="{{ route('pengguna.laporan.interaksi', ['type' => $type, 'range' => 'tahunan']) }}" class="block px-4 py-2 text-sm text-secondary-700 hover:bg-secondary-100 {{ $range === 'tahunan' ? 'bg-primary-50 text-primary-700 font-bold' : '' }}">Tahunan</a>
+                            @php 
+                                $baseParams = $isAdmin && $selectedUser ? ['user_id' => $selectedUser->id] : [];
+                            @endphp
+                            <a href="{{ route($routePrefix . '.laporan.interaksi.wa', array_merge(['type' => $type, 'range' => 'harian'], $baseParams)) }}" class="block px-4 py-2 text-sm text-secondary-700 hover:bg-secondary-100 {{ $range === 'harian' ? 'bg-primary-50 text-primary-700 font-bold' : '' }}">Harian</a>
+                            <a href="{{ route($routePrefix . '.laporan.interaksi.wa', array_merge(['type' => $type, 'range' => 'mingguan'], $baseParams)) }}" class="block px-4 py-2 text-sm text-secondary-700 hover:bg-secondary-100 {{ $range === 'mingguan' ? 'bg-primary-50 text-primary-700 font-bold' : '' }}">Mingguan</a>
+                            <a href="{{ route($routePrefix . '.laporan.interaksi.wa', array_merge(['type' => $type, 'range' => 'bulanan'], $baseParams)) }}" class="block px-4 py-2 text-sm text-secondary-700 hover:bg-secondary-100 {{ $range === 'bulanan' ? 'bg-primary-50 text-primary-700 font-bold' : '' }}">Bulanan</a>
+                            <a href="{{ route($routePrefix . '.laporan.interaksi.wa', array_merge(['type' => $type, 'range' => 'tahunan'], $baseParams)) }}" class="block px-4 py-2 text-sm text-secondary-700 hover:bg-secondary-100 {{ $range === 'tahunan' ? 'bg-primary-50 text-primary-700 font-bold' : '' }}">Tahunan</a>
                         </div>
                     </div>
                 </div>
 
                 {{-- Export Buttons --}}
                 <div class="flex items-center gap-2 ml-2 pl-4 border-l border-secondary-200">
-                    <a href="{{ route('pengguna.laporan.interaksi.export.excel', ['range' => $range, 'type' => $type]) }}" 
+                    <a href="{{ route($routePrefix . '.laporan.interaksi.wa.export.excel', array_merge(['range' => $range, 'type' => $type], $baseParams ?? [])) }}" 
                        class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl text-sm font-bold hover:bg-green-700 shadow-sm transition-all active:scale-95" 
                        title="Unduh Excel (.xls)">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                         <span>Excel</span>
                     </a>
-                    <a href="{{ route('pengguna.laporan.interaksi.export.pdf', ['range' => $range, 'type' => $type]) }}" 
+                    <a href="{{ route($routePrefix . '.laporan.interaksi.wa.export.pdf', array_merge(['range' => $range, 'type' => $type], $baseParams ?? [])) }}" 
                        class="inline-flex items-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-xl text-sm font-bold hover:bg-rose-700 shadow-sm transition-all active:scale-95" 
                        title="Unduh PDF">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9h1m1 0h1m-3 4h1m1 0h1m-3 4h1m1 0h1"/></svg>
@@ -133,11 +185,23 @@
                 </table>
             </div>
         </div>
+        @else
+        {{-- Admin: No user selected prompt --}}
+        <div class="flex items-center justify-center min-h-[40vh]">
+            <div class="text-center max-w-md mx-auto">
+                <div class="mx-auto w-20 h-20 bg-secondary-100 rounded-3xl flex items-center justify-center mb-6">
+                    <svg class="w-10 h-10 text-secondary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                </div>
+                <h3 class="text-lg font-bold text-secondary-900 mb-2">Pilih Pengguna</h3>
+                <p class="text-sm text-secondary-500">Silakan pilih akun pengguna di atas untuk melihat laporan interaksi WhatsApp miliknya.</p>
+            </div>
+        </div>
+        @endif
     </div>
 
     {{-- MODAL DETAIL --}}
     <div x-data="{ 
-            open: false, 
+            isModalOpen: false, 
             phone: '', 
             name: '', 
             logs: [], 
@@ -146,7 +210,9 @@
                 this.loading = true;
                 this.logs = [];
                 try {
-                    const response = await fetch(`/pengguna/laporan/interaksi/detail/${this.phone}?range={{ $range }}`);
+                    const prefix = '{{ $isAdmin ? '/admin' : '/pengguna' }}';
+                    const userParam = '{{ $isAdmin && $selectedUser ? '&user_id=' . $selectedUser->id : '' }}';
+                    const response = await fetch(`${prefix}/laporan/interaksi/wa/detail/${this.phone}?range={{ $range }}${userParam}`);
                     const result = await response.json();
                     if (result.status === 'success') {
                         this.logs = result.data;
@@ -158,16 +224,16 @@
                 }
             }
          }" 
-         x-show="open" 
-         @open-detail.window="open = true; phone = $event.detail.phone; name = $event.detail.name; fetchLogs()"
+         x-show="isModalOpen" 
+         @open-detail.window="isModalOpen = true; phone = $event.detail.phone; name = $event.detail.name; fetchLogs()"
          class="fixed inset-0 z-[60] overflow-y-auto" 
          x-cloak>
         <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-            <div x-show="open" x-transition.opacity class="fixed inset-0 transition-opacity bg-secondary-900/75 backdrop-blur-sm"></div>
+            <div x-show="isModalOpen" x-transition.opacity @click="isModalOpen = false" class="fixed inset-0 transition-opacity bg-secondary-900/75 backdrop-blur-sm"></div>
 
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
 
-            <div x-show="open" 
+            <div x-show="isModalOpen" 
                  x-transition:enter="transition ease-out duration-300"
                  x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                  x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
@@ -184,7 +250,7 @@
                             <p class="text-xs text-secondary-500" x-text="phone"></p>
                         </div>
                     </div>
-                    <button @click="open = false" class="text-secondary-400 hover:text-secondary-600 transition-colors">
+                    <button @click="isModalOpen = false" class="text-secondary-400 hover:text-secondary-600 transition-colors">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
@@ -225,7 +291,7 @@
 
                 {{-- Modal Footer --}}
                 <div class="px-6 py-4 bg-white border-t border-secondary-100 flex justify-end">
-                    <button @click="open = false" class="px-6 py-2 bg-secondary-100 text-secondary-700 rounded-xl font-bold hover:bg-secondary-200 transition-colors">Tutup</button>
+                    <button @click="isModalOpen = false" class="px-6 py-2 bg-secondary-100 text-secondary-700 rounded-xl font-bold hover:bg-secondary-200 transition-colors">Tutup</button>
                 </div>
             </div>
         </div>
@@ -241,7 +307,10 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            const ctx = document.getElementById('interactionChart').getContext('2d');
+            const canvas = document.getElementById('interactionChart');
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
 
             // Create Gradient
             const gradient = ctx.createLinearGradient(0, 0, 0, 400);
@@ -321,4 +390,3 @@
     </script>
     @endpush
 </x-aiagen-layout>
-

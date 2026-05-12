@@ -6,19 +6,60 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Department;
+use App\Models\User;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class ReportController extends Controller
 {
+    /**
+     * Resolve department IDs based on user role.
+     * Admin: uses the selected user_id from query, or shows all users to pick.
+     * Pengguna: always scoped to own departments.
+     */
+    private function resolveDepartmentIds(Request $request, &$selectedUser)
+    {
+        $user = Auth::user();
+        $selectedUser = null;
+
+        if ($user->isAdmin()) {
+            $selectedUserId = $request->get('user_id');
+            if ($selectedUserId) {
+                $selectedUser = User::find($selectedUserId);
+                if ($selectedUser) {
+                    return Department::where('user_id', $selectedUser->id)->pluck('id');
+                }
+            }
+            // If no user selected, return empty collection (admin must pick a user)
+            return collect();
+        }
+
+        // Pengguna: always own departments
+        $selectedUser = $user;
+        return Department::where('user_id', $user->id)->pluck('id');
+    }
+
     public function interaction(Request $request)
     {
         $user = Auth::user();
         $range = $request->get('range', 'harian'); // harian, mingguan, bulanan, tahunan
         $type = $request->get('type', 'personal'); // personal, grup
 
-        // Ambil ID departemen milik user ini
-        $departmentIds = Department::where('user_id', $user->id)->pluck('id');
+        // For admin: get list of pengguna users for the dropdown
+        $penggunaUsers = null;
+        if ($user->isAdmin()) {
+            $penggunaUsers = User::where('role', 'pengguna')->orderBy('name')->get();
+        }
+
+        $selectedUser = null;
+        $departmentIds = $this->resolveDepartmentIds($request, $selectedUser);
+
+        // If admin hasn't selected a user yet, show the page with empty data
+        if ($user->isAdmin() && !$selectedUser) {
+            $stats = ['labels' => [], 'counts' => []];
+            $topInteractions = collect();
+            return view('pengguna.laporan.interaksi', compact('stats', 'topInteractions', 'range', 'type', 'penggunaUsers', 'selectedUser'));
+        }
 
         $query = DB::table('ai_chat_logs')
             ->whereIn('department_id', $departmentIds);
@@ -47,15 +88,16 @@ class ReportController extends Controller
             ->get();
 
         // Cari nama customer dari tabel customers jika ada
+        $targetUserId = $selectedUser->id;
         foreach ($topInteractions as $item) {
             $customer = DB::table('customers')
-                ->where('user_id', $user->id)
+                ->where('user_id', $targetUserId)
                 ->where('phone', $item->customer_phone)
                 ->first();
             $item->name = $customer ? ($customer->nickname ?: $customer->name) : 'Unknown';
         }
 
-        return view('pengguna.laporan.interaksi', compact('stats', 'topInteractions', 'range', 'type'));
+        return view('pengguna.laporan.interaksi', compact('stats', 'topInteractions', 'range', 'type', 'penggunaUsers', 'selectedUser'));
     }
 
     private function getStatsData($query, $range)
@@ -128,7 +170,13 @@ class ReportController extends Controller
     public function interactionDetail(Request $request, $phone)
     {
         $user = Auth::user();
-        $departmentIds = Department::where('user_id', $user->id)->pluck('id');
+        $selectedUser = null;
+        $departmentIds = $this->resolveDepartmentIds($request, $selectedUser);
+
+        if ($departmentIds->isEmpty()) {
+            return response()->json(['status' => 'error', 'data' => []]);
+        }
+
         $range = $request->get('range', 'harian');
         
         $query = DB::table('ai_chat_logs')
@@ -165,7 +213,13 @@ class ReportController extends Controller
     public function exportExcel(Request $request)
     {
         $user = Auth::user();
-        $departmentIds = Department::where('user_id', $user->id)->pluck('id');
+        $selectedUser = null;
+        $departmentIds = $this->resolveDepartmentIds($request, $selectedUser);
+
+        if ($departmentIds->isEmpty()) {
+            return back()->with('error', 'Silakan pilih pengguna terlebih dahulu.');
+        }
+
         $range = $request->get('range', 'harian');
         $type = $request->get('type', 'personal');
         
@@ -215,7 +269,13 @@ class ReportController extends Controller
     public function exportPdf(Request $request)
     {
         $user = Auth::user();
-        $departmentIds = Department::where('user_id', $user->id)->pluck('id');
+        $selectedUser = null;
+        $departmentIds = $this->resolveDepartmentIds($request, $selectedUser);
+
+        if ($departmentIds->isEmpty()) {
+            return back()->with('error', 'Silakan pilih pengguna terlebih dahulu.');
+        }
+
         $range = $request->get('range', 'harian');
         $type = $request->get('type', 'personal');
         
@@ -249,5 +309,22 @@ class ReportController extends Controller
 
         $pdf = Pdf::loadView('pengguna.laporan.pdf_interaksi', compact('logs', 'user', 'range', 'type'));
         return $pdf->setPaper('a4', 'landscape')->download('Laporan_' . ucfirst($type) . '_' . ucfirst($range) . '.pdf');
+    }
+
+    /**
+     * Coming soon page for platforms not yet implemented.
+     */
+    public function comingSoon(Request $request)
+    {
+        $platform = 'Platform';
+        $routeName = $request->route()->getName();
+        
+        if (str_contains($routeName, '.ig')) {
+            $platform = 'Instagram';
+        } elseif (str_contains($routeName, '.telegram')) {
+            $platform = 'Telegram';
+        }
+
+        return view('pengguna.laporan.coming_soon', compact('platform'));
     }
 }

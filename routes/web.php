@@ -69,6 +69,24 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
         Route::get('/unanswered/export-pdf', [UnansweredQuestionController::class, 'exportPdf'])->name('unanswered.export-pdf');
         Route::post('/customers/toggle-mute', [CustomerController::class, 'toggleMute'])->name('customers.toggle-mute');
     });
+    
+    // Laporan Section for Admin
+    Route::prefix('laporan')->name('laporan.')->group(function () {
+        // Redirect /interaksi to /interaksi/wa for backward compatibility
+        Route::get('/interaksi', function () {
+            return redirect()->route('admin.laporan.interaksi.wa');
+        })->name('interaksi');
+
+        // WhatsApp Reports
+        Route::get('/interaksi/wa', [ReportController::class, 'interaction'])->name('interaksi.wa');
+        Route::get('/interaksi/wa/detail/{phone}', [ReportController::class, 'interactionDetail'])->name('interaksi.wa.detail');
+        Route::get('/interaksi/wa/export/excel', [ReportController::class, 'exportExcel'])->name('interaksi.wa.export.excel');
+        Route::get('/interaksi/wa/export/pdf', [ReportController::class, 'exportPdf'])->name('interaksi.wa.export.pdf');
+
+        // Coming Soon Platforms
+        Route::get('/interaksi/ig', [ReportController::class, 'comingSoon'])->name('interaksi.ig');
+        Route::get('/interaksi/telegram', [ReportController::class, 'comingSoon'])->name('interaksi.telegram');
+    });
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -134,10 +152,20 @@ Route::middleware(['auth', 'verified', 'role:pengguna'])->prefix('pengguna')->na
 
     // Laporan Section
     Route::prefix('laporan')->name('laporan.')->group(function () {
-        Route::get('/interaksi', [ReportController::class, 'interaction'])->name('interaksi');
-        Route::get('/interaksi/detail/{phone}', [ReportController::class, 'interactionDetail'])->name('interaksi.detail');
-        Route::get('/interaksi/export/excel', [ReportController::class, 'exportExcel'])->name('interaksi.export.excel');
-        Route::get('/interaksi/export/pdf', [ReportController::class, 'exportPdf'])->name('interaksi.export.pdf');
+        // Redirect /interaksi to /interaksi/wa for backward compatibility
+        Route::get('/interaksi', function () {
+            return redirect()->route('pengguna.laporan.interaksi.wa');
+        })->name('interaksi');
+
+        // WhatsApp Reports
+        Route::get('/interaksi/wa', [ReportController::class, 'interaction'])->name('interaksi.wa');
+        Route::get('/interaksi/wa/detail/{phone}', [ReportController::class, 'interactionDetail'])->name('interaksi.wa.detail');
+        Route::get('/interaksi/wa/export/excel', [ReportController::class, 'exportExcel'])->name('interaksi.wa.export.excel');
+        Route::get('/interaksi/wa/export/pdf', [ReportController::class, 'exportPdf'])->name('interaksi.wa.export.pdf');
+
+        // Coming Soon Platforms
+        Route::get('/interaksi/ig', [ReportController::class, 'comingSoon'])->name('interaksi.ig');
+        Route::get('/interaksi/telegram', [ReportController::class, 'comingSoon'])->name('interaksi.telegram');
     });
 });
 

@@ -225,3 +225,35 @@ server.on('error', (err) => {
         throw err;
     }
 });
+
+/**
+ * Graceful Shutdown:
+ * Pastikan Chromium browser dan HTTP server dimatikan dengan bersih
+ * saat menerima sinyal dari PM2 atau manager.js
+ */
+async function shutdownGateway(signal) {
+    console.log(`[${DEVICE_NAME}] Menerima sinyal ${signal}. Mematikan gateway...`);
+    
+    try {
+        // Tutup WhatsApp client (dan Chromium browser)
+        await client.destroy();
+        console.log(`[${DEVICE_NAME}] WhatsApp client dimatikan.`);
+    } catch (e) {
+        console.error(`[${DEVICE_NAME}] Error saat menutup client:`, e.message);
+    }
+    
+    // Tutup HTTP server
+    server.close(() => {
+        console.log(`[${DEVICE_NAME}] HTTP server ditutup. Keluar.`);
+        process.exit(0);
+    });
+    
+    // Force exit setelah 5 detik jika masih menggantung
+    setTimeout(() => {
+        console.error(`[${DEVICE_NAME}] Force exit setelah timeout.`);
+        process.exit(1);
+    }, 5000);
+}
+
+process.on('SIGINT', () => shutdownGateway('SIGINT'));
+process.on('SIGTERM', () => shutdownGateway('SIGTERM'));
