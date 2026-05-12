@@ -205,6 +205,9 @@
                 </main>
             </div>
         </div>
+        {{-- Version Update Modal --}}
+        <x-version-update-modal version="1.0.2" />
+
         @stack('scripts')
     </body>
 </html>
