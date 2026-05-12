@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'AIAGEN') }} â€” Admin</title>
+        <title>{{ config('app.name', 'AIAGEN') }} - Admin</title>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -170,7 +170,7 @@
                         </div>
                     </div>
                 </div>
-            </div>   </div>
+            </div>
 
             {{-- â• â• â•  MAIN CONTENT â• â• â•  --}}
             <div class="flex-1 flex flex-col transition-all duration-300" :class="sidebarOpen ? 'lg:ml-64' : 'lg:ml-20'">
