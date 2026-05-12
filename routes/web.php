@@ -109,6 +109,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
 */
 Route::middleware(['auth', 'verified', 'role:pengguna'])->prefix('pengguna')->name('pengguna.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'penggunaDashboard'])->name('dashboard');
+    Route::post('/feedback', [FeedbackController::class, 'store'])->name('feedback.store');
 
     // Pengaturan Section
     Route::prefix('pengaturan')->name('pengaturan.')->group(function () {
