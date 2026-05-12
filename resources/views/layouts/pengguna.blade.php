@@ -298,7 +298,7 @@
                 <h3 class="text-xl font-black text-secondary-900 mb-2">Terima Kasih!</h3>
                 <p class="text-secondary-600 mb-8">Terima kasih atas feedback Anda! Kami akan meninjau saran Anda segera.</p>
                 <button @click="feedbackSuccessOpen = false" class="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 rounded-xl transition-all active:scale-95 shadow-lg shadow-primary-200">
-                    Sama-sama
+                    Kembali
                 </button>
             </div>
         </div>
