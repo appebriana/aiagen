@@ -19,9 +19,9 @@
     <body class="font-sans antialiased">
         <x-skeleton-loader />
 
-        <div class="min-h-screen bg-secondary-200 flex" x-data="{ sidebarOpen: true, mobileSidebar: false }">
+        <div class="min-h-screen bg-secondary-200 flex" x-data="{ sidebarOpen: true, mobileSidebar: false, feedbackOpen: false, feedbackMessage: '', feedbackLoading: false }">
 
-            {{-- â•â•â• SIDEBAR â•â•â• --}}
+            {{-- ═══ SIDEBAR ═══ --}}
             <aside
                 :class="sidebarOpen ? 'w-64' : 'w-20'"
                 class="hidden lg:flex lg:flex-col bg-primary-900 text-white transition-all duration-300 ease-in-out fixed inset-y-0 left-0 z-30">
@@ -75,7 +75,9 @@
                         </form>
                     </div>
                 </div>
-            </aside>            {{-- ═══ MOBILE FLOATING BOTTOM NAV ═══ --}}
+            </aside>
+
+            {{-- ═══ MOBILE FLOATING BOTTOM NAV ═══ --}}
             <div class="lg:hidden fixed bottom-6 left-6 right-6 z-[100] bg-white/80 backdrop-blur-2xl border border-white/50 rounded-2xl shadow-[0_15px_35px_rgba(0,0,0,0.1)] px-3 py-2">
                 <div class="flex items-center justify-around">
                     <a href="{{ route('admin.dashboard') }}" 
@@ -105,6 +107,13 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                         <span class="text-[9px] font-bold">Setting</span>
                     </a>
+
+                    <button @click="feedbackOpen = true" 
+                       class="flex flex-col items-center gap-0.5 py-1 px-3 rounded-2xl transition-all"
+                       :class="feedbackOpen ? 'text-primary-600 bg-primary-50' : 'text-secondary-400'">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+                        <span class="text-[9px] font-bold">Feedback</span>
+                    </button>
                 </div>
             </div>
 
@@ -115,7 +124,7 @@
                  @click="mobileSidebar = false"
                  class="lg:hidden fixed inset-0 z-[90] bg-primary-950/20 backdrop-blur-sm"></div>
 
-            {{-- Aesthetic Left Floating Sidebar --}}
+            {{-- Aesthetic Left Floating Sidebar (Mobile Only) --}}
             <div x-show="mobileSidebar" x-cloak
                  x-transition:enter="transition transform ease-out duration-500 cubic-bezier(0.34, 1.56, 0.64, 1)"
                  x-transition:enter-start="-translate-x-full opacity-0"
@@ -172,14 +181,14 @@
                 </div>
             </div>
 
-            {{-- â• â• â•  MAIN CONTENT â• â• â•  --}}
-            <div class="flex-1 flex flex-col transition-all duration-300" :class="sidebarOpen ? 'lg:ml-64' : 'lg:ml-20'">
+            {{-- ═══ MAIN CONTENT ═══ --}}
+            <div class="flex-1 h-screen overflow-y-auto transition-all duration-300" :class="sidebarOpen ? 'lg:ml-64' : 'lg:ml-20'">
 
                 {{-- Top Bar --}}
-                <header class="sticky top-0 z-20 bg-white border-b border-secondary-300 h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8">
+                <header class="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-secondary-300/50 h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8">
                     <div class="flex items-center gap-4">
                         @isset($header)
-                            <h1 class="text-lg font-semibold text-secondary-900">{{ $header }}</h1>
+                            <h1 class="text-lg font-semibold text-secondary-900 uppercase tracking-tight">{{ $header }}</h1>
                         @endisset
                     </div>
 
@@ -193,6 +202,10 @@
                         <a href="{{ route('admin.pengaturan.index') }}" class="px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors {{ request()->is('*/pengaturan*') || request()->routeIs('admin.profile.*') || request()->routeIs('admin.users.*') ? 'bg-primary-100 text-primary-700' : 'text-secondary-600 hover:bg-secondary-100' }}">
                             Pengaturan
                         </a>
+                        <button @click="feedbackOpen = true" class="px-3 py-1.5 rounded-lg text-sm font-semibold text-secondary-600 hover:bg-secondary-100 transition-colors flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+                            Feedback
+                        </button>
                         <div class="h-6 w-px bg-secondary-200 mx-2"></div>
                         <span class="hidden sm:inline-block text-sm text-secondary-600 font-medium">{{ Auth::user()->name }}</span>
                         <span class="hidden sm:inline-block text-xs bg-primary-100 text-primary-700 px-2 py-0.5 rounded-full font-bold capitalize">{{ Auth::user()->role }}</span>
@@ -200,9 +213,74 @@
                 </header>
 
                 {{-- Page Content --}}
-                <main class="flex-1 p-4 sm:p-6 lg:p-8">
+                <main class="p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8">
                     {{ $slot }}
                 </main>
+
+                {{-- Feedback Modal --}}
+                <div x-show="feedbackOpen" x-cloak 
+                     class="fixed inset-0 z-[150] flex items-center justify-center p-4 sm:p-6"
+                     x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+                    
+                    <div @click="feedbackOpen = false" class="absolute inset-0 bg-secondary-900/60 backdrop-blur-sm"></div>
+                    
+                    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm sm:max-w-md overflow-hidden"
+                         x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="scale-95 translate-y-4" x-transition:enter-end="scale-100 translate-y-0">
+                        
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-bold text-secondary-900">Kirim Masukan</h3>
+                                <button @click="feedbackOpen = false" class="text-secondary-400 hover:text-secondary-600">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </button>
+                            </div>
+
+                            <form @submit.prevent="
+                                feedbackLoading = true;
+                                fetch('{{ route('feedback.store') }}', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                    },
+                                    body: JSON.stringify({ message: feedbackMessage })
+                                })
+                                .then(res => res.json())
+                                .then(data => {
+                                    if(data.success) {
+                                        alert(data.message);
+                                        feedbackMessage = '';
+                                        feedbackOpen = false;
+                                    }
+                                })
+                                .catch(err => {
+                                    alert('Terjadi kesalahan saat mengirim masukan. Silakan coba lagi.');
+                                    console.error(err);
+                                })
+                                .finally(() => feedbackLoading = false);
+                            ">
+                                <textarea x-model="feedbackMessage" required
+                                          placeholder="Jika Anda mengalami masalah atau fungsi yang kurang sempurna selama penggunaan, silakan jelaskan masalah atau kebutuhan Anda kepada kami secara detail, kami akan berusaha semaksimal mungkin untuk menyelesaikannya atau meningkatkannya untuk Anda."
+                                          class="w-full h-32 rounded-xl border-secondary-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 text-sm resize-none mb-4"
+                                ></textarea>
+
+                                <p class="text-[11px] text-secondary-500 mb-6 leading-relaxed italic">
+                                    Kami memberikan perhatian khusus pada masukan kebutuhan Anda, dan kami melakukan peninjauan kebutuhan mingguan secara rutin. Semoga kami dapat membantu Anda dengan lebih baik.
+                                </p>
+
+                                <button type="submit" 
+                                        :disabled="feedbackLoading"
+                                        class="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-2.5 rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2">
+                                    <span x-show="!feedbackLoading">Kirim Masukan</span>
+                                    <span x-show="feedbackLoading" x-cloak class="flex items-center gap-2">
+                                        <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                        Mengirim...
+                                    </span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         {{-- Version Update Modal --}}

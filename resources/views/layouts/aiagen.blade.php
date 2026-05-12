@@ -168,6 +168,13 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                         <span class="text-[9px] font-bold">Setting</span>
                     </a>
+
+                    <button @click="feedbackOpen = true" 
+                       class="flex flex-col items-center gap-0.5 py-1 px-3 rounded-2xl transition-all"
+                       :class="feedbackOpen ? 'text-primary-600 bg-primary-50' : 'text-secondary-400'">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+                        <span class="text-[9px] font-bold">Feedback</span>
+                    </button>
                 </div>
             </div>
 
@@ -192,79 +199,63 @@
                     <div class="p-5 overflow-y-auto flex-1 scrollbar-hide">
                         {{-- Vertical Menu Items --}}
                         <div class="flex flex-col gap-2 mb-6">
-                            <a href="{{ route($routePrefix . '.dashboard') }}" class="flex items-center gap-4 p-3 rounded-2xl transition-all duration-300 active:scale-95 {{ request()->routeIs('*.dashboard') && !request()->is('*/ai-agen*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-200' : 'bg-secondary-50 text-secondary-600 hover:bg-secondary-100' }}">
-                                <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                                <span class="font-bold text-sm">Beranda</span>
+                            <p class="px-3 text-[10px] font-bold text-primary-500 uppercase tracking-widest mb-1">AI Agen</p>
+                            
+                            <a href="{{ auth()->user()->isAdmin() ? route('admin.ai-agen.index') : route('pengguna.ai-agen.index') }}"
+                               class="flex items-center gap-4 p-3 rounded-2xl transition-all duration-300 active:scale-95 {{ request()->routeIs('*.ai-agen.index') ? 'bg-primary-600 text-white shadow-lg shadow-primary-200' : 'bg-secondary-50 text-secondary-600 hover:bg-secondary-100' }}">
+                                <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                <span class="font-bold text-sm">Dashboard</span>
                             </a>
 
-                            <a href="{{ route($routePrefix . '.ai-agen.departments.index') }}" class="flex items-center gap-4 p-3 rounded-2xl transition-all duration-300 active:scale-95 {{ request()->routeIs('*.departments.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-200' : 'bg-secondary-50 text-secondary-600 hover:bg-secondary-100' }}">
-                                <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                            <a href="{{ auth()->user()->isAdmin() ? route('admin.ai-agen.departments.index') : route('pengguna.ai-agen.departments.index') }}"
+                               class="flex items-center gap-4 p-3 rounded-2xl transition-all duration-300 active:scale-95 {{ request()->routeIs('*.ai-agen.departments.index') ? 'bg-primary-600 text-white shadow-lg shadow-primary-200' : 'bg-secondary-50 text-secondary-600 hover:bg-secondary-100' }}">
+                                <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                                 <span class="font-bold text-sm">Departemen</span>
                             </a>
 
-                            <a href="{{ route($routePrefix . '.ai-agen.knowledge.index') }}" class="flex items-center gap-4 p-3 rounded-2xl transition-all duration-300 active:scale-95 {{ request()->routeIs('*.knowledge.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-200' : 'bg-secondary-50 text-secondary-600 hover:bg-secondary-100' }}">
-                                <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                            <a href="{{ auth()->user()->isAdmin() ? route('admin.ai-agen.knowledge.index') : route('pengguna.ai-agen.knowledge.index') }}"
+                               class="flex items-center gap-4 p-3 rounded-2xl transition-all duration-300 active:scale-95 {{ request()->routeIs('*.ai-agen.knowledge.index') ? 'bg-primary-600 text-white shadow-lg shadow-primary-200' : 'bg-secondary-50 text-secondary-600 hover:bg-secondary-100' }}">
+                                <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
                                 <span class="font-bold text-sm">Knowledge Base</span>
                             </a>
 
-                            <a href="{{ route($routePrefix . '.ai-agen.connections.index') }}" class="flex items-center gap-4 p-3 rounded-2xl transition-all duration-300 active:scale-95 {{ request()->routeIs('*.connections.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-200' : 'bg-secondary-50 text-secondary-600 hover:bg-secondary-100' }}">
-                                <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                                <span class="font-bold text-sm">Koneksi Device</span>
+                            <a href="{{ auth()->user()->isAdmin() ? route('admin.ai-agen.connections.index') : route('pengguna.ai-agen.connections.index') }}"
+                               class="flex items-center gap-4 p-3 rounded-2xl transition-all duration-300 active:scale-95 {{ request()->routeIs('*.ai-agen.connections.index') ? 'bg-primary-600 text-white shadow-lg shadow-primary-200' : 'bg-secondary-50 text-secondary-600 hover:bg-secondary-100' }}">
+                                <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                <span class="font-bold text-sm">Connection</span>
                             </a>
 
-                            <a href="{{ route($routePrefix . '.ai-agen.unanswered.index') }}" class="flex items-center gap-4 p-3 rounded-2xl transition-all duration-300 active:scale-95 {{ request()->routeIs('*.unanswered.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-200' : 'bg-secondary-50 text-secondary-600 hover:bg-secondary-100' }}">
-                                <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                            <a href="{{ auth()->user()->isAdmin() ? route('admin.ai-agen.unanswered.index') : route('pengguna.ai-agen.unanswered.index') }}"
+                               class="flex items-center gap-4 p-3 rounded-2xl transition-all duration-300 active:scale-95 {{ request()->routeIs('*.unanswered.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-200' : 'bg-secondary-50 text-secondary-600 hover:bg-secondary-100' }}">
+                                <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                                 <span class="font-bold text-sm">Pertanyaan Tidak Terjawab</span>
                             </a>
 
-                            {{-- Laporan Menu Mobile --}}
-                            <div x-data="{ isMobileLaporanOpen: {{ request()->routeIs('*.laporan.*') ? 'true' : 'false' }} }">
-                                <button @click="isMobileLaporanOpen = !isMobileLaporanOpen"
+                            <div x-data="{ isLaporanOpen: {{ request()->routeIs('*.laporan.*') ? 'true' : 'false' }} }">
+                                <button @click="isLaporanOpen = !isLaporanOpen"
                                         class="w-full flex items-center justify-between p-3 rounded-2xl transition-all duration-300 active:scale-95 {{ request()->routeIs('*.laporan.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-200' : 'bg-secondary-50 text-secondary-600 hover:bg-secondary-100' }}">
                                     <div class="flex items-center gap-4">
-                                        <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                        <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                         <span class="font-bold text-sm">Laporan</span>
                                     </div>
-                                    <svg :class="isMobileLaporanOpen ? 'rotate-180' : ''" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                                    <svg :class="isLaporanOpen ? 'rotate-180' : ''" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                                 </button>
-                                
-                                <div x-show="isMobileLaporanOpen" x-cloak x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" class="mt-2 ml-4 pl-4 border-l-2 border-primary-100 space-y-1">
-                                    @php $laporanPrefix = auth()->user()->isAdmin() ? 'admin' : 'pengguna'; @endphp
-                                    <p class="px-3 py-1.5 text-[10px] font-bold text-primary-500 uppercase tracking-wider">Laporan Interaksi</p>
-                                    <a href="{{ route($laporanPrefix . '.laporan.interaksi.wa') }}"
-                                       class="flex items-center gap-3 p-3 rounded-xl text-xs font-bold transition-all {{ request()->routeIs('*.laporan.interaksi.wa') ? 'text-primary-600 bg-primary-50' : 'text-secondary-500 hover:text-primary-600 hover:bg-secondary-50' }}">
-                                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                                <div x-show="isLaporanOpen" x-transition class="mt-2 ml-4 pl-4 border-l-2 border-primary-100 space-y-1">
+                                    <a href="{{ route($routePrefix . '.laporan.interaksi.wa') }}"
+                                       class="block py-2 text-sm font-medium {{ request()->routeIs('*.laporan.interaksi.wa') ? 'text-primary-600' : 'text-secondary-500' }}">
                                         WhatsApp
                                     </a>
-                                    <a href="{{ route($laporanPrefix . '.laporan.interaksi.ig') }}"
-                                       class="flex items-center gap-3 p-3 rounded-xl text-xs font-bold transition-all {{ request()->routeIs('*.laporan.interaksi.ig') ? 'text-primary-600 bg-primary-50' : 'text-secondary-500 hover:text-primary-600 hover:bg-secondary-50' }}">
-                                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4.5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
-                                        Instagram
-                                        <span class="ml-auto text-[8px] px-1.5 py-0.5 bg-amber-500/10 text-amber-600 rounded-lg font-black uppercase">Soon</span>
+                                    <a href="{{ route($routePrefix . '.laporan.interaksi.ig') }}"
+                                       class="block py-2 text-sm font-medium {{ request()->routeIs('*.laporan.interaksi.ig') ? 'text-primary-600' : 'text-secondary-500' }}">
+                                        Instagram <span class="text-[10px] px-1.5 py-0.5 bg-amber-100 text-amber-600 rounded-full ml-1">Soon</span>
                                     </a>
-                                    <a href="{{ route($laporanPrefix . '.laporan.interaksi.telegram') }}"
-                                       class="flex items-center gap-3 p-3 rounded-xl text-xs font-bold transition-all {{ request()->routeIs('*.laporan.interaksi.telegram') ? 'text-primary-600 bg-primary-50' : 'text-secondary-500 hover:text-primary-600 hover:bg-secondary-50' }}">
-                                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2.07-.2c-.08-.06-.19-.04-.27-.02-.12.03-1.99 1.27-5.62 3.72-.53.36-1.01.54-1.44.53-.47-.01-1.38-.27-2.06-.49-.83-.27-1.49-.42-1.43-.88.03-.24.37-.49 1.02-.75 3.99-1.73 6.65-2.88 7.99-3.44 3.81-1.58 4.6-1.86 5.12-1.87.11 0 .37.03.54.17.14.12.18.28.2.46-.01.06.01.24 0 .38z"/></svg>
-                                        Telegram
-                                        <span class="ml-auto text-[8px] px-1.5 py-0.5 bg-amber-500/10 text-amber-600 rounded-lg font-black uppercase">Soon</span>
+                                    <a href="{{ route($routePrefix . '.laporan.interaksi.telegram') }}"
+                                       class="block py-2 text-sm font-medium {{ request()->routeIs('*.laporan.interaksi.telegram') ? 'text-primary-600' : 'text-secondary-500' }}">
+                                        Telegram <span class="text-[10px] px-1.5 py-0.5 bg-amber-100 text-amber-600 rounded-full ml-1">Soon</span>
                                     </a>
                                 </div>
                             </div>
 
-                            <a href="{{ route($routePrefix . '.profile.edit') }}" class="flex items-center gap-4 p-3 rounded-2xl transition-all duration-300 active:scale-95 {{ request()->routeIs('*.profile.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-200' : 'bg-secondary-50 text-secondary-600 hover:bg-secondary-100' }}">
-                                <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                                <span class="font-bold text-sm">Profil Saya</span>
-                            </a>
-
-                            <a href="{{ route($routePrefix . '.pengaturan.index') }}" class="flex items-center gap-4 p-3 rounded-2xl transition-all duration-300 active:scale-95 {{ request()->is('*/pengaturan*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-200' : 'bg-secondary-50 text-secondary-600 hover:bg-secondary-100' }}">
-                                <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                <span class="font-bold text-sm">Pengaturan</span>
-                            </a>
-
-                            <button @click="feedbackOpen = true; mobileSidebar = false" class="flex items-center gap-4 p-3 rounded-2xl bg-secondary-50 text-secondary-600 hover:bg-secondary-100 transition-all duration-300 active:scale-95">
-                                <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
-                                <span class="font-bold text-sm">Feedback</span>
-                            </button>
                         </div>
 
                         {{-- Premium User Card --}}
@@ -290,10 +281,10 @@
             </div>
 
             {{-- ═══ MAIN CONTENT ═══ --}}
-            <div class="flex-1 flex flex-col transition-all duration-300 min-w-0 overflow-hidden" :class="sidebarOpen ? 'lg:ml-64' : 'lg:ml-20'">
+            <div class="flex-1 h-screen overflow-y-auto transition-all duration-300 min-w-0" :class="sidebarOpen ? 'lg:ml-64' : 'lg:ml-20'">
 
                 {{-- Top Bar --}}
-                <header class="sticky top-0 z-20 bg-white border-b border-secondary-300 h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8">
+                <header class="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-secondary-300/50 h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8">
                     <div class="flex items-center gap-4">
                         @isset($header)
                             <h1 class="text-lg font-semibold text-secondary-900 uppercase tracking-tight">{{ $header }}</h1>
@@ -324,74 +315,78 @@
                 </header>
 
                 {{-- Page Content --}}
-                <main class="flex-1 p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8">
+                <main class="p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8">
                     {{ $slot }}
                 </main>
+
+                {{-- Feedback Modal --}}
+                <div x-show="feedbackOpen" x-cloak 
+                     class="fixed inset-0 z-[150] flex items-center justify-center p-4 sm:p-6"
+                     x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+                    
+                    <div @click="feedbackOpen = false" class="absolute inset-0 bg-secondary-900/60 backdrop-blur-sm"></div>
+                    
+                    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm sm:max-w-md overflow-hidden"
+                         x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="scale-95 translate-y-4" x-transition:enter-end="scale-100 translate-y-0">
+                        
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-bold text-secondary-900">Kirim Masukan</h3>
+                                <button @click="feedbackOpen = false" class="text-secondary-400 hover:text-secondary-600">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </button>
+                            </div>
+
+                            <form @submit.prevent="
+                                feedbackLoading = true;
+                                fetch('{{ route('feedback.store') }}', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                    },
+                                    body: JSON.stringify({ message: feedbackMessage })
+                                })
+                                .then(res => res.json())
+                                .then(data => {
+                                    if(data.success) {
+                                        alert(data.message);
+                                        feedbackMessage = '';
+                                        feedbackOpen = false;
+                                    }
+                                })
+                                .catch(err => {
+                                    alert('Terjadi kesalahan saat mengirim masukan. Silakan coba lagi.');
+                                    console.error(err);
+                                })
+                                .finally(() => feedbackLoading = false);
+                            ">
+                                <textarea x-model="feedbackMessage" required
+                                          placeholder="Jika Anda mengalami masalah atau fungsi yang kurang sempurna selama penggunaan, silakan jelaskan masalah atau kebutuhan Anda kepada kami secara detail, kami akan berusaha semaksimal mungkin untuk menyelesaikannya atau meningkatkannya untuk Anda."
+                                          class="w-full h-32 rounded-xl border-secondary-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 text-sm resize-none mb-4"
+                                ></textarea>
+
+                                <p class="text-[11px] text-secondary-500 mb-6 leading-relaxed italic">
+                                    Kami memberikan perhatian khusus pada masukan kebutuhan Anda, dan kami melakukan peninjauan kebutuhan mingguan secara rutin. Semoga kami dapat membantu Anda dengan lebih baik.
+                                </p>
+
+                                <button type="submit" 
+                                        :disabled="feedbackLoading"
+                                        class="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-2.5 rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2">
+                                    <span x-show="!feedbackLoading">Kirim Masukan</span>
+                                    <span x-show="feedbackLoading" x-cloak class="flex items-center gap-2">
+                                        <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                        Mengirim...
+                                    </span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         {{-- Version Update Modal --}}
         <x-version-update-modal version="1.0.2" />
-
-        {{-- Feedback Modal --}}
-        <div x-show="feedbackOpen" x-cloak 
-             class="fixed inset-0 z-[150] flex items-center justify-center p-4 sm:p-6"
-             x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
-            
-            <div @click="feedbackOpen = false" class="absolute inset-0 bg-secondary-900/60 backdrop-blur-sm"></div>
-            
-            <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm sm:max-w-md overflow-hidden"
-                 x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="scale-95 translate-y-4" x-transition:enter-end="scale-100 translate-y-0">
-                
-                <div class="p-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-bold text-secondary-900">Send Feedback</h3>
-                        <button @click="feedbackOpen = false" class="text-secondary-400 hover:text-secondary-600">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                        </button>
-                    </div>
-
-                    <form @submit.prevent="
-                        feedbackLoading = true;
-                        fetch('{{ route('pengguna.feedback.store') }}', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                            },
-                            body: JSON.stringify({ message: feedbackMessage })
-                        })
-                        .then(res => res.json())
-                        .then(data => {
-                            if(data.success) {
-                                alert(data.message);
-                                feedbackMessage = '';
-                                feedbackOpen = false;
-                            }
-                        })
-                        .finally(() => feedbackLoading = false);
-                    ">
-                        <textarea x-model="feedbackMessage" required
-                                  placeholder="If you encounter any problems or imperfect functions during use, please describe your problems or needs to us in detail, we will try our best to solve or improve for you."
-                                  class="w-full h-32 rounded-xl border-secondary-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 text-sm resize-none mb-4"
-                        ></textarea>
-
-                        <p class="text-[11px] text-secondary-500 mb-6 leading-relaxed italic">
-                            We pay special attention to your requirements feedback, and we conduct regular weekly requirements reviews. I hope I can help you better.
-                        </p>
-
-                        <button type="submit" 
-                                :disabled="feedbackLoading"
-                                class="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-2.5 rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2">
-                            <span x-show="!feedbackLoading">Submit Feedback</span>
-                            <span x-show="feedbackLoading" x-cloak class="flex items-center gap-2">
-                                <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                Sending...
-                            </span>
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
 
         @stack('scripts')
     </body>
