@@ -19,7 +19,7 @@
     <body class="font-sans antialiased">
         <x-skeleton-loader />
 
-        <div class="min-h-screen bg-secondary-200 flex" x-data="{ sidebarOpen: true, mobileSidebar: false, feedbackOpen: false, feedbackMessage: '', feedbackLoading: false }">
+        <div class="min-h-screen bg-secondary-200 flex" x-data="{ sidebarOpen: true, mobileSidebar: false, feedbackOpen: false, feedbackSuccessOpen: false, feedbackMessage: '', feedbackLoading: false }">
 
             {{-- ═══ SIDEBAR (Desktop) ═══ --}}
             <aside
@@ -250,9 +250,9 @@
                                 .then(res => res.json())
                                 .then(data => {
                                     if(data.success) {
-                                        alert(data.message);
                                         feedbackMessage = '';
                                         feedbackOpen = false;
+                                        feedbackSuccessOpen = true;
                                     }
                                 })
                                 .catch(err => {
@@ -287,6 +287,21 @@
         </div>
         {{-- Version Update Modal --}}
         <x-version-update-modal version="1.0.2" />
+
+        {{-- --- Success Modal --- --}}
+        <div x-show="feedbackSuccessOpen" x-cloak class="fixed inset-0 z-[200] flex items-center justify-center px-4">
+            <div x-show="feedbackSuccessOpen" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="absolute inset-0 bg-primary-950/40 backdrop-blur-sm" @click="feedbackSuccessOpen = false"></div>
+            <div x-show="feedbackSuccessOpen" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="scale-95 translate-y-4" x-transition:enter-end="scale-100 translate-y-0" class="relative bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden text-center p-8">
+                <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <h3 class="text-xl font-black text-secondary-900 mb-2">Terima Kasih!</h3>
+                <p class="text-secondary-600 mb-8">Terima kasih atas feedback Anda! Kami akan meninjau saran Anda segera.</p>
+                <button @click="feedbackSuccessOpen = false" class="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 rounded-xl transition-all active:scale-95 shadow-lg shadow-primary-200">
+                    Sama-sama
+                </button>
+            </div>
+        </div>
 
         @stack('scripts')
     </body>
