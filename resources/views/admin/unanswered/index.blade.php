@@ -5,10 +5,61 @@
         
         {{-- ═══ FILTER SECTION ═══ --}}
         <div class="bg-white rounded-2xl shadow-sm border border-secondary-200 p-4 md:p-6">
-            <form action="{{ route(Auth::user()->role . '.ai-agen.unanswered.index') }}" method="GET" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
-                <div class="sm:col-span-2 lg:col-span-1">
+            <form action="{{ route(Auth::user()->role . '.ai-agen.unanswered.index') }}" method="GET" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
+                @if(Auth::user()->role === 'admin')
+                <div x-data='userSearchableSelect({ 
+                        selectedId: @json(request('user_id')),
+                        selectedName: @json(request('user_id') ? ($users->where('id', request('user_id'))->first()->name ?? "-- Pilih Akun --") : "-- Pilih Akun --"),
+                        users: @json($users->map(fn($u) => ["id" => $u->id, "name" => $u->name]))
+                    })' class="relative">
+                    <label class="block text-[10px] font-bold text-secondary-500 uppercase tracking-widest mb-1.5">Pilih Akun Pengguna</label>
+                    
+                    {{-- Hidden Input for form submission --}}
+                    <input type="hidden" name="user_id" :value="selectedId">
+
+                    {{-- Searchable Trigger --}}
+                    <div @click="open = !open" 
+                         class="w-full px-4 py-2.5 rounded-xl border border-secondary-200 bg-primary-50/30 flex items-center justify-between cursor-pointer hover:border-primary-500 transition-all shadow-sm">
+                        <span class="text-sm font-bold text-primary-600 truncate" x-text="selectedName"></span>
+                        <svg class="w-4 h-4 text-primary-400 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+
+                    {{-- Dropdown Panel --}}
+                    <div x-show="open" 
+                         x-cloak
+                         style="display: none;"
+                         @click.away="open = false"
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 translate-y-2"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         class="absolute z-50 mt-2 w-full bg-white rounded-2xl shadow-2xl border border-secondary-100 overflow-hidden min-w-[240px]">
+                        
+                        <div class="p-3 border-b border-secondary-50 bg-secondary-50/50">
+                            <input type="text" 
+                                   x-model="search" 
+                                   placeholder="Cari nama pengguna..." 
+                                   class="w-full px-3 py-2 text-xs rounded-lg border-secondary-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10"
+                                   @click.stop>
+                        </div>
+
+                        <div class="max-h-60 overflow-y-auto scrollbar-hide">
+                            <template x-for="user in filteredUsers" :key="user.id">
+                                <div @click="selectUser(user.id, user.name)" 
+                                     class="px-4 py-3 text-sm text-secondary-700 hover:bg-primary-50 hover:text-primary-600 cursor-pointer transition-colors flex items-center justify-between group">
+                                    <span x-text="user.name" class="font-medium"></span>
+                                    <svg x-show="selectedId == user.id" class="w-4 h-4 text-primary-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                </div>
+                            </template>
+                            <div x-show="filteredUsers.length === 0" class="px-4 py-8 text-center text-xs text-secondary-400 italic">
+                                Pengguna tidak ditemukan
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @endif
+                <div>
                     <label class="block text-[10px] font-bold text-secondary-500 uppercase tracking-widest mb-1.5">Cari Pertanyaan/HP</label>
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Ketik kata kunci..." 
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Ketik..." 
                         class="w-full px-4 py-2.5 rounded-xl border-secondary-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 text-sm">
                 </div>
                 <div>
@@ -110,9 +161,23 @@
                                     </td>
                                 </tr>
                             @empty
-                                <tr>
-                                    <td colspan="7" class="px-6 py-12 text-center text-secondary-400 italic">Data tidak ditemukan.</td>
-                                </tr>
+                                @if(Auth::user()->role === 'admin' && !request('user_id'))
+                                    <tr>
+                                        <td colspan="7" class="px-6 py-20 text-center">
+                                            <div class="flex flex-col items-center gap-3">
+                                                <div class="w-16 h-16 bg-primary-50 text-primary-500 rounded-full flex items-center justify-center shadow-inner">
+                                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                                </div>
+                                                <p class="text-secondary-600 font-bold">Silakan pilih akun pengguna terlebih dahulu</p>
+                                                <p class="text-xs text-secondary-400">Pilih salah satu akun pada filter di atas untuk melihat data.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @else
+                                    <tr>
+                                        <td colspan="7" class="px-6 py-12 text-center text-secondary-400 italic">Data tidak ditemukan.</td>
+                                    </tr>
+                                @endif
                             @endforelse
                         </tbody>
                     </table>
@@ -171,9 +236,16 @@
                         </div>
                     </div>
                 @empty
+                @if(Auth::user()->role === 'admin' && !request('user_id'))
+                    <div class="bg-white p-12 rounded-2xl border border-secondary-200 text-center">
+                        <p class="text-secondary-600 font-bold mb-2">Silakan pilih akun pengguna</p>
+                        <p class="text-xs text-secondary-400">Gunakan filter di atas untuk memilih akun.</p>
+                    </div>
+                @else
                     <div class="bg-white p-12 rounded-2xl border border-secondary-200 text-center text-secondary-400 text-sm">
                         Data tidak ditemukan.
                     </div>
+                @endif
                 @endforelse
             </div>
             
@@ -254,6 +326,30 @@
 
     @push('scripts')
     <script>
+        function userSearchableSelect(config) {
+            return {
+                open: false,
+                search: '',
+                selectedId: config.selectedId,
+                selectedName: config.selectedName,
+                users: config.users,
+                get filteredUsers() {
+                    if (!this.search) return this.users;
+                    return this.users.filter(u => 
+                        u.name && u.name.toLowerCase().includes(this.search.toLowerCase())
+                    );
+                },
+                selectUser(id, name) {
+                    this.selectedId = id;
+                    this.selectedName = name;
+                    this.open = false;
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('user_id', id);
+                    window.location.href = url.toString();
+                }
+            }
+        }
+
         function unansweredManager() {
             return {
                 selectedIds: [],

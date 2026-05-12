@@ -41,7 +41,7 @@
                 </div>
 
                 {{-- Navigation --}}
-                <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+                <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1 scrollbar-hide">
                     <p class="px-3 text-xs font-semibold text-primary-400 uppercase tracking-wider mt-6 mb-2" x-show="sidebarOpen" x-cloak>Menu Pengaturan</p>
                     
                     <a href="{{ auth()->user()->isAdmin() ? route('admin.pengaturan.index') : route('pengguna.pengaturan.index') }}"
