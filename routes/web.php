@@ -40,6 +40,12 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
         })->name('index');
     });
 
+    // Feedback Section
+    Route::prefix('feedback')->name('feedback.')->group(function () {
+        Route::get('/', [FeedbackController::class, 'index'])->name('index');
+        Route::put('/{feedback}/status', [FeedbackController::class, 'updateStatus'])->name('updateStatus');
+    });
+
     // AI Agen Section
     Route::prefix('ai-agen')->name('ai-agen.')->group(function () {
         Route::get('/', function () {

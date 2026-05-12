@@ -23,4 +23,25 @@ class FeedbackController extends Controller
             'message' => 'Terima kasih atas feedback Anda! Kami akan meninjau saran Anda segera.',
         ]);
     }
+
+    // --- Admin Methods ---
+
+    public function index()
+    {
+        $feedbacks = Feedback::with('user')->orderBy('created_at', 'desc')->paginate(15);
+        return view('admin.feedback.index', compact('feedbacks'));
+    }
+
+    public function updateStatus(Request $request, Feedback $feedback)
+    {
+        $request->validate([
+            'status' => 'required|in:draf,proses,selesai',
+        ]);
+
+        $feedback->update([
+            'status' => $request->status,
+        ]);
+
+        return redirect()->back()->with('success', 'Status masukan berhasil diperbarui.');
+    }
 }
