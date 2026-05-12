@@ -19,7 +19,7 @@
     <body class="font-sans antialiased">
         <x-skeleton-loader />
 
-        <div class="min-h-screen bg-secondary-200" x-data="{ sidebarOpen: true, mobileSidebar: false, feedbackOpen: false, feedbackMessage: '', feedbackLoading: false }">
+        <div class="min-h-screen bg-secondary-200 flex" x-data="{ sidebarOpen: true, mobileSidebar: false, feedbackOpen: false, feedbackMessage: '', feedbackLoading: false }">
 
             {{-- ═══ SIDEBAR (Desktop) ═══ --}}
             <aside
@@ -184,11 +184,10 @@
             </div>
 
             {{-- ═══ MAIN CONTENT ═══ --}}
-            <div class="transition-all duration-300 min-w-0" :class="sidebarOpen ? 'lg:ml-64' : 'lg:ml-20'">
+            <div class="flex-1 flex flex-col transition-all duration-300 min-w-0 overflow-hidden" :class="sidebarOpen ? 'lg:ml-64' : 'lg:ml-20'">
 
                 {{-- Top Bar --}}
-                <header class="fixed top-0 left-0 right-0 z-20 bg-white/80 backdrop-blur-md border-b border-secondary-300/50 h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 transition-all duration-300"
-                        :class="sidebarOpen ? 'lg:left-64' : 'lg:left-20'">
+                <header class="sticky top-0 z-20 bg-white border-b border-secondary-300 h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8">
                     <div class="flex items-center gap-4">
                         @isset($header)
                             <h1 class="text-lg font-semibold text-secondary-900 uppercase tracking-tight">{{ $header }}</h1>
@@ -216,7 +215,7 @@
                 </header>
 
                 {{-- Page Content --}}
-                <main class="p-4 sm:p-6 lg:p-8 pt-20 pb-24 lg:pb-8">
+                <main class="flex-1 p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8">
                     {{ $slot }}
                 </main>
 
