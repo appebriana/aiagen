@@ -214,10 +214,10 @@
                         <a href="{{ route('admin.pengaturan.index') }}" class="px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors {{ request()->is('*/pengaturan*') || request()->routeIs('admin.profile.*') || request()->routeIs('admin.users.*') ? 'bg-primary-100 text-primary-700' : 'text-secondary-600 hover:bg-secondary-100' }}">
                             Pengaturan
                         </a>
-                        <button @click="feedbackOpen = true" class="px-3 py-1.5 rounded-lg text-sm font-semibold text-secondary-600 hover:bg-secondary-100 transition-colors flex items-center gap-2">
+                        <a href="{{ route('admin.feedback.index') }}" class="px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors {{ request()->routeIs('admin.feedback.index') ? 'bg-primary-100 text-primary-700' : 'text-secondary-600 hover:bg-secondary-100' }} flex items-center gap-2">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
                             Feedback
-                        </button>
+                        </a>
                         <div class="h-6 w-px bg-secondary-200 mx-2"></div>
                         <span class="hidden sm:inline-block text-sm text-secondary-600 font-medium">{{ Auth::user()->name }}</span>
                         <span class="hidden sm:inline-block text-xs bg-primary-100 text-primary-700 px-2 py-0.5 rounded-full font-bold capitalize">{{ Auth::user()->role }}</span>
