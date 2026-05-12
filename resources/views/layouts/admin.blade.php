@@ -115,12 +115,11 @@
                         <span class="text-[9px] font-bold">Setting</span>
                     </a>
 
-                    <button @click="feedbackOpen = true" 
-                       class="flex flex-col items-center gap-0.5 py-1 px-3 rounded-2xl transition-all"
-                       :class="feedbackOpen ? 'text-primary-600 bg-primary-50' : 'text-secondary-400'">
+                    <a href="{{ route('admin.feedback.index') }}" 
+                       class="flex flex-col items-center gap-0.5 py-1 px-3 rounded-2xl transition-all {{ request()->routeIs('admin.feedback.index') ? 'text-primary-600 bg-primary-50' : 'text-secondary-400' }}">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
                         <span class="text-[9px] font-bold">Feedback</span>
-                    </button>
+                    </a>
                 </div>
             </div>
 
