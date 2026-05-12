@@ -39,10 +39,29 @@ const client = new Client({
     }
 });
 
-async function updateDbStatus(status) {
+async function updateDbStatus(status, phoneNumber = null) {
     try {
-        await axios.post(`http://127.0.0.1:8000/update-device-status/${DEVICE_ID}`, { status });
-    } catch (e) { }
+        const response = await axios.post(`http://127.0.0.1:8000/update-device-status/${DEVICE_ID}`, { 
+            status, 
+            phone_number: phoneNumber 
+        });
+
+        // Jika API menolak karena nomor sudah digunakan di device lain
+        if (response.data && response.data.status === 'error' && response.data.code === 'duplicate_number') {
+            console.error(`\n[${DEVICE_NAME}] !!! ERROR: ${response.data.message} !!!`);
+            console.log(`[${DEVICE_NAME}] Memutuskan sesi agar tidak terjadi tabrakan AI...`);
+            
+            try {
+                await client.logout();
+            } catch (logoutError) {
+                console.error("Gagal logout:", logoutError.message);
+            }
+            
+            process.exit(1); // Hentikan proses agar PM2 tidak restart terus menerus (jika tidak dikonfigurasi restart)
+        }
+    } catch (e) { 
+        console.error(`[${DEVICE_NAME}] Gagal update status ke API:`, e.message);
+    }
 }
 
 client.on('qr', qr => {
@@ -68,8 +87,12 @@ client.on('ready', () => {
     connectionStatus = 'ready';
     currentQR = '';
     initRequested = false;
-    updateDbStatus('connected');
-    console.log(`[${DEVICE_NAME}] WhatsApp Client SIAP!`);
+    
+    // Ambil nomor WA yang terhubung
+    const phoneNumber = client.info.wid.user;
+    updateDbStatus('connected', phoneNumber);
+    
+    console.log(`[${DEVICE_NAME}] WhatsApp Client SIAP! (Nomor: ${phoneNumber})`);
 });
 
 client.on('disconnected', (reason) => {

@@ -123,13 +123,42 @@ async def update_device_status(device_id: str, data: dict):
     """Update status untuk SATU device spesifik berdasarkan ID perangkat."""
     from services.db_service import get_db_connection
     status = data.get("status", "disconnected")
+    phone_number = data.get("phone_number")
+    
     try:
         conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute(
-            "UPDATE whatsapp_devices SET status = %s, updated_at = NOW() WHERE id = %s",
-            (status, device_id)
-        )
+        cursor = conn.cursor(dictionary=True)
+        
+        # Jika sedang mencoba connect, cek apakah nomor ini sudah dipakai device LAIN
+        if status == 'connected' and phone_number:
+            cursor.execute(
+                "SELECT id, name FROM whatsapp_devices WHERE phone_number = %s AND status = 'connected' AND id != %s",
+                (phone_number, device_id)
+            )
+            existing = cursor.fetchone()
+            
+            if existing:
+                print(f"[ERROR] Nomor {phone_number} sudah digunakan oleh device: {existing['name']} (ID: {existing['id']})")
+                cursor.close()
+                conn.close()
+                return {
+                    "status": "error", 
+                    "message": f"Nomor ini sudah terhubung di perangkat lain ({existing['name']}). Satu nomor hanya boleh untuk satu perangkat.",
+                    "code": "duplicate_number"
+                }
+
+        # Update status dan nomor HP di tabel whatsapp_devices
+        if phone_number:
+            cursor.execute(
+                "UPDATE whatsapp_devices SET status = %s, phone_number = %s, updated_at = NOW() WHERE id = %s",
+                (status, phone_number, device_id)
+            )
+        else:
+            cursor.execute(
+                "UPDATE whatsapp_devices SET status = %s, updated_at = NOW() WHERE id = %s",
+                (status, device_id)
+            )
+            
         conn.commit()
         cursor.close()
         conn.close()
