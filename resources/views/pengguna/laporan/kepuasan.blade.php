@@ -142,7 +142,7 @@
                     <thead class="bg-secondary-50 text-secondary-500 text-[10px] uppercase font-bold tracking-wider">
                         <tr>
                             <th class="px-6 py-4">Waktu & Tanggal</th>
-                            <th class="px-6 py-4">Pelanggan</th>
+                            <th class="px-6 py-4">Nomor</th>
                             <th class="px-6 py-4 text-center">Rating</th>
                             <th class="px-6 py-4">Pesan Terakhir (Customer)</th>
                             <th class="px-6 py-4">Jawaban (AI/Admin)</th>

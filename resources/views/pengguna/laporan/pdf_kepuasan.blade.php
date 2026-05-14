@@ -25,7 +25,7 @@
             <tr>
                 <th width="15%">Waktu & Tanggal</th>
                 <th width="15%">Departemen</th>
-                <th width="15%">Pelanggan</th>
+                <th width="15%">Nomor</th>
                 <th width="8%">Rating</th>
                 <th width="23%">Pesan Terakhir</th>
                 <th width="24%">Jawaban</th>
