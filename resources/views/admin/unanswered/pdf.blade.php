@@ -17,7 +17,7 @@
 <body>
     <div class="header">
         <h2 style="margin-bottom: 5px; color: #1e293b;">LAPORAN PERTANYAAN & JAWABAN AIAGEN</h2>
-        <p style="margin-top: 0; color: #64748b;">Dicetak pada: {{ now()->format('d M Y H:i') }}</p>
+        <p style="margin-top: 0; color: #64748b;">Dicetak pada: {{ now()->translatedFormat('d F Y H:i') }}</p>
     </div>
 
     <table>
@@ -35,7 +35,7 @@
             @foreach($questions as $index => $q)
             <tr>
                 <td>{{ $index + 1 }}</td>
-                <td>{{ $q->created_at->format('d/m/Y H:i') }}</td>
+                <td>{{ $q->created_at->translatedFormat('d/m/Y H:i') }}</td>
                 <td>
                     @if($q->customer)
                         <strong>{{ $q->customer->nickname ?: $q->customer->name }}</strong><br>

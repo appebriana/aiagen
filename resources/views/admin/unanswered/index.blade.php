@@ -120,7 +120,7 @@
                                     <td class="px-6 py-4">
                                         <input type="checkbox" value="{{ $item->id }}" x-model="selectedIds" class="rounded border-secondary-300 text-primary-600 focus:ring-primary-500">
                                     </td>
-                                    <td class="px-6 py-4 text-sm text-secondary-600 whitespace-nowrap">{{ $item->created_at->format('d/m/Y H:i') }}</td>
+                                    <td class="px-6 py-4 text-sm text-secondary-600 whitespace-nowrap">{{ $item->created_at->translatedFormat('d/m/Y H:i') }}</td>
                                     <td class="px-6 py-4 text-sm font-medium text-secondary-900">
                                         @if($item->customer)
                                             <div class="flex flex-col">
@@ -193,7 +193,7 @@
                             <div class="flex items-center gap-3">
                                 <input type="checkbox" value="{{ $item->id }}" x-model="selectedIds" class="rounded border-secondary-300 text-primary-600 focus:ring-primary-500">
                                 <div>
-                                    <p class="text-[10px] text-secondary-400 font-bold uppercase tracking-widest">{{ $item->created_at->format('d M Y, H:i') }}</p>
+                                    <p class="text-[10px] text-secondary-400 font-bold uppercase tracking-widest">{{ $item->created_at->translatedFormat('d M Y, H:i') }}</p>
                                     <h4 class="text-sm font-bold text-secondary-900">
                                         @if($item->customer)
                                             {{ $item->customer->nickname ?: $item->customer->name }}

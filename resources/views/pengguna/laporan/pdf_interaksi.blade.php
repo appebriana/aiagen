@@ -17,7 +17,7 @@
 <body>
     <div class="header">
         <h2>LAPORAN INTERAKSI AI</h2>
-        <p>Dicetak oleh: {{ $user->name }} | Tanggal: {{ date('d M Y H:i') }}</p>
+        <p>Dicetak oleh: {{ $user->name }} | Tanggal: {{ now()->translatedFormat('d F Y H:i') }}</p>
     </div>
 
     <table>
@@ -33,7 +33,7 @@
         <tbody>
             @foreach($logs as $index => $log)
             <tr class="{{ $index % 2 == 0 ? '' : 'bg-gray' }}">
-                <td>{{ \Carbon\Carbon::parse($log->created_at)->format('d/m/y H:i') }}</td>
+                <td>{{ \Carbon\Carbon::parse($log->created_at)->translatedFormat('d/m/y H:i') }}</td>
                 <td>{{ \Illuminate\Support\Facades\DB::table('departments')->where('id', $log->department_id)->value('name') ?? '-' }}</td>
                 <td>{{ $log->customer_phone }}</td>
                 <td>{{ $log->question }}</td>

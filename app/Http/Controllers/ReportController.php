@@ -129,7 +129,7 @@ class ReportController extends Controller
 
             for ($i = 0; $i < 7; $i++) {
                 $date = $start->copy()->addDays($i);
-                $labels[] = $date->format('d M');
+                $labels[] = $date->translatedFormat('d M');
                 $counts[] = $results[$date->toDateString()] ?? 0;
             }
         } elseif ($range === 'bulanan') {
@@ -156,7 +156,7 @@ class ReportController extends Controller
                 ->all();
 
             for ($i = 1; $i <= 12; $i++) {
-                $labels[] = Carbon::create()->month($i)->format('M');
+                $labels[] = Carbon::create()->month($i)->translatedFormat('M');
                 $counts[] = $results[$i] ?? 0;
             }
         }
@@ -198,7 +198,7 @@ class ReportController extends Controller
         $logs = $query->orderBy('created_at', 'desc')->get();
 
         foreach ($logs as $log) {
-            $log->formatted_date = Carbon::parse($log->created_at)->format('d M Y H:i');
+            $log->formatted_date = Carbon::parse($log->created_at)->translatedFormat('d M Y H:i');
             // Bersihkan tag internal seperti [[SET_NAME: ...]]
             $log->answer = preg_replace('/\[\[.*?\]\]/', '', $log->answer);
             $log->answer = trim($log->answer);
