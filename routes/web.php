@@ -104,6 +104,11 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
         Route::get('/interaksi/wa/export/pdf', [ReportController::class, 'exportPdf'])->name('interaksi.wa.export.pdf');
         Route::post('/interaksi/wa/toggle-ai', [ReportController::class, 'toggleAi'])->name('interaksi.wa.toggle-ai');
 
+        Route::get('/kepuasan', [ReportController::class, 'satisfaction'])->name('kepuasan');
+        Route::get('/kepuasan/detail/{phone}', [ReportController::class, 'interactionDetail'])->name('kepuasan.detail');
+        Route::get('/kepuasan/export/excel', [ReportController::class, 'exportExcelSatisfaction'])->name('kepuasan.excel');
+        Route::get('/kepuasan/export/pdf', [ReportController::class, 'exportPdfSatisfaction'])->name('kepuasan.pdf');
+
         // Coming Soon Platforms
         Route::get('/interaksi/ig', [ReportController::class, 'comingSoon'])->name('interaksi.ig');
         Route::get('/interaksi/telegram', [ReportController::class, 'comingSoon'])->name('interaksi.telegram');
@@ -198,6 +203,12 @@ Route::middleware(['auth', 'verified', 'role:pengguna'])->prefix('pengguna')->na
         Route::get('/interaksi/wa/detail/{phone}', [ReportController::class, 'interactionDetail'])->name('interaksi.wa.detail');
         Route::get('/interaksi/wa/export/excel', [ReportController::class, 'exportExcel'])->name('interaksi.wa.export.excel');
         Route::get('/interaksi/wa/export/pdf', [ReportController::class, 'exportPdf'])->name('interaksi.wa.export.pdf');
+        Route::post('/interaksi/wa/toggle-ai', [ReportController::class, 'toggleAi'])->name('interaksi.wa.toggle-ai');
+
+        Route::get('/kepuasan', [ReportController::class, 'satisfaction'])->name('kepuasan');
+        Route::get('/kepuasan/detail/{phone}', [ReportController::class, 'interactionDetail'])->name('kepuasan.detail');
+        Route::get('/kepuasan/export/excel', [ReportController::class, 'exportExcelSatisfaction'])->name('kepuasan.excel');
+        Route::get('/kepuasan/export/pdf', [ReportController::class, 'exportPdfSatisfaction'])->name('kepuasan.pdf');
         Route::post('/interaksi/wa/toggle-ai', [ReportController::class, 'toggleAi'])->name('interaksi.wa.toggle-ai');
 
         // Coming Soon Platforms

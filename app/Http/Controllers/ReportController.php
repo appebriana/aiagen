@@ -101,6 +101,116 @@ class ReportController extends Controller
         return view('pengguna.laporan.interaksi', compact('stats', 'topInteractions', 'range', 'type', 'penggunaUsers', 'selectedUser', 'departmentIds'));
     }
 
+    public function satisfaction(Request $request)
+    {
+        $user = Auth::user();
+        $range = $request->get('range', 'semua');
+        $minRating = $request->get('rating'); // Filter by specific rating
+
+        $penggunaUsers = null;
+        if ($user->isAdmin()) {
+            $penggunaUsers = User::where('role', 'pengguna')->orderBy('name')->get();
+        }
+
+        $selectedUser = null;
+        $departmentIds = $this->resolveDepartmentIds($request, $selectedUser);
+
+        if ($user->isAdmin() && !$selectedUser) {
+            $stats = ['avg' => 0, 'total' => 0];
+            $logs = collect();
+            return view('pengguna.laporan.kepuasan', compact('stats', 'logs', 'range', 'penggunaUsers', 'selectedUser', 'departmentIds'));
+        }
+
+        $query = DB::table('ai_chat_logs')
+            ->whereIn('department_id', $departmentIds)
+            ->whereNotNull('rating');
+
+        if ($minRating) {
+            $query->where('rating', $minRating);
+        }
+
+        // Statistik Ringkasan
+        $stats = [
+            'avg' => (clone $query)->avg('rating') ?: 0,
+            'total' => (clone $query)->count(),
+            'distribution' => [
+                5 => (clone $query)->where('rating', 5)->count(),
+                4 => (clone $query)->where('rating', 4)->count(),
+                3 => (clone $query)->where('rating', 3)->count(),
+                2 => (clone $query)->where('rating', 2)->count(),
+                1 => (clone $query)->where('rating', 1)->count(),
+            ]
+        ];
+
+        // Filter Range
+        if ($range === 'harian') {
+            $query->whereDate('created_at', Carbon::today());
+        } elseif ($range === 'mingguan') {
+            $query->where('created_at', '>=', Carbon::now()->subDays(7));
+        } elseif ($range === 'bulanan') {
+            $query->whereMonth('created_at', Carbon::now()->month)
+                  ->whereYear('created_at', Carbon::now()->year);
+        }
+
+        $logs = $query->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
+
+        // Cari nama customer
+        $targetUserId = $selectedUser->id;
+        foreach ($logs as $item) {
+            $customer = DB::table('customers')
+                ->where('user_id', $targetUserId)
+                ->where('phone', $item->customer_phone)
+                ->first();
+            $item->customer_name = $customer ? ($customer->nickname ?: $customer->name) : 'Unknown';
+            $item->formatted_date = Carbon::parse($item->created_at)->translatedFormat('d M Y H:i');
+        }
+
+        return view('pengguna.laporan.kepuasan', compact('stats', 'logs', 'range', 'penggunaUsers', 'selectedUser', 'departmentIds'));
+    }
+
+    public function exportExcelSatisfaction(Request $request)
+    {
+        $user = Auth::user();
+        $selectedUser = null;
+        $departmentIds = $this->resolveDepartmentIds($request, $selectedUser);
+
+        if ($departmentIds->isEmpty()) return back();
+
+        $logs = DB::table('ai_chat_logs')
+            ->whereIn('department_id', $departmentIds)
+            ->whereNotNull('rating')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $fileName = 'Laporan_Kepuasan_' . date('Y-m-d') . '.xls';
+        $headers = [
+            "Content-Type" => "application/vnd.ms-excel",
+            "Content-Disposition" => "attachment; filename=$fileName"
+        ];
+
+        $output = view('pengguna.laporan.excel_kepuasan', compact('logs'))->render();
+        return response($output, 200, $headers);
+    }
+
+    public function exportPdfSatisfaction(Request $request)
+    {
+        $user = Auth::user();
+        $selectedUser = null;
+        $departmentIds = $this->resolveDepartmentIds($request, $selectedUser);
+
+        if ($departmentIds->isEmpty()) return back();
+
+        $logs = DB::table('ai_chat_logs')
+            ->whereIn('department_id', $departmentIds)
+            ->whereNotNull('rating')
+            ->orderBy('created_at', 'desc')
+            ->limit(500)
+            ->get();
+
+        $pdf = Pdf::loadView('pengguna.laporan.pdf_kepuasan', compact('logs', 'user'));
+        return $pdf->setPaper('a4', 'portrait')->download('Laporan_Kepuasan_' . date('Y-m-d') . '.pdf');
+    }
+
     public function toggleAi(Request $request)
     {
         $request->validate([
