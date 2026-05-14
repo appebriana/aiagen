@@ -148,8 +148,7 @@ client.on('message', async msg => {
             console.error(`[${DEVICE_NAME}] Error checking labels:`, labelError.message);
         }
 
-        const webhookUrl = process.env.AI_AGENT_WEBHOOK_URL || 'http://127.0.0.1:8000/webhook';
-        await axios.post(webhookUrl, {
+        await axios.post('http://127.0.0.1:8000/webhook', {
             sender: msg.from,
             message: msg.body,
             department_id: DEPARTMENT_ID,
