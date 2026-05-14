@@ -51,11 +51,17 @@ async def handle_webhook(request: Request):
         
         # --- FITUR HOLD / HUMAN TAKEOVER ---
         is_held_by_label = data.get("is_held_by_label", False)
-        is_muted_by_dashboard = customer.get('is_muted', False) if customer else False
+        # Gunakan field is_ai_enabled (default True jika tidak ada)
+        is_ai_enabled = customer.get('is_ai_enabled', True) if customer else True
 
-        if is_held_by_label or is_muted_by_dashboard:
-            reason = "Label WA" if is_held_by_label else "Dashboard"
+        if is_held_by_label or not is_ai_enabled:
+            reason = "Label WA" if is_held_by_label else "Dashboard (Takeover)"
             print(f"[DEBUG] Customer {customer_id} sedang di-HOLD via {reason}. AI tidak menjawab.")
+            
+            # Tetap log pesan masuk agar muncul di CMS
+            from services.db_service import log_ai_response
+            log_ai_response(department_id, customer_id, msg_body, None, "HUMAN_TAKEOVER", 0, 0)
+            
             return {"status": "held"}
         # ------------------------------------------------
         from services.whatsapp_service import send_whatsapp_message, send_typing_indicator
