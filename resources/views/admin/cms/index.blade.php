@@ -168,35 +168,23 @@
                 <div class="flex flex-col flex-1 overflow-hidden">
                     {{-- Chat Content --}}
                     <div class="flex-1 overflow-y-auto p-6 space-y-4 bg-secondary-50/50" id="chat-scroll">
-                        <template x-for="chat in chats" :key="chat.id">
-                            <div class="space-y-3">
-                                {{-- User Message --}}
-                                <template x-if="chat.question && chat.question !== '[ADMIN MANUAL REPLY]'">
-                                    <div class="flex justify-start">
-                                        <div class="max-w-[75%] bg-white p-3 rounded-2xl rounded-tl-none shadow-sm border border-secondary-200">
-                                            <p class="text-sm text-secondary-800" x-text="cleanMessage(chat.question)"></p>
-                                            <p class="text-[9px] text-secondary-400 mt-1 text-right" x-text="chat.formatted_time"></p>
-                                        </div>
+                        <template x-for="msg in flattenedChats" :key="msg.id">
+                            <div class="flex" :class="msg.type === 'incoming' ? 'justify-start' : 'justify-end'">
+                                <div class="max-w-[75%] p-3 rounded-2xl shadow-sm border"
+                                     :class="msg.type === 'incoming' 
+                                            ? 'bg-white border-secondary-200 rounded-tl-none text-secondary-800' 
+                                            : (msg.type === 'admin' 
+                                                ? 'bg-indigo-600 text-white border-indigo-500 rounded-tr-none' 
+                                                : 'bg-primary-700 text-white border-primary-600 rounded-tr-none')">
+                                    
+                                    <div x-if="msg.type !== 'incoming'" class="flex items-center gap-1.5 mb-1 opacity-70">
+                                        <span class="text-[9px] font-bold uppercase tracking-wider" 
+                                              x-text="msg.type === 'admin' ? 'Admin' : 'AI Agent'"></span>
                                     </div>
-                                </template>
-                                {{-- AI / Admin Answer --}}
-                                <template x-if="chat.answer && chat.answer.trim() !== ''">
-                                    <div class="flex justify-end">
-                                        <div class="max-w-[75%] p-3 rounded-2xl rounded-tr-none shadow-md"
-                                             :class="chat.question === '[ADMIN MANUAL REPLY]' ? 'bg-indigo-600 text-white' : 'bg-primary-700 text-white'">
-                                            <div class="flex items-center gap-1.5 mb-1 opacity-70">
-                                                <template x-if="chat.question === '[ADMIN MANUAL REPLY]'">
-                                                    <span class="text-[9px] font-bold uppercase tracking-wider">Admin</span>
-                                                </template>
-                                                <template x-if="chat.question !== '[ADMIN MANUAL REPLY]'">
-                                                    <span class="text-[9px] font-bold uppercase tracking-wider">AI Agent</span>
-                                                </template>
-                                            </div>
-                                            <p class="text-sm" x-text="cleanMessage(chat.answer)"></p>
-                                            <p class="text-[9px] mt-1 text-right opacity-60" x-text="chat.formatted_time"></p>
-                                        </div>
-                                    </div>
-                                </template>
+
+                                    <p class="text-sm whitespace-pre-wrap" x-text="cleanMessage(msg.text)"></p>
+                                    <p class="text-[9px] mt-1 text-right opacity-60" x-text="msg.time"></p>
+                                </div>
                             </div>
                         </template>
                     </div>
@@ -298,6 +286,32 @@
                 activePlatform: "{{ $whatsappDevices->first() ? 'wa-'.$whatsappDevices->first()->id : 'wa' }}",
                 selectedDeviceId: {{ $whatsappDevices->first() ? $whatsappDevices->first()->id : 'null' }},
                 conversations: {!! json_encode($conversations) !!},
+
+                get flattenedChats() {
+                    let flattened = [];
+                    this.chats.forEach(chat => {
+                        // 1. Pesan Pelanggan (Masuk)
+                        if (chat.question && chat.question !== '[ADMIN MANUAL REPLY]') {
+                            flattened.push({
+                                id: chat.id + '_q',
+                                text: chat.question,
+                                type: 'incoming',
+                                time: chat.formatted_time
+                            });
+                        }
+                        // 2. Balasan (AI atau Admin)
+                        if (chat.answer && chat.answer.trim() !== '') {
+                            const isManual = chat.question === '[ADMIN MANUAL REPLY]';
+                            flattened.push({
+                                id: chat.id + '_a',
+                                text: chat.answer,
+                                type: isManual ? 'admin' : 'ai',
+                                time: chat.formatted_time
+                            });
+                        }
+                    });
+                    return flattened;
+                },
                 
                 async selectConversation(phone, name, aiStatus) {
                     this.activePhone = phone;
