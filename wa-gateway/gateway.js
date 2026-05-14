@@ -124,15 +124,17 @@ client.on('message', async msg => {
         console.error("Gagal mengambil settings:", e.message);
     }
 
+    let isTriggered = true;
     if (isGroup) {
-        if (!currentDeptSettings || !currentDeptSettings.reply_to_groups) return;
-        if (!msg.body.toLowerCase().startsWith(aiNameTrigger)) return;
-        msg.body = msg.body.substring(aiNameTrigger.length).trim();
-        
-        // Jika di grup hanya memanggil trigger (misal: "/ai") tanpa isi pesan,
-        // ubah menjadi "Halo" agar sistem AI tetap merespon sebagai sapaan.
-        if (msg.body === '') {
-            msg.body = 'Halo';
+        if (!currentDeptSettings || !currentDeptSettings.reply_to_groups) {
+            isTriggered = false;
+        } else if (!msg.body.toLowerCase().startsWith(aiNameTrigger)) {
+            isTriggered = false;
+        } else {
+            msg.body = msg.body.substring(aiNameTrigger.length).trim();
+            if (msg.body === '') {
+                msg.body = 'Halo';
+            }
         }
     }
 
@@ -154,6 +156,7 @@ client.on('message', async msg => {
             gateway_port: PORT,
             pushname: msg._data?.notifyName || null,
             is_held_by_label: isHeld,
+            is_triggered: isTriggered,
             author: msg.author || msg.from,
             message_id: msg.id._serialized
         });
