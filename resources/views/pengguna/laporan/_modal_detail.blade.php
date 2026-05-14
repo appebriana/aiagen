@@ -5,20 +5,8 @@
         name: '', 
         logs: [], 
         loading: false,
-        scrollToBottom() {
-            setTimeout(() => {
-                const container = this.$refs.chatContainer;
-                if (container) {
-                    container.scrollTop = container.scrollHeight;
-                }
-            }, 100);
-        },
         init() {
-            this.$watch('logs', value => {
-                if (value.length > 0) {
-                    this.scrollToBottom();
-                }
-            });
+            // No manual scroll needed with flex-col-reverse
         },
         async fetchLogs() {
             this.loading = true;
@@ -31,7 +19,6 @@
                 const result = await response.json();
                 if (result.status === 'success') {
                     this.logs = result.data;
-                    this.scrollToBottom();
                 }
             } catch (error) {
                 console.error('Gagal mengambil log:', error);
@@ -72,7 +59,7 @@
             </div>
 
             {{-- Modal Body (Chat Logs) --}}
-            <div x-ref="chatContainer" class="p-6 max-h-[65vh] overflow-y-auto bg-[#efeae2] space-y-3" style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+            <div class="p-6 max-h-[65vh] overflow-y-auto bg-[#efeae2] flex flex-col-reverse" style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
                 <template x-if="loading">
                     <div class="flex justify-center py-12">
                         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#075e54]"></div>
@@ -84,7 +71,7 @@
                 </template>
 
                 <template x-for="log in logs" :key="log.id">
-                    <div class="flex flex-col space-y-1">
+                    <div class="flex flex-col space-y-1 mb-4">
                         {{-- Customer Message (Left) --}}
                         <div class="flex justify-start">
                             <div class="max-w-[85%] bg-white text-[#111b21] p-2.5 px-4 rounded-2xl rounded-tl-none shadow-sm relative border-b border-secondary-200">
