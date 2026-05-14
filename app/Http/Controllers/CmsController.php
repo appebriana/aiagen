@@ -195,15 +195,41 @@ class CmsController extends Controller
             }
         }
         
-        // 2. Catat di DB sebagai log
-        DB::table('ai_chat_logs')->insert([
-            'department_id' => $request->department_id,
-            'customer_phone' => $request->phone,
-            'question' => '[ADMIN MANUAL REPLY]',
-            'answer' => $request->message,
-            'created_at' => now(),
-            'updated_at' => now()
-        ]);
+        // 3. Logika "Smart Pairing": Cek apakah ada pesan pelanggan terakhir yang belum dijawab
+        $lastUnanswered = DB::table('ai_chat_logs')
+            ->where('department_id', $request->department_id)
+            ->where('customer_phone', $request->phone)
+            ->where(function($query) {
+                $query->whereNull('answer')->orWhere('answer', '');
+            })
+            ->orderBy('id', 'desc')
+            ->first();
+
+        if ($lastUnanswered) {
+            // Update pesan yang menggantung agar sejajar di tampilan
+            DB::table('ai_chat_logs')
+                ->where('id', $lastUnanswered->id)
+                ->update([
+                    'answer' => $request->message,
+                    'model' => 'MANUAL_ADMIN',
+                    'updated_at' => now(),
+                ]);
+        } else {
+            // Jika tidak ada pesan yang menggantung, buat baris baru
+            DB::table('ai_chat_logs')->insert([
+                'department_id' => $request->department_id,
+                'customer_phone' => $request->phone,
+                'question' => '[ADMIN MANUAL REPLY]',
+                'answer' => $request->message,
+                'model' => 'MANUAL_ADMIN',
+                'prompt_tokens' => 0,
+                'completion_tokens' => 0,
+                'total_tokens' => 0,
+                'cost' => 0,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
 
         // 3. Otomatis matikan AI untuk customer ini (Takeover)
         $dept = Department::find($request->department_id);
