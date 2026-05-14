@@ -144,6 +144,10 @@
                             <th class="px-6 py-4">Nama / Nickname</th>
                             <th class="px-6 py-4">ID / Nomor WA</th>
                             <th class="px-6 py-4 text-center">Total Pesan</th>
+                            <th class="px-6 py-4 text-center">Sentiment</th>
+                            <th class="px-6 py-4 text-center">Terjawab?</th>
+                            <th class="px-6 py-4 text-center">Kepuasan (Avg)</th>
+                            <th class="px-6 py-4 text-center">Status AI</th>
                             <th class="px-6 py-4 text-right">Aksi</th>
                         </tr>
                     </thead>
@@ -163,6 +167,65 @@
                             </td>
                             <td class="px-6 py-4 text-center">
                                 <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-bold">{{ number_format($item->total) }}</span>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                @php
+                                    $mostSentiment = \Illuminate\Support\Facades\DB::table('ai_chat_logs')
+                                        ->where('customer_phone', $item->customer_phone)
+                                        ->whereIn('department_id', $departmentIds)
+                                        ->whereNotNull('sentiment')
+                                        ->select('sentiment', \Illuminate\Support\Facades\DB::raw('count(*) as count'))
+                                        ->groupBy('sentiment')
+                                        ->orderBy('count', 'desc')
+                                        ->first();
+                                @endphp
+                                @if($mostSentiment)
+                                    @if($mostSentiment->sentiment === 'positive') 😊
+                                    @elseif($mostSentiment->sentiment === 'negative') 😠
+                                    @else 😐 @endif
+                                @else
+                                    -
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                @php
+                                    $isResolved = \Illuminate\Support\Facades\DB::table('ai_chat_logs')
+                                        ->where('customer_phone', $item->customer_phone)
+                                        ->whereIn('department_id', $departmentIds)
+                                        ->whereNotNull('is_resolved')
+                                        ->orderBy('created_at', 'desc')
+                                        ->value('is_resolved');
+                                @endphp
+                                @if($isResolved === 1)
+                                    <span class="text-green-600 font-bold text-xs">YA</span>
+                                @elseif($isResolved === 0)
+                                    <span class="text-red-600 font-bold text-xs">TIDAK</span>
+                                @else
+                                    <span class="text-secondary-400 text-xs">-</span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                @if($item->avg_rating)
+                                    <div class="flex items-center justify-center gap-1">
+                                        <span class="text-sm font-bold text-secondary-900">{{ number_format($item->avg_rating, 1) }}</span>
+                                        <svg class="w-4 h-4 text-amber-400 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                    </div>
+                                @else
+                                    <span class="text-xs text-secondary-400 italic">Belum ada</span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <button onclick="toggleAiStatus('{{ $item->customer_phone }}', {{ $item->is_ai_enabled ? 0 : 1 }}, {{ $isAdmin && $selectedUser ? $selectedUser->id : auth()->id() }}, this)"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase transition-all {{ $item->is_ai_enabled ? 'bg-green-50 text-green-700 hover:bg-green-100' : 'bg-rose-50 text-rose-700 hover:bg-rose-100 ring-2 ring-rose-200 animate-pulse' }}"
+                                        title="{{ $item->is_ai_enabled ? 'AI Aktif. Klik untuk Takeover' : 'Human Takeover Aktif. AI Berhenti. Klik untuk Aktifkan AI kembali' }}">
+                                    @if($item->is_ai_enabled)
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                        Active
+                                    @else
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                                        Hold
+                                    @endif
+                                </button>
                             </td>
                             <td class="px-6 py-4 text-right">
                                 <button @click="showDetail('{{ $item->customer_phone }}', '{{ $item->name }}')" 
@@ -280,8 +343,24 @@
                             <div class="flex justify-start">
                                 <div class="max-w-[80%] bg-white text-secondary-900 p-4 rounded-2xl rounded-tl-none shadow-sm border border-secondary-200">
                                     <p class="text-sm whitespace-pre-wrap" x-text="log.answer"></p>
-                                    <div class="flex items-center gap-2 mt-2">
-                                        <p class="text-[10px] text-secondary-400" x-text="log.formatted_date"></p>
+                                    <div class="flex items-center justify-between gap-2 mt-2">
+                                        <div class="flex items-center gap-2">
+                                            <p class="text-[10px] text-secondary-400" x-text="log.formatted_date"></p>
+                                            <template x-if="log.sentiment">
+                                                <span class="text-xs" :title="log.sentiment" x-text="log.sentiment === 'positive' ? '😊' : (log.sentiment === 'negative' ? '😠' : '😐')"></span>
+                                            </template>
+                                            <template x-if="log.is_resolved !== null">
+                                                <span class="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase" 
+                                                      :class="log.is_resolved ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'"
+                                                      x-text="log.is_resolved ? 'Terjawab' : 'Belum Terjawab'"></span>
+                                            </template>
+                                        </div>
+                                        <template x-if="log.rating">
+                                            <div class="flex items-center gap-0.5 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-100">
+                                                <span class="text-[10px] font-bold text-amber-700" x-text="log.rating"></span>
+                                                <svg class="w-2.5 h-2.5 text-amber-500 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                            </div>
+                                        </template>
                                     </div>
                                 </div>
                             </div>
@@ -304,6 +383,44 @@
             window.dispatchEvent(new CustomEvent('open-detail', { 
                 detail: { phone: phone, name: name } 
             }));
+        }
+
+        async function toggleAiStatus(phone, newStatus, userId, buttonEl) {
+            if (!confirm(newStatus ? 'Aktifkan AI kembali untuk nomor ini?' : 'Matikan AI (Human Takeover) untuk nomor ini?')) return;
+
+            buttonEl.disabled = true;
+            buttonEl.classList.add('opacity-50');
+
+            try {
+                const prefix = '{{ $isAdmin ? '/admin' : '/pengguna' }}';
+                const response = await fetch(`${prefix}/laporan/interaksi/wa/toggle-ai`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        phone: phone,
+                        status: newStatus,
+                        user_id: userId
+                    })
+                });
+
+                const result = await response.json();
+                if (result.status === 'success') {
+                    // Refresh current page to reflect changes
+                    window.location.reload();
+                } else {
+                    alert('Gagal memperbarui status: ' + result.message);
+                    buttonEl.disabled = false;
+                    buttonEl.classList.remove('opacity-50');
+                }
+            } catch (error) {
+                console.error('Error toggling AI status:', error);
+                alert('Terjadi kesalahan koneksi.');
+                buttonEl.disabled = false;
+                buttonEl.classList.remove('opacity-50');
+            }
         }
 
         document.addEventListener('DOMContentLoaded', function() {

@@ -59,34 +59,67 @@ async def handle_webhook(request: Request):
         # ------------------------------------------------
         from services.whatsapp_service import send_whatsapp_message, send_typing_indicator
 
-        print(f"[Dept: {department_id}] Pesan dari {customer_id}: {msg_body}")
-        
         # Munculkan status "Mengetik" di WA (Hanya jika tidak mute)
         await send_typing_indicator(reply_to, department_id, gateway_port)
+
+        # ------------------------------------------------
+        # FITUR RATING (CSAT) & RESOLUTION CHECK
+        # ------------------------------------------------
+        is_csat_enabled = dept_settings.get('is_csat_enabled', True)
+        clean_msg = msg_body.strip().upper()
+        
+        if is_csat_enabled:
+            # 1. Handle YA / TIDAK (Resolution Check)
+            if clean_msg in ["YA", "TIDAK"]:
+                from services.db_service import update_last_resolved
+                is_resolved = (clean_msg == "YA")
+                success = update_last_resolved(department_id, author, is_resolved)
+                if success:
+                    if is_resolved:
+                        next_msg = "Alhamdulillah, senang bisa membantu! 😊\n\nTerakhir, mohon kesediaannya memberikan rating layanan saya dengan membalas angka 1 (Buruk) s/d 5 (Sangat Puas) ya!"
+                    else:
+                        next_msg = "Mohon maaf jika jawaban saya belum memuaskan. 🙏 Kami akan terus belajar.\n\nTetap mohon bantuannya untuk memberikan rating 1-5 agar kami bisa melakukan evaluasi."
+                    await send_whatsapp_message(reply_to, next_msg, department_id, gateway_port, message_id)
+                    return {"status": "resolution_saved"}
+
+            # 2. Handle 1-5 (Rating)
+            if msg_body.strip() in ["1", "2", "3", "4", "5"]:
+                from services.db_service import update_last_rating
+                success = update_last_rating(department_id, author, int(msg_body.strip()))
+                if success:
+                    thanks_msg = "Terima kasih banyak atas penilaiannya! Masukan Kakak sangat berarti bagi kami. 🙏✨"
+                    await send_whatsapp_message(reply_to, thanks_msg, department_id, gateway_port, message_id)
+                    return {"status": "rating_saved"}
+        # ------------------------------------------------
 
         # Perintah khusus
         if msg_body.lower() == "/reset":
             clear_memory(customer_id, department_id)
-            await send_whatsapp_message(reply_to, "Ingatan chat departemen ini telah dihapus.", department_id, gateway_port, message_id)
-            return {"status": "cleared"}
-        
-        # Ambil balasan AI (Kirim data customer juga)
-        ai_reply = get_ai_response(customer_id, department_id, msg_body, customer=customer)
-        
+            await send_whatsapp_message(reply_to, "Memori percakapan Anda telah dibersihkan.", department_id, gateway_port, message_id)
+            return {"status": "reset"}
+
+        # Ambil respon dari AI
+        answer, p_tokens, c_tokens, sentiment = get_ai_response(msg_body, customer_id, department_id, customer=customer, is_csat_enabled=is_csat_enabled)
+
         # 3. Cek apakah AI ingin mengupdate nama user
-        if "[[SET_NAME:" in ai_reply:
+        if "[[SET_NAME:" in answer:
             import re
-            match = re.search(r"\[\[SET_NAME:\s*(.*?)\]\]", ai_reply)
+            match = re.search(r"\[\[SET_NAME:\s*(.*?)\]\]", answer)
             if match:
                 new_name = match.group(1).strip()
+                from services.db_service import update_customer_nickname
                 update_customer_nickname(owner_id, customer_id, new_name)
-                ai_reply = ai_reply.replace(match.group(0), "").strip()
+                answer = re.sub(r"\[\[SET_NAME:.*?\]\]", "", answer).strip()
 
-        # Kirim balik
-        result = await send_whatsapp_message(reply_to, ai_reply, department_id, gateway_port, message_id)
+        # Kirim Balasan ke WhatsApp
+        result = await send_whatsapp_message(reply_to, answer, department_id, gateway_port, message_id)
+
+        # Simpan Log ke Database (Termasuk Token & Sentiment)
+        from services.db_service import log_ai_response
+        log_ai_response(department_id, author, msg_body, answer, os.getenv("OPENAI_MODEL", "gpt-4o-mini"), p_tokens, c_tokens, sentiment)
         
         if result and result.get("status") == "success":
-            return {"status": "success", "ai_reply": ai_reply}
+            return {"status": "success", "ai_reply": answer}
         else:
             return {"status": "failed_to_send_to_gateway", "error": str(result)}
         
@@ -165,6 +198,79 @@ async def update_device_status(device_id: str, data: dict):
         return {"status": "success"}
     except Exception as e:
         print(f"Gagal update device status di DB: {e}")
+        return {"status": "error", "message": str(e)}
+
+@app.post("/suggest")
+async def suggest_answer(request: Request):
+    """Memberikan saran jawaban untuk admin berdasarkan Knowledge Base."""
+    data = await request.json()
+    question = data.get("question")
+    department_id = data.get("department_id")
+    
+    if not question or not department_id:
+        return {"status": "error", "message": "Missing question or department_id"}
+        
+    try:
+        from services.openai_service import client, get_relevant_info, get_department_settings, get_manual_answers
+        from services.db_service import log_ai_response
+        
+        # 1. Ambil Pengaturan Departemen
+        dept_settings = get_department_settings(department_id)
+        ai_name = dept_settings.get('ai_name') or "AI Agent"
+        ai_job = dept_settings.get('ai_job_description') or "You are a helpful AI assistant."
+        
+        # 2. Ambil Konteks (KB + Manual Answers)
+        kb_context = get_relevant_info(department_id, question)
+        manual_context = get_manual_answers(department_id)
+        full_context = manual_context + "\n" + (kb_context if kb_context else "")
+        
+        # 3. Panggil OpenAI
+        system_prompt = (
+            f"Nama Anda adalah {ai_name}. {ai_job}\n"
+            "Tugas Anda saat ini adalah memberikan SARAN JAWABAN kepada ADMIN untuk membalas pertanyaan pelanggan.\n"
+            "Gunakan informasi berikut sebagai referensi:\n"
+            f"{full_context}\n\n"
+            "ATURAN:\n"
+            "1. Berikan jawaban yang siap kirim, ramah, dan profesional.\n"
+            "2. Jika informasi tidak ditemukan, berikan draf: 'Mohon maaf, saya belum memiliki informasi mengenai hal tersebut. Akan saya tanyakan ke tim terkait.'\n"
+            "3. JANGAN menyertakan tag internal seperti [[TIDAK_TAHU]] atau [[SET_NAME]]."
+        )
+        
+        response = client.chat.completions.create(
+            model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": question}
+            ],
+            temperature=0.7
+        )
+        
+        suggestion = response.choices[0].message.content
+        
+        # 4. Log Pemakaian (Accumulate to stats)
+        model_used = response.model
+        prompt_tokens = response.usage.prompt_tokens
+        completion_tokens = response.usage.completion_tokens
+        
+        log_ai_response(
+            department_id=department_id,
+            customer_phone="ADMIN_SUGGESTION", # Penanda bahwa ini adalah penggunaan via fitur saran
+            question=f"[SUGGESTION] {question}",
+            answer=suggestion,
+            model=model_used,
+            prompt_tokens=prompt_tokens,
+            completion_tokens=completion_tokens
+        )
+        
+        return {
+            "status": "success",
+            "suggestion": suggestion,
+            "usage": {
+                "total_tokens": prompt_tokens + completion_tokens
+            }
+        }
+    except Exception as e:
+        print(f"Error in /suggest: {e}")
         return {"status": "error", "message": str(e)}
 
 if __name__ == "__main__":

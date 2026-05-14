@@ -75,7 +75,7 @@ class ReportController extends Controller
 
         // List Top Interaksi (Top 10)
         $topInteractions = DB::table('ai_chat_logs')
-            ->select('customer_phone', DB::raw('count(*) as total'))
+            ->select('customer_phone', DB::raw('count(*) as total'), DB::raw('avg(rating) as avg_rating'))
             ->whereIn('department_id', $departmentIds)
             ->when($type === 'grup', function($q) {
                 return $q->where('customer_phone', 'like', '%@g.us');
@@ -95,9 +95,40 @@ class ReportController extends Controller
                 ->where('phone', $item->customer_phone)
                 ->first();
             $item->name = $customer ? ($customer->nickname ?: $customer->name) : 'Unknown';
+            $item->is_ai_enabled = $customer ? $customer->is_ai_enabled : true;
         }
 
         return view('pengguna.laporan.interaksi', compact('stats', 'topInteractions', 'range', 'type', 'penggunaUsers', 'selectedUser'));
+    }
+
+    public function toggleAi(Request $request)
+    {
+        $request->validate([
+            'phone' => 'required|string',
+            'status' => 'required|boolean',
+            'user_id' => 'required|exists:users,id'
+        ]);
+
+        $currentUser = Auth::user();
+        
+        // Cek otorisasi: Admin bebas, Pengguna hanya boleh miliknya sendiri
+        if (!$currentUser->isAdmin() && $currentUser->id != $request->user_id) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
+        }
+
+        $affected = DB::table('customers')
+            ->where('user_id', $request->user_id)
+            ->where('phone', $request->phone)
+            ->update([
+                'is_ai_enabled' => $request->status,
+                'updated_at' => now()
+            ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => $request->status ? 'AI diaktifkan kembali.' : 'AI dinonaktifkan (Human Takeover).',
+            'affected' => $affected
+        ]);
     }
 
     private function getStatsData($query, $range)

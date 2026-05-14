@@ -43,6 +43,8 @@ class DepartmentController extends Controller
             'is_24_hours' => 'nullable',
             'open_time' => 'nullable',
             'close_time' => 'nullable',
+            'is_csat_enabled' => 'nullable',
+            'tone_of_voice' => 'nullable|string|in:casual,formal,technical',
         ]);
 
         Department::create([
@@ -55,6 +57,8 @@ class DepartmentController extends Controller
             'is_24_hours' => $request->has('is_24_hours'),
             'open_time' => $request->open_time,
             'close_time' => $request->close_time,
+            'is_csat_enabled' => $request->has('is_csat_enabled'),
+            'tone_of_voice' => $request->tone_of_voice ?? 'casual',
         ]);
 
         return redirect()->back()->with('success', 'Departemen berhasil dibuat.');
@@ -78,6 +82,8 @@ class DepartmentController extends Controller
             'is_24_hours' => 'nullable',
             'open_time' => 'nullable',
             'close_time' => 'nullable',
+            'is_csat_enabled' => 'nullable',
+            'tone_of_voice' => 'nullable|string|in:casual,formal,technical',
         ]);
 
         $department->update([
@@ -90,6 +96,8 @@ class DepartmentController extends Controller
             'is_24_hours' => $request->has('is_24_hours'),
             'open_time' => $request->open_time,
             'close_time' => $request->close_time,
+            'is_csat_enabled' => $request->has('is_csat_enabled'),
+            'tone_of_voice' => $request->tone_of_voice ?? 'casual',
         ]);
 
         return redirect()->back()->with('success', 'Departemen berhasil diperbarui.');

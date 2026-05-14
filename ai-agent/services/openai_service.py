@@ -1,9 +1,12 @@
 import os
 import json
+import requests
+import csv
+from io import StringIO
 from datetime import datetime
 from openai import OpenAI
 from services.knowledge_service import get_relevant_info
-from services.db_service import get_department_settings, get_manual_answers, log_unanswered_question
+from services.db_service import get_department_settings, get_manual_answers, log_unanswered_question, get_gsheet_knowledge_urls, get_customer_ai_status, set_customer_ai_status
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -65,6 +68,33 @@ def is_within_operational_hours(dept_settings):
         print(f"[ERROR] Cek jam operasional gagal: {e}")
         return True, ""
 
+def get_tone_instructions(tone: str) -> str:
+    """Mengembalikan instruksi spesifik berdasarkan gaya bicara yang dipilih."""
+    if tone == 'formal':
+        return (
+            "GAYA BICARA: FORMAL & RESMI\n"
+            "1. Gunakan panggilan 'Bapak/Ibu' atau 'Anda'.\n"
+            "2. Gunakan bahasa Indonesia yang baku sesuai PUEBI.\n"
+            "3. Hindari penggunaan emoji sama sekali.\n"
+            "4. Kalimat harus lengkap dan sopan (Contoh: 'Baik Bapak, akan kami proses segera')."
+        )
+    elif tone == 'technical':
+        return (
+            "GAYA BICARA: TEKNIS & PADAT\n"
+            "1. Jawab langsung ke inti (to-the-point) tanpa basa-basi.\n"
+            "2. Fokus pada data, fakta, dan instruksi langkah-demi-langkah.\n"
+            "3. Gunakan istilah teknis yang akurat.\n"
+            "4. Minimalkan kata-kata pemanis, fokus pada efisiensi informasi."
+        )
+    else: # Default casual
+        return (
+            "GAYA BICARA: CASUAL & RAMAH\n"
+            "1. Gunakan panggilan 'Kak' atau 'Sobat'.\n"
+            "2. Gunakan bahasa yang santai, mengalir, dan akrab.\n"
+            "3. Gunakan emoji secara wajar untuk menunjukkan keramahan (😊, ✨, 🙏).\n"
+            "4. Buat user merasa seperti bicara dengan teman yang membantu."
+        )
+
 def get_memory_path(department_id: str, customer_id: str):
     dept_dir = os.path.join(MEMORY_DIR, f"dept_{department_id}")
     if not os.path.exists(dept_dir):
@@ -87,20 +117,90 @@ def save_session_memory(department_id: str, customer_id: str, history: list):
     with open(path, "w") as f:
         json.dump(history[-20:], f)
 
-def get_ai_response(customer_id: str, department_id: str, user_message: str, system_prompt: str = "You are a helpful AI assistant.", customer: dict = None) -> str:
+def get_google_sheet_info(urls: list) -> str:
+    """Mengambil data dari daftar Google Sheets (Public CSV) untuk dijadikan pengetahuan AI."""
+    if not urls:
+        return ""
+        
+    full_context = "BERIKUT ADALAH DATA TERBARU DARI GOOGLE SPREADSHEET (Prioritaskan ini):\n"
+    has_data = False
+    
+    for url in urls:
+        if not url or "docs.google.com/spreadsheets" not in url:
+            continue
+            
+        try:
+            # Konversi URL Google Sheets biasa ke URL Export CSV
+            if "/export" not in url:
+                sheet_id = url.split("/d/")[1].split("/")[0]
+                export_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
+            else:
+                export_url = url
+                
+            print(f"[DEBUG] Fetching Google Sheet from: {export_url}")
+            response = requests.get(export_url, timeout=10)
+            response.raise_for_status()
+            
+            # Parse CSV
+            f = StringIO(response.text)
+            reader = csv.reader(f)
+            data = list(reader)
+            
+            if data:
+                has_data = True
+                full_context += f"\nSUMBER: {url}\n"
+                for i, row in enumerate(data):
+                    if any(row): # Skip baris kosong
+                        full_context += f"- {' | '.join(row)}\n"
+            
+        except Exception as e:
+            print(f"[ERROR] Gagal mengambil data Google Sheet ({url}): {e}")
+            
+    return full_context + "\n" if has_data else ""
+
+def check_human_takeover_request(message: str) -> bool:
+    """Mendeteksi apakah user ingin berbicara dengan manusia/admin."""
+    keywords = [
+        "admin", "customer service", "cs", "operator", "manusia", "orang", 
+        "hubungi admin", "bicara dengan admin", "panggil admin", "bantuan admin",
+        "live chat", "takeover", "manual"
+    ]
+    message_lower = message.lower()
+    for kw in keywords:
+        if kw in message_lower:
+            return True
+    return False
+
+def get_ai_response(customer_id: str, department_id: str, user_message: str, system_prompt: str = "You are a helpful AI assistant.", customer: dict = None, is_csat_enabled: bool = True) -> str:
     """
     Mengambil balasan AI dengan memisahkan riwayat per customer dan pengetahuan per departemen.
     """
     try:
         user_message = user_message.strip()
-        # 1. Ambil Pengaturan Departemen TERBARU dari DB (Tanpa Cache)
+        # 0. CEK STATUS HUMAN TAKEOVER (Jika AI dimatikan untuk user ini)
         dept_settings = get_department_settings(department_id)
+        if not dept_settings:
+            return "Department not found.", 0, 0, None
+            
+        user_id = dept_settings.get('user_id')
+        customer_phone = customer.get('phone') if customer else customer_id
         
+        is_ai_enabled = get_customer_ai_status(user_id, customer_phone)
+        if not is_ai_enabled:
+            print(f"[TAKEOVER] AI is disabled for {customer_phone}. Skipping response.")
+            return None, 0, 0, None # Return None agar agent tidak mengirim pesan apapun
+
+        # 0.1 CEK APAKAH USER MINTA BICARA DENGAN MANUSIA
+        if check_human_takeover_request(user_message):
+            print(f"[TAKEOVER] Human takeover request detected from {customer_phone}")
+            set_customer_ai_status(user_id, customer_phone, False)
+            return "Baik, saya akan menghubungkan Anda dengan tim Admin kami. Mohon tunggu sebentar, Admin akan segera membalas pesan Anda. 🙏", 0, 0, None
+
         # --- CEK JAM OPERASIONAL ---
         is_open, closed_message = is_within_operational_hours(dept_settings)
         if not is_open:
             print(f"[DEBUG] Dept {department_id} sedang di luar jam operasional. Mengirim pesan penutup.")
-            return closed_message
+            return closed_message, 0, 0, None
         # ----------------------------
         
         # Rakit System Prompt Dinamis
@@ -110,6 +210,10 @@ def get_ai_response(customer_id: str, department_id: str, user_message: str, sys
         if dept_settings:
             ai_name = dept_settings.get('ai_name') or "AI Agent"
             ai_job = dept_settings.get('ai_job_description') or "You are a helpful AI assistant."
+            tone = dept_settings.get('tone_of_voice') or 'casual'
+            tone_instructions = get_tone_instructions(tone)
+        else:
+            tone_instructions = get_tone_instructions('casual')
 
         # Ambil identitas penanya
         customer_name = "User"
@@ -119,12 +223,12 @@ def get_ai_response(customer_id: str, department_id: str, user_message: str, sys
         full_system_prompt = (
             f"Nama Anda adalah {ai_name}. {ai_job}\n\n"
             f"Anda sedang berbicara dengan: {customer_name}.\n"
+            f"{tone_instructions}\n\n"
             "ATURAN PENTING:\n"
             "1. Jawablah pertanyaan HANYA berdasarkan 'Informasi Tambahan' yang disediakan jika ada.\n"
             "2. Jika jawaban tidak ditemukan dalam informasi tersebut, katakan bahwa Anda belum memiliki informasi tersebut dan sarankan untuk menghubungi admin.\n"
             "3. JANGAN mengarang informasi (halusinasi).\n"
-            "4. Gunakan bahasa yang sopan, profesional, dan ramah.\n"
-            "5. Jika penanya memperkenalkan diri atau ingin dipanggil dengan nama tertentu, balas dengan ramah DAN sertakan tag [[SET_NAME: NamaBaru]] di akhir pesan Anda agar sistem bisa mengingatnya."
+            "4. Jika penanya memperkenalkan diri atau ingin dipanggil dengan nama tertentu, balas dengan ramah DAN sertakan tag [[SET_NAME: NamaBaru]] di akhir pesan Anda agar sistem bisa mengingatnya."
         )
 
         # 2. Load Riwayat Chat Spesifik Sesi
@@ -136,8 +240,12 @@ def get_ai_response(customer_id: str, department_id: str, user_message: str, sys
         # 4. CARI DI KNOWLEDGE BASE (RAG)
         context = get_relevant_info(department_id, user_message)
         
-        # Gabungkan konteks
-        full_context = manual_answers_context + "\n" + (context if context else "")
+        # 5. CARI DI GOOGLE SHEETS (Daftar link yang tertaut di Knowledge Base)
+        gsheet_urls = get_gsheet_knowledge_urls(department_id)
+        gsheet_context = get_google_sheet_info(gsheet_urls)
+        
+        # Gabungkan konteks (Urutan: GSheet > Manual > File Knowledge)
+        full_context = gsheet_context + manual_answers_context + "\n" + (context if context else "")
         
         # Template pesan pembuka & fallback
         introduction = f"Halo! Saya {ai_name}." if ai_name else "Halo! Saya asisten AI Anda."
@@ -157,8 +265,16 @@ def get_ai_response(customer_id: str, department_id: str, user_message: str, sys
             "2. PRIORITAS UTAMA: Jika ada 'JAWABAN MANUAL DARI ADMIN' yang relevan dengan pertanyaan user, Anda WAJIB menggunakan jawaban tersebut secara mutlak.\n"
             "3. Jika user bertanya tentang informasi (biaya, syarat, link, dll) dan jawabannya TIDAK ADA di konteks di atas: "
             "Anda WAJIB memberikan jawaban yang sopan namun WAJIB menyertakan tag [[TIDAK_TAHU]] di dalam jawaban Anda.\n"
-            "4. Jika user memberikan nama, gunakan tag [[SET_NAME: Nama]] di akhir jawaban Anda."
+            "4. Jika user memberikan nama, gunakan tag [[SET_NAME: Nama]] di akhir jawaban Anda.\n"
+            "5. Anda WAJIB menganalisis sentimen pesan terakhir user (kategori: positive, neutral, negative) dan menyertakan tag [[SENTIMENT: kategori]] di akhir jawaban.\n"
         )
+
+        if is_csat_enabled:
+            smart_instructions += (
+                "6. Jika percakapan tampak akan BERAKHIR (user mengucapkan terima kasih, salam penutup, atau masalah sudah selesai), "
+                "Anda WAJIB menambahkan kalimat berikut di akhir jawaban Anda: '\n\nApakah jawaban saya sudah membantu dan menjawab pertanyaan Kakak? (Balas YA / TIDAK ya!)'"
+            )
+
 
         current_messages = [
             {"role": "system", "content": full_system_prompt + "\n\nInformasi Konteks:\n" + full_context + smart_instructions}
@@ -214,16 +330,33 @@ def get_ai_response(customer_id: str, department_id: str, user_message: str, sys
                 import re
                 ai_reply = re.sub(r"\[\[TIDAK_TAHU\]\]", "", ai_reply, flags=re.IGNORECASE).strip()
         
+        # Bersihkan tag nama jika ada
+        from services.db_service import update_customer_nickname
+        name_match = re.search(r'\[\[SET_NAME:\s*(.*?)\]\]', ai_reply)
+        if name_match:
+            new_name = name_match.group(1).strip()
+            update_customer_nickname(customer_id, new_name)
+            ai_reply = re.sub(r'\[\[SET_NAME:.*?\]\]', '', ai_reply)
+
+        # Bersihkan tag sentiment jika ada
+        sentiment = None
+        sentiment_match = re.search(r'\[\[SENTIMENT:\s*(.*?)\]\]', ai_reply)
+        if sentiment_match:
+            sentiment = sentiment_match.group(1).strip().lower()
+            ai_reply = re.sub(r'\[\[SENTIMENT:.*?\]\]', '', ai_reply)
+
+        answer = ai_reply.strip()
+        
         # Simpan ke riwayat & return
         history.append({"role": "user", "content": user_message})
-        history.append({"role": "assistant", "content": ai_reply})
+        history.append({"role": "assistant", "content": answer})
         save_session_memory(department_id, customer_id, history)
         
-        return ai_reply
+        return answer, prompt_tokens, completion_tokens, sentiment
         
     except Exception as e:
         print(f"Error OpenAI: {e}")
-        return "Maaf, terjadi kesalahan teknis."
+        return "Maaf, saya sedang mengalami gangguan koneksi.", 0, 0, None
 
 def clear_memory(customer_id: str, department_id: str):
     path = get_memory_path(department_id, customer_id)

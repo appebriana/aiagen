@@ -6,12 +6,13 @@
     <div class="space-y-6" x-data="{ 
         showCreateModal: false, 
         showEditModal: false,
-        currentDept: { id: '', name: '', description: '', user_id: '', ai_name: '', ai_job_description: '', reply_to_groups: false, is_24_hours: true, open_time: '', close_time: '' },
+        currentDept: { id: '', name: '', description: '', user_id: '', ai_name: '', ai_job_description: '', reply_to_groups: false, is_24_hours: true, open_time: '', close_time: '', is_csat_enabled: true, tone_of_voice: 'casual' },
         openEdit(dept) {
             this.currentDept = { 
                 ...dept, 
                 open_time: dept.open_time ? dept.open_time.substring(0, 5) : '', 
-                close_time: dept.close_time ? dept.close_time.substring(0, 5) : '' 
+                close_time: dept.close_time ? dept.close_time.substring(0, 5) : '',
+                tone_of_voice: dept.tone_of_voice || 'casual'
             };
             this.showEditModal = true;
         }
@@ -34,12 +35,12 @@
         <div class="bg-white rounded-2xl shadow-sm border border-secondary-200 p-4">
             <form action="{{ route('admin.ai-agen.departments.index') }}" method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                    <label class="block text-[10px] font-bold text-secondary-400 uppercase mb-1 ml-1">Cari Nama</label>
+                    <label class="block text-[10px] font-bold text-secondary-400 uppercase mb-1.5 ml-1">Cari Nama</label>
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari departemen..." 
                            class="w-full bg-secondary-50 border border-secondary-200 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-primary-500">
                 </div>
                 <div>
-                    <label class="block text-[10px] font-bold text-secondary-400 uppercase mb-1 ml-1">Filter Pemilik</label>
+                    <label class="block text-[10px] font-bold text-secondary-400 uppercase mb-1.5 ml-1">Filter Pemilik</label>
                     <select name="user_id" class="w-full bg-secondary-50 border border-secondary-200 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-primary-500">
                         <option value="">Semua Pemilik</option>
                         @foreach($users as $user)
@@ -93,7 +94,7 @@
                                         <div class="flex items-center justify-center gap-4">
                                             <div class="text-center" title="Dokumen Knowledge">
                                                 <span class="text-xs font-bold text-secondary-900">{{ $dept->knowledge_files_count }}</span>
-                                                <p class="text-[8px] text-secondary-400 uppercase font-bold">File</p>
+                                                <p class="text-[8px] text-secondary-400 uppercase font-bold">Item</p>
                                             </div>
                                             <div class="text-center" title="Device WhatsApp">
                                                 <span class="text-xs font-bold text-secondary-900">{{ $dept->whatsapp_devices_count }}</span>
@@ -121,7 +122,9 @@
                                                 reply_to_groups: {{ $dept->reply_to_groups ? 'true' : 'false' }},
                                                 is_24_hours: {{ $dept->is_24_hours ? 'true' : 'false' }},
                                                 open_time: '{{ $dept->open_time }}',
-                                                close_time: '{{ $dept->close_time }}'
+                                                close_time: '{{ $dept->close_time }}',
+                                                is_csat_enabled: {{ $dept->is_csat_enabled ? 'true' : 'false' }},
+                                                tone_of_voice: '{{ $dept->tone_of_voice }}'
                                             })" 
                                                     class="p-2 text-secondary-400 hover:text-primary-600 transition-colors">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
@@ -168,7 +171,9 @@
                                     reply_to_groups: {{ $dept->reply_to_groups ? 'true' : 'false' }},
                                     is_24_hours: {{ $dept->is_24_hours ? 'true' : 'false' }},
                                     open_time: '{{ $dept->open_time }}',
-                                    close_time: '{{ $dept->close_time }}'
+                                    close_time: '{{ $dept->close_time }}',
+                                    is_csat_enabled: {{ $dept->is_csat_enabled ? 'true' : 'false' }},
+                                    tone_of_voice: '{{ $dept->tone_of_voice }}'
                                 })" 
                                         class="p-2 bg-primary-50 text-primary-600 rounded-lg">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
@@ -186,7 +191,7 @@
                         <div class="grid grid-cols-2 gap-3 pt-3 border-t border-secondary-100">
                             <div class="bg-secondary-50 p-2.5 rounded-xl text-center">
                                 <p class="text-[9px] font-bold text-secondary-400 uppercase tracking-wider mb-1">Knowledge</p>
-                                <span class="text-sm font-black text-secondary-900">{{ $dept->knowledge_files_count }} <span class="text-[10px] font-medium text-secondary-500">File</span></span>
+                                <span class="text-sm font-black text-secondary-900">{{ $dept->knowledge_files_count }} <span class="text-[10px] font-medium text-secondary-500">Item</span></span>
                             </div>
                             <div class="bg-secondary-50 p-2.5 rounded-xl text-center">
                                 <p class="text-[9px] font-bold text-secondary-400 uppercase tracking-wider mb-1">WhatsApp</p>
@@ -247,6 +252,64 @@
                                     <textarea name="description" rows="2" placeholder="Jelaskan tugas departemen ini..."
                                               class="w-full bg-secondary-50 border border-secondary-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500"></textarea>
                                 </div>
+                                
+                                {{-- Tone of Voice Selection --}}
+                                <div class="space-y-3">
+                                    <label class="block text-[10px] font-bold text-secondary-700 uppercase mb-1.5 ml-1">Gaya Bicara (Tone of Voice)</label>
+                                    <div class="grid grid-cols-1 gap-2">
+                                        <label class="relative flex flex-col p-3 border-2 rounded-2xl cursor-pointer transition-all" 
+                                               :class="currentDept.tone_of_voice === 'casual' ? 'border-primary-500 bg-primary-50' : 'border-secondary-100 hover:border-secondary-200 bg-white'">
+                                            <input type="radio" name="tone_of_voice" value="casual" x-model="currentDept.tone_of_voice" class="sr-only">
+                                            <div class="flex items-center justify-between mb-1">
+                                                <span class="text-xs font-bold text-secondary-900">😊 Casual (Santai & Akrab)</span>
+                                                <svg x-show="currentDept.tone_of_voice === 'casual'" class="w-4 h-4 text-primary-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                            </div>
+                                            <p class="text-[10px] text-secondary-500 italic bg-white/50 p-2 rounded-lg border border-secondary-100">
+                                                "Halo Kak! 😊 Kabar gembira nih, stoknya masih ada! Mau langsung di-order? ✨"
+                                            </p>
+                                        </label>
+
+                                        <label class="relative flex flex-col p-3 border-2 rounded-2xl cursor-pointer transition-all" 
+                                               :class="currentDept.tone_of_voice === 'formal' ? 'border-primary-500 bg-primary-50' : 'border-secondary-100 hover:border-secondary-200 bg-white'">
+                                            <input type="radio" name="tone_of_voice" value="formal" x-model="currentDept.tone_of_voice" class="sr-only">
+                                            <div class="flex items-center justify-between mb-1">
+                                                <span class="text-xs font-bold text-secondary-900">👔 Formal (Resmi & Sopan)</span>
+                                                <svg x-show="currentDept.tone_of_voice === 'formal'" class="w-4 h-4 text-primary-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                            </div>
+                                            <p class="text-[10px] text-secondary-500 italic bg-white/50 p-2 rounded-lg border border-secondary-100">
+                                                "Selamat siang Bapak/Ibu. Terkait pertanyaan Anda, kami informasikan produk tersebut tersedia."
+                                            </p>
+                                        </label>
+
+                                        <label class="relative flex flex-col p-3 border-2 rounded-2xl cursor-pointer transition-all" 
+                                               :class="currentDept.tone_of_voice === 'technical' ? 'border-primary-500 bg-primary-50' : 'border-secondary-100 hover:border-secondary-200 bg-white'">
+                                            <input type="radio" name="tone_of_voice" value="technical" x-model="currentDept.tone_of_voice" class="sr-only">
+                                            <div class="flex items-center justify-between mb-1">
+                                                <span class="text-xs font-bold text-secondary-900">⚙️ Teknis (Padat & Data)</span>
+                                                <svg x-show="currentDept.tone_of_voice === 'technical'" class="w-4 h-4 text-primary-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                            </div>
+                                            <p class="text-[10px] text-secondary-500 italic bg-white/50 p-2 rounded-lg border border-secondary-100">
+                                                "Status Stok: Tersedia (12 unit). Kode SKU: SKU-992. Instruksi: Klik menu beli untuk memproses."
+                                            </p>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-between p-3 bg-indigo-50/50 rounded-xl border border-indigo-100">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-bold text-secondary-900">Aktifkan Analisis & Feedback</p>
+                                            <p class="text-[10px] text-secondary-500">AI akan menganalisis sentimen & meminta rating.</p>
+                                        </div>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" name="is_csat_enabled" value="1" checked class="sr-only peer">
+                                        <div class="w-11 h-6 bg-secondary-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-secondary-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                    </label>
+                                </div>
                             </div>
                         </div>
                         <div class="bg-secondary-50 px-6 py-4 pb-10 sm:pb-4 flex justify-end gap-3">
@@ -300,6 +363,48 @@
                                                 <input type="text" name="description" x-model="currentDept.description"
                                                        class="w-full bg-secondary-50 border border-secondary-200 rounded-xl px-4 py-2 text-sm">
                                             </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- Tone of Voice Selection Section --}}
+                                    <div class="space-y-4 p-4 bg-indigo-50/30 rounded-2xl border border-indigo-100">
+                                        <h4 class="text-[10px] font-bold text-indigo-600 uppercase tracking-widest border-b border-indigo-100 pb-1">Gaya Bicara (Tone of Voice)</h4>
+                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                            <label class="relative flex flex-col p-3 border-2 rounded-2xl cursor-pointer transition-all" 
+                                                   :class="currentDept.tone_of_voice === 'casual' ? 'border-indigo-500 bg-white shadow-md' : 'border-secondary-100 hover:border-secondary-200 bg-white/50'">
+                                                <input type="radio" name="tone_of_voice" value="casual" x-model="currentDept.tone_of_voice" class="sr-only">
+                                                <div class="flex items-center justify-between mb-2">
+                                                    <span class="text-xs font-black text-secondary-900">😊 Casual</span>
+                                                    <svg x-show="currentDept.tone_of_voice === 'casual'" class="w-4 h-4 text-indigo-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                                </div>
+                                                <p class="text-[9px] text-secondary-500 italic bg-secondary-50 p-2 rounded-lg border border-secondary-100 leading-relaxed">
+                                                    "Halo Kak! 😊 Stok masih ready nih. Mau langsung di-order? ✨"
+                                                </p>
+                                            </label>
+
+                                            <label class="relative flex flex-col p-3 border-2 rounded-2xl cursor-pointer transition-all" 
+                                                   :class="currentDept.tone_of_voice === 'formal' ? 'border-indigo-500 bg-white shadow-md' : 'border-secondary-100 hover:border-secondary-200 bg-white/50'">
+                                                <input type="radio" name="tone_of_voice" value="formal" x-model="currentDept.tone_of_voice" class="sr-only">
+                                                <div class="flex items-center justify-between mb-2">
+                                                    <span class="text-xs font-black text-secondary-900">👔 Formal</span>
+                                                    <svg x-show="currentDept.tone_of_voice === 'formal'" class="w-4 h-4 text-indigo-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                                </div>
+                                                <p class="text-[9px] text-secondary-500 italic bg-secondary-50 p-2 rounded-lg border border-secondary-100 leading-relaxed">
+                                                    "Selamat siang Bapak/Ibu. Produk tersebut saat ini tersedia."
+                                                </p>
+                                            </label>
+
+                                            <label class="relative flex flex-col p-3 border-2 rounded-2xl cursor-pointer transition-all" 
+                                                   :class="currentDept.tone_of_voice === 'technical' ? 'border-indigo-500 bg-white shadow-md' : 'border-secondary-100 hover:border-secondary-200 bg-white/50'">
+                                                <input type="radio" name="tone_of_voice" value="technical" x-model="currentDept.tone_of_voice" class="sr-only">
+                                                <div class="flex items-center justify-between mb-2">
+                                                    <span class="text-xs font-black text-secondary-900">⚙️ Teknis</span>
+                                                    <svg x-show="currentDept.tone_of_voice === 'technical'" class="w-4 h-4 text-indigo-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                                </div>
+                                                <p class="text-[9px] text-secondary-500 italic bg-secondary-50 p-2 rounded-lg border border-secondary-100 leading-relaxed">
+                                                    "Status: Tersedia (12 unit). SKU: 992. Klik beli untuk proses."
+                                                </p>
+                                            </label>
                                         </div>
                                     </div>
 
@@ -368,6 +473,28 @@
                                             <p class="col-span-2 text-[10px] text-orange-600 italic">* Di luar jam ini, AI tidak akan memberikan jawaban otomatis.</p>
                                         </div>
                                     </div>
+
+                                    {{-- CSAT Configuration Section --}}
+                                    <div class="space-y-4 p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100">
+                                        <h4 class="text-[10px] font-bold text-indigo-600 uppercase tracking-widest border-b border-indigo-100 pb-1">Analisis & Feedback</h4>
+                                        
+                                        <div class="flex items-center justify-between p-3 bg-white rounded-xl border border-secondary-200">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+                                                </div>
+                                                <div>
+                                                    <p class="text-xs font-bold text-secondary-900">Aktifkan CSAT & Sentiment</p>
+                                                    <p class="text-[10px] text-secondary-500">AI akan meminta konfirmasi terjawab & rating 1-5.</p>
+                                                </div>
+                                            </div>
+                                            <label class="relative inline-flex items-center cursor-pointer">
+                                                <input type="checkbox" name="is_csat_enabled" x-model="currentDept.is_csat_enabled" value="1" class="sr-only peer">
+                                                <div class="w-11 h-6 bg-secondary-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-secondary-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="bg-secondary-50 px-6 py-4 pb-10 sm:pb-4 flex justify-end gap-3">

@@ -6,6 +6,7 @@
             <th style="background-color: #1e40af; color: #ffffff; font-weight: bold;">Nomor WA</th>
             <th style="background-color: #1e40af; color: #ffffff; font-weight: bold;">Pertanyaan</th>
             <th style="background-color: #1e40af; color: #ffffff; font-weight: bold;">Jawaban</th>
+            <th style="background-color: #1e40af; color: #ffffff; font-weight: bold;">Rating</th>
         </tr>
     </thead>
     <tbody>
@@ -16,6 +17,7 @@
             <td style="vertical-align: top;">{{ $log->customer_phone }}</td>
             <td style="vertical-align: top;">{{ $log->question }}</td>
             <td style="vertical-align: top; white-space: pre-wrap;">{{ $log->answer }}</td>
+            <td style="vertical-align: top; text-align: center;">{{ $log->rating ?? '-' }}</td>
         </tr>
         @endforeach
     </tbody>

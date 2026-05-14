@@ -1,4 +1,4 @@
-@props(['version' => '1.0.2'])
+@props(['version' => '1.1.0'])
 
 <div x-data="{ 
         showUpdateModal: false, 
@@ -64,31 +64,41 @@
             <div class="space-y-3 md:space-y-4 mb-8">
                 <div class="flex gap-3 md:gap-4 p-2 md:p-3 rounded-2xl hover:bg-secondary-50 transition-colors group">
                     <div class="w-10 h-10 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m9-10a4 4 0 100-8 4 4 0 000 8zm6 5H12a3 3 0 00-3 3v8m3-13a3 3 0 100-6 3 3 0 000 6z"/></svg>
                     </div>
                     <div>
-                        <h4 class="text-sm font-bold text-secondary-900">Navigasi Mobile Baru</h4>
-                        <p class="text-[11px] md:text-xs text-secondary-500">Tampilan menu melayang yang lebih modern dan estetik.</p>
+                        <h4 class="text-sm font-bold text-secondary-900">Multi-Platform CMS</h4>
+                        <p class="text-[11px] md:text-xs text-secondary-500">Integrasi penuh WhatsApp, Telegram, IG, dan FB dalam satu dashboard.</p>
                     </div>
                 </div>
 
                 <div class="flex gap-3 md:gap-4 p-2 md:p-3 rounded-2xl hover:bg-secondary-50 transition-colors group">
                     <div class="w-10 h-10 bg-amber-50 text-amber-500 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                     </div>
                     <div>
-                        <h4 class="text-sm font-bold text-secondary-900">Submenu Laporan</h4>
-                        <p class="text-[11px] md:text-xs text-secondary-500">Akses cepat ke laporan WA, IG, dan Telegram dari sidebar mobile.</p>
+                        <h4 class="text-sm font-bold text-secondary-900">Filter Pengguna (Admin)</h4>
+                        <p class="text-[11px] md:text-xs text-secondary-500">Admin kini dapat mengelola departemen berdasarkan filter pengguna spesifik.</p>
                     </div>
                 </div>
 
                 <div class="flex gap-3 md:gap-4 p-2 md:p-3 rounded-2xl hover:bg-secondary-50 transition-colors group">
                     <div class="w-10 h-10 bg-emerald-50 text-emerald-500 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                     </div>
                     <div>
-                        <h4 class="text-sm font-bold text-secondary-900">Perbaikan Indikator</h4>
-                        <p class="text-[11px] md:text-xs text-secondary-500">Menu tetap menyala saat Anda sedang melihat halaman laporan.</p>
+                        <h4 class="text-sm font-bold text-secondary-900">Takeover & AI Control</h4>
+                        <p class="text-[11px] md:text-xs text-secondary-500">Kendali penuh untuk interupsi AI Agen dan manajemen chat manual.</p>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 md:gap-4 p-2 md:p-3 rounded-2xl hover:bg-secondary-50 transition-colors group">
+                    <div class="w-10 h-10 bg-purple-50 text-purple-500 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/></svg>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold text-secondary-900">Stabilitas Layout CMS</h4>
+                        <p class="text-[11px] md:text-xs text-secondary-500">Perbaikan total struktur flexbox dan UI untuk pengalaman chat lebih mulus.</p>
                     </div>
                 </div>
             </div>

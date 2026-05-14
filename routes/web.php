@@ -11,6 +11,8 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\FeedbackController;
+use App\Http\Controllers\KnowledgeBaseController;
+use App\Http\Controllers\CmsController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -32,6 +34,9 @@ Route::post('/api/check-email', [ValidationController::class, 'checkEmail'])->na
 */
 Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'adminDashboard'])->name('dashboard');
+    Route::get('/cms/{department?}', [CmsController::class, 'index'])->name('cms.index');
+    Route::get('/cms/chats/{department}/{phone}', [CmsController::class, 'getChats'])->name('cms.chats');
+    Route::post('/cms/send', [CmsController::class, 'sendMessage'])->name('cms.send');
 
     // Pengaturan Section
     Route::prefix('pengaturan')->name('pengaturan.')->group(function () {
@@ -70,10 +75,17 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
         Route::post('/connections/whatsapp/{device}/init', [ConnectionController::class, 'initWhatsapp'])->name('connections.whatsapp.init');
 
         Route::get('/unanswered', [UnansweredQuestionController::class, 'index'])->name('unanswered.index');
+        Route::get('/unanswered/{unansweredQuestion}/suggest', [UnansweredQuestionController::class, 'suggest'])->name('unanswered.suggest');
         Route::put('/unanswered/{unansweredQuestion}', [UnansweredQuestionController::class, 'update'])->name('unanswered.update');
         Route::delete('/unanswered/{unansweredQuestion}', [UnansweredQuestionController::class, 'destroy'])->name('unanswered.destroy');
         Route::post('/unanswered/bulk-delete', [UnansweredQuestionController::class, 'bulkDelete'])->name('unanswered.bulk-delete');
         Route::get('/unanswered/export-pdf', [UnansweredQuestionController::class, 'exportPdf'])->name('unanswered.export-pdf');
+        
+        // Dynamic Knowledge Base (Auto-learned)
+        Route::get('/knowledge-base', [KnowledgeBaseController::class, 'index'])->name('knowledge-base.index');
+        Route::put('/knowledge-base/{unansweredQuestion}', [KnowledgeBaseController::class, 'update'])->name('knowledge-base.update');
+        Route::delete('/knowledge-base/{unansweredQuestion}', [KnowledgeBaseController::class, 'destroy'])->name('knowledge-base.destroy');
+        Route::post('/knowledge-base/bulk-remove', [KnowledgeBaseController::class, 'bulkRemove'])->name('knowledge-base.bulk-remove');
         Route::post('/customers/toggle-mute', [CustomerController::class, 'toggleMute'])->name('customers.toggle-mute');
     });
     
@@ -89,6 +101,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
         Route::get('/interaksi/wa/detail/{phone}', [ReportController::class, 'interactionDetail'])->name('interaksi.wa.detail');
         Route::get('/interaksi/wa/export/excel', [ReportController::class, 'exportExcel'])->name('interaksi.wa.export.excel');
         Route::get('/interaksi/wa/export/pdf', [ReportController::class, 'exportPdf'])->name('interaksi.wa.export.pdf');
+        Route::post('/interaksi/wa/toggle-ai', [ReportController::class, 'toggleAi'])->name('interaksi.wa.toggle-ai');
 
         // Coming Soon Platforms
         Route::get('/interaksi/ig', [ReportController::class, 'comingSoon'])->name('interaksi.ig');
@@ -120,6 +133,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 */
 Route::middleware(['auth', 'verified', 'role:pengguna'])->prefix('pengguna')->name('pengguna.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'penggunaDashboard'])->name('dashboard');
+    Route::get('/cms/{department?}', [CmsController::class, 'index'])->name('cms.index');
+    Route::get('/cms/chats/{department}/{phone}', [CmsController::class, 'getChats'])->name('cms.chats');
+    Route::post('/cms/send', [CmsController::class, 'sendMessage'])->name('cms.send');
 
     // Pengaturan Section
     Route::prefix('pengaturan')->name('pengaturan.')->group(function () {
@@ -150,10 +166,17 @@ Route::middleware(['auth', 'verified', 'role:pengguna'])->prefix('pengguna')->na
         Route::post('/connections/whatsapp/{device}/init', [ConnectionController::class, 'initWhatsapp'])->name('connections.whatsapp.init');
 
         Route::get('/unanswered', [UnansweredQuestionController::class, 'index'])->name('unanswered.index');
+        Route::get('/unanswered/{unansweredQuestion}/suggest', [UnansweredQuestionController::class, 'suggest'])->name('unanswered.suggest');
         Route::put('/unanswered/{unansweredQuestion}', [UnansweredQuestionController::class, 'update'])->name('unanswered.update');
         Route::delete('/unanswered/{unansweredQuestion}', [UnansweredQuestionController::class, 'destroy'])->name('unanswered.destroy');
         Route::post('/unanswered/bulk-delete', [UnansweredQuestionController::class, 'bulkDelete'])->name('unanswered.bulk-delete');
         Route::get('/unanswered/export-pdf', [UnansweredQuestionController::class, 'exportPdf'])->name('unanswered.export-pdf');
+
+        // Dynamic Knowledge Base (Auto-learned)
+        Route::get('/knowledge-base', [KnowledgeBaseController::class, 'index'])->name('knowledge-base.index');
+        Route::put('/knowledge-base/{unansweredQuestion}', [KnowledgeBaseController::class, 'update'])->name('knowledge-base.update');
+        Route::delete('/knowledge-base/{unansweredQuestion}', [KnowledgeBaseController::class, 'destroy'])->name('knowledge-base.destroy');
+        Route::post('/knowledge-base/bulk-remove', [KnowledgeBaseController::class, 'bulkRemove'])->name('knowledge-base.bulk-remove');
         Route::post('/customers/toggle-mute', [CustomerController::class, 'toggleMute'])->name('customers.toggle-mute');
     });
 
@@ -173,6 +196,7 @@ Route::middleware(['auth', 'verified', 'role:pengguna'])->prefix('pengguna')->na
         Route::get('/interaksi/wa/detail/{phone}', [ReportController::class, 'interactionDetail'])->name('interaksi.wa.detail');
         Route::get('/interaksi/wa/export/excel', [ReportController::class, 'exportExcel'])->name('interaksi.wa.export.excel');
         Route::get('/interaksi/wa/export/pdf', [ReportController::class, 'exportPdf'])->name('interaksi.wa.export.pdf');
+        Route::post('/interaksi/wa/toggle-ai', [ReportController::class, 'toggleAi'])->name('interaksi.wa.toggle-ai');
 
         // Coming Soon Platforms
         Route::get('/interaksi/ig', [ReportController::class, 'comingSoon'])->name('interaksi.ig');

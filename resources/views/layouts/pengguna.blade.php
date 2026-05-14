@@ -209,9 +209,14 @@
                             Dashboard
                         </a>
                         <a href="{{ route('pengguna.ai-agen.index') }}" 
-                           class="px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 {{ request()->is('*/ai-agen*') || request()->is('*/laporan*') ? 'bg-primary-100 text-primary-700' : 'text-secondary-600 hover:bg-secondary-100' }}">
+                           class="px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 {{ (request()->is('*/ai-agen*') || request()->is('*/laporan*')) && !request()->is('*/cms*') ? 'bg-primary-100 text-primary-700' : 'text-secondary-600 hover:bg-secondary-100' }}">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                             AI Agen
+                        </a>
+                        <a href="{{ route('pengguna.cms.index') }}" 
+                           class="px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 {{ request()->is('*/cms*') ? 'bg-primary-100 text-primary-700' : 'text-secondary-600 hover:bg-secondary-100' }}">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+                            CMS
                         </a>
                         <a href="{{ route('pengguna.pengaturan.index') }}" 
                            class="px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 {{ request()->is('*/pengaturan*') || request()->routeIs('pengguna.profile.*') ? 'bg-primary-100 text-primary-700' : 'text-secondary-600 hover:bg-secondary-100' }}">

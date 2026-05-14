@@ -26,8 +26,9 @@
                 <th width="12%">Tanggal</th>
                 <th width="12%">Departemen</th>
                 <th width="12%">Nomor WA</th>
-                <th width="32%">Pertanyaan</th>
-                <th width="32%">Jawaban</th>
+                <th width="30%">Pertanyaan</th>
+                <th width="30%">Jawaban</th>
+                <th width="6%">Rate</th>
             </tr>
         </thead>
         <tbody>
@@ -38,6 +39,7 @@
                 <td>{{ $log->customer_phone }}</td>
                 <td>{{ $log->question }}</td>
                 <td>{{ $log->answer }}</td>
+                <td style="text-align: center; font-weight: bold;">{{ $log->rating ?? '-' }}</td>
             </tr>
             @endforeach
         </tbody>

@@ -5,11 +5,44 @@ namespace App\Http\Controllers;
 use App\Models\UnansweredQuestion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Carbon\Carbon;
 
 class UnansweredQuestionController extends Controller
 {
+    /**
+     * Get AI suggestion for a question.
+     */
+    public function suggest(UnansweredQuestion $unansweredQuestion)
+    {
+        // Check ownership
+        if (Auth::user()->role !== 'admin' && $unansweredQuestion->department->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        try {
+            $agentUrl = env('AI_AGENT_URL', 'http://127.0.0.1:8000');
+            $response = Http::timeout(30)->post("{$agentUrl}/suggest", [
+                'question' => $unansweredQuestion->question,
+                'department_id' => $unansweredQuestion->department_id
+            ]);
+
+            if ($response->successful()) {
+                return response()->json($response->json());
+            }
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal mendapatkan saran dari AI Agen.'
+            ], 500);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan koneksi ke AI Agen: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function index(Request $request)
     {
         $query = UnansweredQuestion::with('department')->orderBy('created_at', 'desc');
@@ -73,15 +106,17 @@ class UnansweredQuestionController extends Controller
     public function update(Request $request, UnansweredQuestion $unansweredQuestion)
     {
         $request->validate([
-            'answer' => 'required|string'
+            'answer' => 'required|string',
+            'is_knowledge' => 'nullable'
         ]);
 
         $unansweredQuestion->update([
             'answer' => $request->answer,
-            'is_answered' => true
+            'is_answered' => true,
+            'is_knowledge' => $request->has('is_knowledge')
         ]);
 
-        return redirect()->back()->with('success', 'Jawaban berhasil disimpan dan akan digunakan oleh AI.');
+        return redirect()->back()->with('success', 'Jawaban berhasil disimpan dan diproses sebagai pengetahuan AI.');
     }
 
     public function destroy(UnansweredQuestion $unansweredQuestion)
