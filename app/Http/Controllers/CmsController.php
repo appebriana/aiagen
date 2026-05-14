@@ -218,7 +218,7 @@ class CmsController extends Controller
                 ->update([
                     'answer' => $messageText,
                     'model' => 'MANUAL_ADMIN',
-                    'updated_at' => now(),
+                    'updated_at' => DB::raw('NOW()'),
                 ]);
         } else {
             // Jika tidak ada pesan yang menggantung, buat baris baru
@@ -232,8 +232,8 @@ class CmsController extends Controller
                 'completion_tokens' => 0,
                 'total_tokens' => 0,
                 'cost' => 0,
-                'created_at' => now(),
-                'updated_at' => now(),
+                'created_at' => DB::raw('NOW()'),
+                'updated_at' => DB::raw('NOW()'),
             ]);
         }
 
@@ -243,7 +243,10 @@ class CmsController extends Controller
             DB::table('customers')
                 ->where('user_id', $dept->user_id)
                 ->where('phone', $phone)
-                ->update(['is_ai_enabled' => 0]);
+                ->update([
+                    'is_ai_enabled' => 0,
+                    'updated_at' => DB::raw('NOW()')
+                ]);
         }
 
         return response()->json(['status' => 'success']);
