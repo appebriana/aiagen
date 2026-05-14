@@ -175,7 +175,7 @@ class CmsController extends Controller
 
         // 1. Kirim ke Gateway jika ada device yang aktif
         if ($deviceId) {
-            $port = 3000 + ($deviceId - 1);
+            $port = 3000 + $request->department_id;
             try {
                 // Konversi format nomor telepon jika perlu (gateway biasanya butuh @c.us)
                 $target = $request->phone;
