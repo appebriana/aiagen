@@ -100,20 +100,30 @@
             {{-- ═══ MOBILE FLOATING BOTTOM NAV ═══ --}}
             <div class="lg:hidden fixed bottom-6 left-6 right-6 z-[100] bg-white/80 backdrop-blur-2xl border border-white/50 rounded-2xl shadow-[0_15px_35px_rgba(0,0,0,0.1)] px-3 py-2">
                 <div class="flex items-center justify-around">
-                    <a href="{{ auth()->user()->isAdmin() ? route('admin.dashboard') : route('pengguna.dashboard') }}" 
-                       class="flex flex-col items-center gap-0.5 py-1 px-3 rounded-2xl transition-all {{ request()->routeIs('*.dashboard') && !request()->is('*/ai-agen*') ? 'text-primary-600 bg-primary-50' : 'text-secondary-400' }}">
+                    @php 
+                        $isAdmin = auth()->user()->isAdmin();
+                        $routePrefix = $isAdmin ? 'admin' : 'pengguna';
+                    @endphp
+                    <a href="{{ route($routePrefix . '.dashboard') }}" 
+                       class="flex flex-col items-center gap-0.5 py-1 px-2 rounded-2xl transition-all {{ request()->routeIs('*.dashboard') && !request()->is('*/ai-agen*') ? 'text-primary-600 bg-primary-50' : 'text-secondary-400' }}">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                         <span class="text-[9px] font-bold">Beranda</span>
                     </a>
 
-                    <a href="{{ auth()->user()->isAdmin() ? route('admin.ai-agen.index') : route('pengguna.ai-agen.index') }}" 
-                       class="flex flex-col items-center gap-0.5 py-1 px-3 rounded-2xl transition-all {{ (request()->is('*/ai-agen*') || request()->is('*/laporan*')) ? 'text-primary-600 bg-primary-50' : 'text-secondary-400' }}">
+                    <a href="{{ route($routePrefix . '.ai-agen.index') }}" 
+                       class="flex flex-col items-center gap-0.5 py-1 px-2 rounded-2xl transition-all {{ (request()->is('*/ai-agen*') || request()->is('*/laporan*')) && !request()->is('*/cms*') ? 'text-primary-600 bg-primary-50' : 'text-secondary-400' }}">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                         <span class="text-[9px] font-bold">AI Agen</span>
                     </a>
 
+                    <a href="{{ route($routePrefix . '.cms.index') }}" 
+                       class="flex flex-col items-center gap-0.5 py-1 px-2 rounded-2xl transition-all {{ request()->is('*/cms*') ? 'text-primary-600 bg-primary-50' : 'text-secondary-400' }}">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+                        <span class="text-[9px] font-bold">CMS</span>
+                    </a>
+
                     <button @click="mobileSidebar = !mobileSidebar" 
-                            class="flex flex-col items-center gap-0.5 py-1 px-3 rounded-2xl transition-all"
+                            class="flex flex-col items-center gap-0.5 py-1 px-2 rounded-2xl transition-all"
                             :class="mobileSidebar ? 'text-primary-600 bg-primary-50' : 'text-secondary-400'">
                         <div class="relative w-5 h-5">
                             <svg class="w-5 h-5 absolute inset-0 transition-all duration-500" :class="mobileSidebar ? 'opacity-0 rotate-90 scale-75' : 'opacity-100 rotate-0 scale-100'" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
@@ -122,21 +132,21 @@
                         <span class="text-[9px] font-bold" x-text="mobileSidebar ? 'Tutup' : 'Menu'"></span>
                     </button>
 
-                    <a href="{{ route(auth()->user()->isAdmin() ? 'admin.pengaturan.index' : 'pengguna.pengaturan.index') }}" 
-                       class="flex flex-col items-center gap-0.5 py-1 px-3 rounded-2xl transition-all {{ request()->is('*/pengaturan*') || request()->routeIs('*.profile.*') || request()->routeIs('*.users.*') ? 'text-primary-600 bg-primary-50' : 'text-secondary-400' }}">
+                    <a href="{{ route($routePrefix . '.pengaturan.index') }}" 
+                       class="flex flex-col items-center gap-0.5 py-1 px-2 rounded-2xl transition-all {{ request()->is('*/pengaturan*') || request()->routeIs('*.profile.*') || request()->routeIs('*.users.*') ? 'text-primary-600 bg-primary-50' : 'text-secondary-400' }}">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                         <span class="text-[9px] font-bold">Setting</span>
                     </a>
 
                     @if(auth()->user()->isAdmin())
                         <a href="{{ route('admin.feedback.index') }}" 
-                           class="flex flex-col items-center gap-0.5 py-1 px-3 rounded-2xl transition-all {{ request()->routeIs('admin.feedback.index') ? 'text-primary-600 bg-primary-50' : 'text-secondary-400' }}">
+                           class="flex flex-col items-center gap-0.5 py-1 px-2 rounded-2xl transition-all {{ request()->routeIs('admin.feedback.index') ? 'text-primary-600 bg-primary-50' : 'text-secondary-400' }}">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
                             <span class="text-[9px] font-bold">Feedback</span>
                         </a>
                     @else
                         <button @click="feedbackOpen = true" 
-                           class="flex flex-col items-center gap-0.5 py-1 px-3 rounded-2xl transition-all"
+                           class="flex flex-col items-center gap-0.5 py-1 px-2 rounded-2xl transition-all"
                            :class="feedbackOpen ? 'text-primary-600 bg-primary-50' : 'text-secondary-400'">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
                             <span class="text-[9px] font-bold">Feedback</span>
@@ -164,6 +174,44 @@
                 <div class="bg-white/90 backdrop-blur-2xl rounded-2xl shadow-[10px_10px_40px_rgba(0,0,0,0.12)] border border-white/50 flex flex-col h-full">
                     
                     <div class="p-5 overflow-y-auto flex-1 scrollbar-hide">
+                            {{-- Main Navigation (Quick Access) --}}
+                            <div class="flex flex-col gap-2 mb-6">
+                                <p class="px-3 text-[10px] font-bold text-primary-500 uppercase tracking-widest mb-1">Navigasi Utama</p>
+                                
+                                <a href="{{ auth()->user()->isAdmin() ? route('admin.dashboard') : route('pengguna.dashboard') }}"
+                                   class="flex items-center gap-4 p-3 rounded-2xl transition-all duration-300 active:scale-95 bg-secondary-50 text-secondary-600 hover:bg-secondary-100">
+                                    <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                                    <span class="font-bold text-sm">Dashboard</span>
+                                </a>
+
+                                <a href="{{ auth()->user()->isAdmin() ? route('admin.ai-agen.index') : route('pengguna.ai-agen.index') }}"
+                                   class="flex items-center gap-4 p-3 rounded-2xl transition-all duration-300 active:scale-95 bg-secondary-50 text-secondary-600 hover:bg-secondary-100">
+                                    <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                    <span class="font-bold text-sm">AI Agen</span>
+                                </a>
+
+                                <div x-data="{ isLaporanOpen: false }">
+                                    <button @click="isLaporanOpen = !isLaporanOpen"
+                                            class="w-full flex items-center justify-between p-3 rounded-2xl transition-all duration-300 active:scale-95 bg-secondary-50 text-secondary-600 hover:bg-secondary-100">
+                                        <div class="flex items-center gap-4">
+                                            <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                            <span class="font-bold text-sm">Laporan</span>
+                                        </div>
+                                        <svg :class="isLaporanOpen ? 'rotate-180' : ''" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                    </button>
+                                    <div x-show="isLaporanOpen" x-transition class="mt-2 ml-4 pl-4 border-l-2 border-primary-100 space-y-1">
+                                        <a href="{{ auth()->user()->isAdmin() ? route('admin.laporan.interaksi.wa') : route('pengguna.laporan.interaksi.wa') }}"
+                                           class="block py-2 text-sm font-medium text-secondary-500">
+                                            WhatsApp
+                                        </a>
+                                        <a href="{{ auth()->user()->isAdmin() ? route('admin.laporan.kepuasan') : route('pengguna.laporan.kepuasan') }}"
+                                           class="block py-2 text-sm font-medium text-secondary-500">
+                                            Laporan Kepuasan
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
                         {{-- Vertical Menu Items --}}
                         <div class="flex flex-col gap-2 mb-6">
                             <p class="px-3 text-[10px] font-bold text-primary-500 uppercase tracking-widest mb-1">Menu Pengaturan</p>
