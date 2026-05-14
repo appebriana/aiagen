@@ -99,7 +99,7 @@ async def handle_webhook(request: Request):
             return {"status": "reset"}
 
         # Ambil respon dari AI
-        answer, p_tokens, c_tokens, sentiment = get_ai_response(msg_body, customer_id, department_id, customer=customer, is_csat_enabled=is_csat_enabled)
+        answer, p_tokens, c_tokens, sentiment = get_ai_response(customer_id, department_id, msg_body, customer=customer, is_csat_enabled=is_csat_enabled)
 
         # 3. Cek apakah AI ingin mengupdate nama user
         if "[[SET_NAME:" in answer:
