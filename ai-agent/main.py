@@ -38,7 +38,7 @@ async def handle_webhook(request: Request):
     
     if customer_id and msg_body:
         # 1. Ambil Pengaturan & Pemilik Departemen
-        from services.db_service import get_department_settings, get_or_create_customer, update_customer_nickname, log_ai_response
+        from services.db_service import get_department_settings, get_or_create_customer, update_customer_nickname, log_ai_response, update_ai_response
         dept_settings = get_department_settings(department_id)
         
         if not dept_settings:
@@ -48,6 +48,10 @@ async def handle_webhook(request: Request):
         
         # 2. Ambil/Buat data customer (Isolasi per owner_id)
         customer = get_or_create_customer(owner_id, customer_id, pushname)
+        
+        # --- LOG AWAL AGAR LANGSUNG MUNCUL DI CMS ---
+        # Gunakan reply_to/sender agar chat grup ter-grouping dengan benar
+        log_id = log_ai_response(department_id, reply_to, msg_body, "", "WAITING", 0, 0)
         
         # --- FITUR LOGGING CMS UNTUK SEMUA PESAN ---
         # Ambil flag is_triggered dari gateway (default True untuk PC, False untuk Grup tanpa trigger)
@@ -65,8 +69,8 @@ async def handle_webhook(request: Request):
             
             print(f"[DEBUG] Message from {customer_id} in {reply_to}: {reason}. AI tidak menjawab.")
             
-            # Tetap log pesan masuk agar muncul di CMS (Gunakan reply_to/sender agar grup ter-grouping)
-            log_ai_response(department_id, reply_to, msg_body, "", "LOG_ONLY", 0, 0)
+            # Update log awal tadi menjadi status LOG_ONLY
+            update_ai_response(log_id, "", reason, 0, 0)
             
             return {"status": "logged_only", "reason": reason}
         # ------------------------------------------------
@@ -94,6 +98,9 @@ async def handle_webhook(request: Request):
                     else:
                         next_msg = "Mohon maaf jika jawaban saya belum memuaskan. 🙏 Kami akan terus belajar.\n\nTetap mohon bantuannya untuk memberikan rating 1-5 agar kami bisa melakukan evaluasi."
                     await send_whatsapp_message(reply_to, next_msg, department_id, gateway_port, message_id)
+                    
+                    # Update log awal tadi dengan jawaban CSAT
+                    update_ai_response(log_id, next_msg, "SYSTEM_CSAT", 0, 0)
                     return {"status": "resolution_saved"}
 
             # 2. Handle 1-5 (Rating)
@@ -103,13 +110,18 @@ async def handle_webhook(request: Request):
                 if success:
                     thanks_msg = "Terima kasih banyak atas penilaiannya! Masukan Kakak sangat berarti bagi kami. 🙏✨"
                     await send_whatsapp_message(reply_to, thanks_msg, department_id, gateway_port, message_id)
+                    
+                    # Update log awal tadi dengan jawaban Rating
+                    update_ai_response(log_id, thanks_msg, "SYSTEM_RATING", 0, 0)
                     return {"status": "rating_saved"}
         # ------------------------------------------------
 
         # Perintah khusus
         if msg_body.lower() == "/reset":
             clear_memory(customer_id, department_id)
-            await send_whatsapp_message(reply_to, "Memori percakapan Anda telah dibersihkan.", department_id, gateway_port, message_id)
+            answer_reset = "Memori percakapan Anda telah dibersihkan."
+            await send_whatsapp_message(reply_to, answer_reset, department_id, gateway_port, message_id)
+            update_ai_response(log_id, answer_reset, "SYSTEM_RESET", 0, 0)
             return {"status": "reset"}
 
         # Ambil respon dari AI
@@ -118,6 +130,7 @@ async def handle_webhook(request: Request):
         # Jika AI di-takeover (answer=None), jangan kirim apa-apa
         if answer is None:
             await stop_typing_indicator(reply_to, department_id, gateway_port)
+            update_ai_response(log_id, "", "AI_DISABLED_MID_PROCESS", 0, 0)
             return {"status": "ai_disabled"}
 
         # 3. Cek apakah AI ingin mengupdate nama user
@@ -131,9 +144,8 @@ async def handle_webhook(request: Request):
         # Kirim Balasan ke WhatsApp
         result = await send_whatsapp_message(reply_to, answer, department_id, gateway_port, message_id)
 
-        # Simpan Log ke Database (Termasuk Token & Sentiment)
-        # Gunakan reply_to agar chat grup terkumpul dalam 1 percakapan di CMS
-        log_ai_response(department_id, reply_to, msg_body, answer, os.getenv("OPENAI_MODEL", "gpt-4o-mini"), p_tokens, c_tokens, sentiment)
+        # Update Log yang sudah ada (Termasuk Token & Sentiment)
+        update_ai_response(log_id, answer, os.getenv("OPENAI_MODEL", "gpt-4o-mini"), p_tokens, c_tokens, sentiment)
         
         if result and result.get("status") == "success":
             return {"status": "success", "ai_reply": answer}

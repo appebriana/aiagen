@@ -141,6 +141,7 @@ class CmsController extends Controller
             ->where('department_id', $departmentId)
             ->where('customer_phone', $phone)
             ->orderBy('created_at', 'asc')
+            ->orderBy('id', 'asc')
             ->get();
 
         foreach ($logs as $log) {

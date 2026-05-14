@@ -205,12 +205,39 @@ def log_ai_response(department_id, customer_phone, question, answer, model, prom
             department_id, customer_phone, question, answer, model, 
             prompt_tokens, completion_tokens, total_tokens, cost, sentiment
         ))
+        last_id = cursor.lastrowid
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return last_id
+    except Exception as e:
+        print(f"Error Database (log_ai_response): {e}")
+        return False
+
+def update_ai_response(log_id, answer, model, prompt_tokens, completion_tokens, sentiment=None):
+    """Update log chat yang sudah ada dengan jawaban AI."""
+    try:
+        cost = (prompt_tokens * 0.00000015) + (completion_tokens * 0.00000060)
+        total_tokens = prompt_tokens + completion_tokens
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        query = """
+            UPDATE ai_chat_logs 
+            SET answer = %s, model = %s, prompt_tokens = %s, completion_tokens = %s, 
+                total_tokens = %s, cost = %s, sentiment = %s, updated_at = NOW() 
+            WHERE id = %s
+        """
+        cursor.execute(query, (
+            answer, model, prompt_tokens, completion_tokens, 
+            total_tokens, cost, sentiment, log_id
+        ))
         conn.commit()
         cursor.close()
         conn.close()
         return True
     except Exception as e:
-        print(f"Error Database (log_ai_response): {e}")
+        print(f"Error Database (update_ai_response): {e}")
         return False
 
 def update_last_rating(department_id, customer_phone, rating):
