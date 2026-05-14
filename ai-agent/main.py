@@ -1,4 +1,5 @@
 import os
+import re
 from fastapi import FastAPI, Request
 from services.openai_service import get_ai_response, clear_memory
 from services.whatsapp_service import send_whatsapp_message
@@ -101,9 +102,12 @@ async def handle_webhook(request: Request):
         # Ambil respon dari AI
         answer, p_tokens, c_tokens, sentiment = get_ai_response(customer_id, department_id, msg_body, customer=customer, is_csat_enabled=is_csat_enabled)
 
+        # Jika AI di-takeover (answer=None), jangan kirim apa-apa
+        if answer is None:
+            return {"status": "ai_disabled"}
+
         # 3. Cek apakah AI ingin mengupdate nama user
         if "[[SET_NAME:" in answer:
-            import re
             match = re.search(r"\[\[SET_NAME:\s*(.*?)\]\]", answer)
             if match:
                 new_name = match.group(1).strip()
