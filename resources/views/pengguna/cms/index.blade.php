@@ -4,13 +4,14 @@
     </x-slot>
 
     @if($activeDepartment)
-    <div class="flex flex-1 w-full overflow-hidden" 
-         x-data="cmsLogic()"
-         x-init="initPolling()">
-        
-        {{-- 0. Platform Selector (Far Left) --}}
-        <div class="w-20 flex-shrink-0 bg-secondary-100 border-r border-secondary-200 flex flex-col items-center py-6 gap-6 overflow-y-auto scrollbar-hide">
-            {{-- Connected WhatsApp Devices --}}
+        <div class="flex flex-1 w-full overflow-hidden relative" 
+             x-data="cmsLogic()"
+             x-init="initPolling()">
+            
+            {{-- 0. Platform Selector (Far Left) --}}
+            <div class="w-20 flex-shrink-0 bg-secondary-100 border-r border-secondary-200 flex flex-col items-center py-6 gap-6 overflow-y-auto scrollbar-hide"
+                 :class="mobileView !== 'list' ? 'hidden lg:flex' : 'flex'">
+                {{-- Connected WhatsApp Devices --}}
             @forelse($whatsappDevices as $device)
                 <div class="flex flex-col items-center gap-1">
                     <button @click="activePlatform = 'wa-{{ $device->id }}'; selectedDeviceId = {{ $device->id }}" 
@@ -122,7 +123,8 @@
         </div>
 
         {{-- 1. Conversation List (Left) --}}
-        <div class="w-80 flex-shrink-0 border-r border-secondary-200 flex flex-col bg-secondary-50/30">
+        <div class="w-full lg:w-80 flex-shrink-0 border-r border-secondary-200 flex flex-col bg-secondary-50/30"
+             :class="mobileView !== 'list' ? 'hidden lg:flex' : 'flex'">
             <div class="p-4 border-b border-secondary-200 bg-white">
                 <div class="relative">
                     <input type="text" placeholder="Cari percakapan..." class="w-full pl-9 pr-4 py-2 bg-secondary-100 border-none rounded-xl text-sm focus:ring-2 focus:ring-primary-500">
@@ -163,9 +165,26 @@
         </div>
 
         {{-- 2. Chat Area (Middle) --}}
-        <div class="flex-1 flex flex-col bg-white min-w-0 overflow-hidden">
+        <div class="flex-1 flex flex-col bg-white min-w-0 overflow-hidden"
+             :class="mobileView !== 'chat' ? 'hidden lg:flex' : 'flex'">
             <template x-if="activePhone">
-                <div class="flex flex-col flex-1 overflow-hidden">
+                <div class="flex flex-col flex-1 overflow-hidden relative">
+                    {{-- Mobile Chat Header --}}
+                    <div class="lg:hidden flex items-center justify-between p-4 border-b border-secondary-100 bg-white sticky top-0 z-10">
+                        <div class="flex items-center gap-3">
+                            <button @click="mobileView = 'list'" class="p-2 -ml-2 text-secondary-400 hover:text-secondary-600 transition-colors">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                            </button>
+                            <div class="flex items-center gap-2">
+                                <div class="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center text-white text-xs font-bold" x-text="activeName.substring(0,1).toUpperCase()"></div>
+                                <h4 class="font-bold text-secondary-900 text-sm truncate max-w-[150px]" x-text="activeName"></h4>
+                            </div>
+                        </div>
+                        <button @click="mobileView = 'details'" class="p-2 text-primary-600 bg-primary-50 rounded-xl">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </button>
+                    </div>
+
                     {{-- Chat Content --}}
                     <div class="flex-1 overflow-y-auto p-6 space-y-4 bg-secondary-50/50" id="chat-scroll">
                         <template x-for="chat in chats" :key="chat.id">
@@ -202,7 +221,7 @@
                     </div>
 
                     {{-- Input Box --}}
-                    <div class="p-4 bg-white border-t border-secondary-200">
+                    <div class="p-4 bg-white border-t border-secondary-200 pb-28 lg:pb-4">
                         <div class="flex items-end gap-3 bg-secondary-100 rounded-2xl p-2 pr-3">
                             <textarea x-model="message" 
                                       @keydown.enter.prevent="if(!event.shiftKey) sendMessage()"
@@ -231,7 +250,16 @@
         </div>
 
         {{-- 3. Details/Control (Right) --}}
-        <div class="w-72 flex-shrink-0 border-l border-secondary-200 bg-secondary-50/10 p-6">
+        <div class="w-full lg:w-72 flex-shrink-0 border-l border-secondary-200 bg-secondary-50/10 p-6 overflow-y-auto"
+             :class="mobileView !== 'details' ? 'hidden lg:block' : 'block'">
+            {{-- Mobile Details Header --}}
+            <div class="lg:hidden flex items-center gap-4 mb-6 -mt-2">
+                <button @click="mobileView = 'chat'" class="p-2 -ml-2 text-secondary-400 hover:text-secondary-600 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                </button>
+                <h3 class="font-bold text-secondary-900">Detail Pelanggan</h3>
+            </div>
+
             <template x-if="activePhone">
                 <div class="space-y-8">
                     <div class="text-center">
@@ -298,11 +326,13 @@
                 activePlatform: "{{ $whatsappDevices->first() ? 'wa-'.$whatsappDevices->first()->id : 'wa' }}",
                 selectedDeviceId: {{ $whatsappDevices->first() ? $whatsappDevices->first()->id : 'null' }},
                 conversations: {!! json_encode($conversations) !!},
+                mobileView: 'list', // list, chat, details
                 
                 async selectConversation(phone, name, aiStatus) {
                     this.activePhone = phone;
                     this.activeName = name;
                     this.isAiEnabled = aiStatus;
+                    this.mobileView = 'chat';
                     this.fetchChats();
                 },
 
