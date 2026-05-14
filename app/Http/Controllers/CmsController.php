@@ -137,6 +137,9 @@ class CmsController extends Controller
 
     public function getChats($departmentId, $phone)
     {
+        $departmentId = (int)$departmentId;
+        $phone = trim($phone);
+
         $logs = DB::table('ai_chat_logs')
             ->where('department_id', $departmentId)
             ->where('customer_phone', $phone)
@@ -163,12 +166,15 @@ class CmsController extends Controller
             'device_id' => 'nullable|exists:whatsapp_devices,id'
         ]);
 
+        $departmentId = (int)$request->department_id;
         $deviceId = $request->device_id;
+        $phone = trim($request->phone);
+        $messageText = trim($request->message);
         
         // Jika device_id tidak dikirim, coba ambil device pertama yang connected di dept ini
         if (!$deviceId) {
             $device = DB::table('whatsapp_devices')
-                ->where('department_id', $request->department_id)
+                ->where('department_id', $departmentId)
                 ->where('status', 'connected')
                 ->first();
             $deviceId = $device ? $device->id : null;
@@ -176,10 +182,10 @@ class CmsController extends Controller
 
         // 1. Kirim ke Gateway jika ada device yang aktif
         if ($deviceId) {
-            $port = 3000 + $request->department_id;
+            $port = 3000 + $departmentId;
             try {
                 // Konversi format nomor telepon jika perlu (gateway biasanya butuh @c.us)
-                $target = $request->phone;
+                $target = $phone;
                 if (!str_contains($target, '@')) {
                     $target = str_replace(['+', ' '], '', $target);
                     $target = $target . '@c.us';
@@ -187,7 +193,7 @@ class CmsController extends Controller
 
                 \Illuminate\Support\Facades\Http::timeout(5)->post("http://127.0.0.1:{$port}/send", [
                     'target' => $target,
-                    'message' => $request->message
+                    'message' => $messageText
                 ]);
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::error("CMS Send Error: " . $e->getMessage());
@@ -195,12 +201,9 @@ class CmsController extends Controller
             }
         }
         
-        $phone = trim($request->phone);
-        $messageText = trim($request->message);
-
         // 3. Logika "Smart Pairing": Cek apakah ada pesan pelanggan terakhir yang belum dijawab
         $lastUnanswered = DB::table('ai_chat_logs')
-            ->where('department_id', $request->department_id)
+            ->where('department_id', $departmentId)
             ->where('customer_phone', $phone)
             ->where(function($query) {
                 $query->whereNull('answer')->orWhere('answer', '');
@@ -220,7 +223,7 @@ class CmsController extends Controller
         } else {
             // Jika tidak ada pesan yang menggantung, buat baris baru
             DB::table('ai_chat_logs')->insert([
-                'department_id' => $request->department_id,
+                'department_id' => $departmentId,
                 'customer_phone' => $phone,
                 'question' => '[ADMIN MANUAL REPLY]',
                 'answer' => $messageText,
@@ -235,11 +238,13 @@ class CmsController extends Controller
         }
 
         // 4. Otomatis matikan AI untuk customer ini (Takeover)
-        $dept = Department::find($request->department_id);
-        DB::table('customers')
-            ->where('user_id', $dept->user_id)
-            ->where('phone', $phone)
-            ->update(['is_ai_enabled' => 0]);
+        $dept = Department::find($departmentId);
+        if ($dept) {
+            DB::table('customers')
+                ->where('user_id', $dept->user_id)
+                ->where('phone', $phone)
+                ->update(['is_ai_enabled' => 0]);
+        }
 
         return response()->json(['status' => 'success']);
     }
