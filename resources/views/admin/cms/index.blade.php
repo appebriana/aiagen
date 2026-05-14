@@ -14,6 +14,7 @@
             isAiEnabled: true,
             activePlatform: '{{ $whatsappDevices->first() ? 'wa-'.$whatsappDevices->first()->id : 'wa' }}',
             selectedDeviceId: {{ $whatsappDevices->first() ? $whatsappDevices->first()->id : 'null' }},
+            conversations: @json($conversations),
             
             async selectConversation(phone, name, aiStatus) {
                 this.activePhone = phone;
@@ -22,21 +23,37 @@
                 this.fetchChats();
             },
 
-            async fetchChats() {
+            async fetchConversations() {
+                try {
+                    const prefix = '{{ auth()->user()->isAdmin() ? '/admin' : '/pengguna' }}';
+                    const response = await fetch(`${prefix}/cms/conversations/{{ $activeDepartment->id }}`);
+                    const result = await response.json();
+                    if (result.status === 'success') {
+                        this.conversations = result.data;
+                    }
+                } catch (error) {
+                    console.error('Error fetching conversations:', error);
+                }
+            },
+
+            async fetchChats(background = false) {
                 if (!this.activePhone) return;
-                this.loading = true;
+                if (!background) this.loading = true;
                 try {
                     const prefix = '{{ auth()->user()->isAdmin() ? '/admin' : '/pengguna' }}';
                     const response = await fetch(`${prefix}/cms/chats/{{ $activeDepartment->id }}/${this.activePhone}`);
                     const result = await response.json();
                     if (result.status === 'success') {
-                        this.chats = result.data;
-                        this.scrollToBottom();
+                        // Hanya update jika data berbeda untuk menghindari flicker
+                        if (JSON.stringify(this.chats) !== JSON.stringify(result.data)) {
+                            this.chats = result.data;
+                            this.scrollToBottom();
+                        }
                     }
                 } catch (error) {
                     console.error('Error fetching chats:', error);
                 } finally {
-                    this.loading = false;
+                    if (!background) this.loading = false;
                 }
             },
 
@@ -54,7 +71,8 @@
                         body: JSON.stringify({
                             department_id: '{{ $activeDepartment->id }}',
                             phone: this.activePhone,
-                            message: this.message
+                            message: this.message,
+                            device_id: this.selectedDeviceId
                         })
                     });
 
@@ -106,7 +124,10 @@
                 return text.replace(/\[\[.*?\]\]/g, '').trim();
             }
          }"
-         x-init="setInterval(() => { if(activePhone && !loading) fetchChats() }, 5000)">
+         x-init="setInterval(() => { 
+                fetchConversations();
+                if(activePhone && !loading) fetchChats(true); 
+             }, 5000)">
         
         {{-- 0. Platform Selector (Far Left) --}}
         <div class="w-20 flex-shrink-0 bg-secondary-100 border-r border-secondary-200 flex flex-col items-center py-6 gap-6 overflow-y-auto scrollbar-hide">
@@ -230,35 +251,35 @@
                 </div>
             </div>
             <div class="flex-1 overflow-y-auto divide-y divide-secondary-100">
-                @forelse($conversations as $conv)
-                    <button @click="selectConversation('{{ $conv->customer_phone }}', '{{ $conv->customer_name }}', {{ $conv->is_ai_enabled ? 'true' : 'false' }})"
+                <template x-for="conv in conversations" :key="conv.customer_phone">
+                    <button @click="selectConversation(conv.customer_phone, conv.customer_name, conv.is_ai_enabled)"
                             class="w-full p-4 flex items-start gap-3 hover:bg-white transition-all text-left group"
-                            :class="activePhone === '{{ $conv->customer_phone }}' ? 'bg-white border-l-4 border-primary-600 shadow-sm' : ''">
+                            :class="activePhone === conv.customer_phone ? 'bg-white border-l-4 border-primary-600 shadow-sm' : ''">
                         <div class="relative flex-shrink-0">
-                            <div class="w-12 h-12 bg-primary-100 text-primary-700 rounded-2xl flex items-center justify-center font-bold">
-                                {{ strtoupper(substr($conv->customer_name, 0, 1)) }}
+                            <div class="w-12 h-12 bg-primary-100 text-primary-700 rounded-2xl flex items-center justify-center font-bold" 
+                                 x-text="conv.customer_name.substring(0,1).toUpperCase()">
                             </div>
                             <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white"
-                                 :class="{{ $conv->is_ai_enabled ? 'true' : 'false' }} ? 'bg-green-500' : 'bg-rose-500'"></div>
+                                 :class="conv.is_ai_enabled ? 'bg-green-500' : 'bg-rose-500'"></div>
                         </div>
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center justify-between mb-0.5">
-                                <h4 class="text-sm font-bold text-secondary-900 truncate">{{ $conv->customer_name }}</h4>
-                                <span class="text-[10px] text-secondary-400 font-medium whitespace-nowrap">{{ \Carbon\Carbon::parse($conv->last_chat)->format('H:i') }}</span>
+                                <h4 class="text-sm font-bold text-secondary-900 truncate" x-text="conv.customer_name"></h4>
+                                <span class="text-[10px] text-secondary-400 font-medium whitespace-nowrap" x-text="conv.last_chat_time"></span>
                             </div>
-                            <p class="text-xs text-secondary-500 truncate">{{ $conv->last_message }}</p>
+                            <p class="text-xs text-secondary-500 truncate" x-text="cleanMessage(conv.last_message)"></p>
                             <div class="flex items-center gap-2 mt-1.5">
-                                <span class="px-1.5 py-0.5 rounded text-[8px] font-extrabold uppercase {{ $conv->is_ai_enabled ? 'bg-green-50 text-green-700' : 'bg-rose-50 text-rose-700 animate-pulse' }}">
-                                    {{ $conv->is_ai_enabled ? 'AI Active' : 'Human Takeover' }}
+                                <span class="px-1.5 py-0.5 rounded text-[8px] font-extrabold uppercase"
+                                      :class="conv.is_ai_enabled ? 'bg-green-50 text-green-700' : 'bg-rose-50 text-rose-700 animate-pulse'"
+                                      x-text="conv.is_ai_enabled ? 'AI Active' : 'Human Takeover'">
                                 </span>
                             </div>
                         </div>
                     </button>
-                @empty
-                    <div class="p-8 text-center text-secondary-400">
-                        <p class="text-sm">Belum ada percakapan di departemen ini.</p>
-                    </div>
-                @endforelse
+                </template>
+                <div x-show="conversations.length === 0" class="p-8 text-center text-secondary-400">
+                    <p class="text-sm">Belum ada percakapan di departemen ini.</p>
+                </div>
             </div>
         </div>
 

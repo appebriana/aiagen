@@ -36,6 +36,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
     Route::get('/dashboard', [DashboardController::class, 'adminDashboard'])->name('dashboard');
     Route::get('/cms/{department?}', [CmsController::class, 'index'])->name('cms.index');
     Route::get('/cms/chats/{department}/{phone}', [CmsController::class, 'getChats'])->name('cms.chats');
+    Route::get('/cms/conversations/{department}', [CmsController::class, 'getConversations'])->name('cms.conversations');
     Route::post('/cms/send', [CmsController::class, 'sendMessage'])->name('cms.send');
 
     // Pengaturan Section
@@ -135,6 +136,7 @@ Route::middleware(['auth', 'verified', 'role:pengguna'])->prefix('pengguna')->na
     Route::get('/dashboard', [DashboardController::class, 'penggunaDashboard'])->name('dashboard');
     Route::get('/cms/{department?}', [CmsController::class, 'index'])->name('cms.index');
     Route::get('/cms/chats/{department}/{phone}', [CmsController::class, 'getChats'])->name('cms.chats');
+    Route::get('/cms/conversations/{department}', [CmsController::class, 'getConversations'])->name('cms.conversations');
     Route::post('/cms/send', [CmsController::class, 'sendMessage'])->name('cms.send');
 
     // Pengaturan Section
