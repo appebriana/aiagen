@@ -200,6 +200,16 @@ class ReportController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
+        // Cari nama customer untuk setiap log
+        $targetUserId = $selectedUser->id;
+        foreach ($logs as $item) {
+            $customer = DB::table('customers')
+                ->where('user_id', $targetUserId)
+                ->where('phone', $item->customer_phone)
+                ->first();
+            $item->customer_name = $customer ? ($customer->nickname ?: $customer->name) : 'Unknown';
+        }
+
         $fileName = 'Laporan_Kepuasan_' . date('Y-m-d') . '.xls';
         $headers = [
             "Content-Type" => "application/vnd.ms-excel",
@@ -224,6 +234,16 @@ class ReportController extends Controller
             ->orderBy('created_at', 'desc')
             ->limit(500)
             ->get();
+
+        // Cari nama customer untuk setiap log
+        $targetUserId = $selectedUser->id;
+        foreach ($logs as $item) {
+            $customer = DB::table('customers')
+                ->where('user_id', $targetUserId)
+                ->where('phone', $item->customer_phone)
+                ->first();
+            $item->customer_name = $customer ? ($customer->nickname ?: $customer->name) : 'Unknown';
+        }
 
         $pdf = Pdf::loadView('pengguna.laporan.pdf_kepuasan', compact('logs', 'user'));
         return $pdf->setPaper('a4', 'portrait')->download('Laporan_Kepuasan_' . date('Y-m-d') . '.pdf');

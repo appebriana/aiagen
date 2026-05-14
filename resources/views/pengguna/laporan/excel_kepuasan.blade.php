@@ -13,7 +13,10 @@
         <tr>
             <td style="vertical-align: top;">{{ $log->created_at }}</td>
             <td style="vertical-align: top;">{{ \Illuminate\Support\Facades\DB::table('departments')->where('id', $log->department_id)->value('name') ?? '-' }}</td>
-            <td style="vertical-align: top;">{{ $log->customer_phone }}</td>
+            <td style="vertical-align: top;">
+                <strong>{{ $log->customer_name }}</strong><br>
+                {{ $log->customer_phone }}
+            </td>
             <td style="vertical-align: top; text-align: center;">{{ $log->rating }}</td>
             <td style="vertical-align: top;">{{ $log->context_summary ?: $log->question }}</td>
         </tr>

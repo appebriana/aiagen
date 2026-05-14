@@ -35,7 +35,10 @@
             <tr class="{{ $index % 2 == 0 ? '' : 'bg-gray' }}">
                 <td>{{ \Carbon\Carbon::parse($log->created_at)->translatedFormat('d/m/y H:i') }}</td>
                 <td>{{ \Illuminate\Support\Facades\DB::table('departments')->where('id', $log->department_id)->value('name') ?? '-' }}</td>
-                <td>{{ $log->customer_phone }}</td>
+                <td>
+                    <strong>{{ $log->customer_name }}</strong><br>
+                    <small>{{ $log->customer_phone }}</small>
+                </td>
                 <td class="rating">{{ $log->rating }}</td>
                 <td>{{ $log->context_summary ?: $log->question }}</td>
             </tr>
