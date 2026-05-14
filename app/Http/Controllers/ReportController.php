@@ -58,7 +58,7 @@ class ReportController extends Controller
         if ($user->isAdmin() && !$selectedUser) {
             $stats = ['labels' => [], 'counts' => []];
             $topInteractions = collect();
-            return view('pengguna.laporan.interaksi', compact('stats', 'topInteractions', 'range', 'type', 'penggunaUsers', 'selectedUser'));
+            return view('pengguna.laporan.interaksi', compact('stats', 'topInteractions', 'range', 'type', 'penggunaUsers', 'selectedUser', 'departmentIds'));
         }
 
         $query = DB::table('ai_chat_logs')
@@ -98,7 +98,7 @@ class ReportController extends Controller
             $item->is_ai_enabled = $customer ? $customer->is_ai_enabled : true;
         }
 
-        return view('pengguna.laporan.interaksi', compact('stats', 'topInteractions', 'range', 'type', 'penggunaUsers', 'selectedUser'));
+        return view('pengguna.laporan.interaksi', compact('stats', 'topInteractions', 'range', 'type', 'penggunaUsers', 'selectedUser', 'departmentIds'));
     }
 
     public function toggleAi(Request $request)
