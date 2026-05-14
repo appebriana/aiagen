@@ -189,7 +189,7 @@ class CmsController extends Controller
                     'message' => $request->message
                 ]);
             } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error("CMS Send Error: " . $e.getMessage());
+                \Illuminate\Support\Facades\Log::error("CMS Send Error: " . $e->getMessage());
                 // Tetap lanjut simpan ke DB agar ada history, tapi mungkin pesan aslinya gagal terkirim
             }
         }
