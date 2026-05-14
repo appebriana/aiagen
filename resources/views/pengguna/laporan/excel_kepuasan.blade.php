@@ -5,8 +5,7 @@
             <th style="background-color: #1e40af; color: #ffffff; font-weight: bold;">Departemen</th>
             <th style="background-color: #1e40af; color: #ffffff; font-weight: bold;">Nomor Pelanggan</th>
             <th style="background-color: #1e40af; color: #ffffff; font-weight: bold;">Rating</th>
-            <th style="background-color: #1e40af; color: #ffffff; font-weight: bold;">Pesan Terakhir</th>
-            <th style="background-color: #1e40af; color: #ffffff; font-weight: bold;">Jawaban AI/Admin</th>
+            <th style="background-color: #1e40af; color: #ffffff; font-weight: bold;">Konteks Pertanyaan</th>
         </tr>
     </thead>
     <tbody>
@@ -17,7 +16,6 @@
             <td style="vertical-align: top;">{{ $log->customer_phone }}</td>
             <td style="vertical-align: top; text-align: center;">{{ $log->rating }}</td>
             <td style="vertical-align: top;">{{ $log->question }}</td>
-            <td style="vertical-align: top; white-space: pre-wrap;">{{ $log->answer }}</td>
         </tr>
         @endforeach
     </tbody>
