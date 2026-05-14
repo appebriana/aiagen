@@ -112,7 +112,7 @@
             </aside>
 
             {{-- ═══ MAIN CONTENT ═══ --}}
-            <div class="flex-1 flex flex-col transition-all duration-300 min-w-0" :class="sidebarOpen ? 'lg:ml-64' : 'lg:ml-20'">
+            <div class="flex-1 flex flex-col transition-all duration-300 min-w-0 h-screen overflow-hidden" :class="sidebarOpen ? 'lg:ml-64' : 'lg:ml-20'">
 
                 {{-- Top Bar --}}
                 <header class="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-secondary-300 h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 shadow-sm">
