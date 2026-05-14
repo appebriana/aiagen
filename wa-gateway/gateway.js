@@ -213,6 +213,17 @@ app.post('/typing', async (req, res) => {
     }
 });
 
+app.post('/stop-typing', async (req, res) => {
+    const { target } = req.body;
+    try {
+        const chat = await client.getChatById(target);
+        await chat.clearState();
+        res.json({ status: 'success' });
+    } catch (error) {
+        res.status(500).json({ status: 'error', message: error.message });
+    }
+});
+
 app.post('/send', async (req, res) => {
     const { target, message, reply_to_msg_id } = req.body;
     try {
@@ -224,6 +235,7 @@ app.post('/send', async (req, res) => {
         }
         
         await chat.sendMessage(message, options);
+        await chat.clearState();
         res.json({ status: 'success' });
     } catch (error) {
         res.status(500).json({ status: 'error', message: error.message });

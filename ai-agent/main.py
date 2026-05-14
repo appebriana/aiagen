@@ -64,7 +64,7 @@ async def handle_webhook(request: Request):
             
             return {"status": "held"}
         # ------------------------------------------------
-        from services.whatsapp_service import send_whatsapp_message, send_typing_indicator
+        from services.whatsapp_service import send_whatsapp_message, send_typing_indicator, stop_typing_indicator
 
         # Munculkan status "Mengetik" di WA (Hanya jika tidak mute)
         await send_typing_indicator(reply_to, department_id, gateway_port)
@@ -110,6 +110,7 @@ async def handle_webhook(request: Request):
 
         # Jika AI di-takeover (answer=None), jangan kirim apa-apa
         if answer is None:
+            await stop_typing_indicator(reply_to, department_id, gateway_port)
             return {"status": "ai_disabled"}
 
         # 3. Cek apakah AI ingin mengupdate nama user

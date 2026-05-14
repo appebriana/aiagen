@@ -42,3 +42,15 @@ async def send_typing_indicator(to_number: str, department_id: str, gateway_port
             await client.post(gateway_url, json={"target": to_number}, timeout=5.0)
     except Exception as e:
         print(f"Gagal mengirim status mengetik: {e}")
+async def stop_typing_indicator(to_number: str, department_id: str, gateway_port: int = None):
+    """
+    Kirim perintah ke Node.js WA Gateway untuk menghentikan status 'Mengetik...'.
+    """
+    try:
+        port = gateway_port if gateway_port else 3000 + (int(department_id) - 1)
+        gateway_url = f"http://127.0.0.1:{port}/stop-typing"
+        
+        async with httpx.AsyncClient() as client:
+            await client.post(gateway_url, json={"target": to_number}, timeout=5.0)
+    except Exception as e:
+        print(f"Gagal menghentikan status mengetik: {e}")
