@@ -98,6 +98,12 @@
                     const container = document.getElementById('chat-scroll');
                     if (container) container.scrollTop = container.scrollHeight;
                 }, 100);
+            },
+
+            cleanMessage(text) {
+                if (!text) return '';
+                // Menghapus semua tag teknis [[...]] dari tampilan chat
+                return text.replace(/\[\[.*?\]\]/g, '').trim();
             }
          }"
          x-init="setInterval(() => { if(activePhone && !loading) fetchChats() }, 5000)">
@@ -268,7 +274,7 @@
                                 <template x-if="chat.question && chat.question !== '[ADMIN MANUAL REPLY]'">
                                     <div class="flex justify-start">
                                         <div class="max-w-[75%] bg-white p-3 rounded-2xl rounded-tl-none shadow-sm border border-secondary-200">
-                                            <p class="text-sm text-secondary-800" x-text="chat.question"></p>
+                                            <p class="text-sm text-secondary-800" x-text="cleanMessage(chat.question)"></p>
                                             <p class="text-[9px] text-secondary-400 mt-1 text-right" x-text="chat.formatted_time"></p>
                                         </div>
                                     </div>
@@ -286,7 +292,7 @@
                                                     <span class="text-[9px] font-bold uppercase tracking-wider">AI Agent</span>
                                                 </template>
                                             </div>
-                                            <p class="text-sm" x-text="chat.answer"></p>
+                                            <p class="text-sm" x-text="cleanMessage(chat.answer)"></p>
                                             <p class="text-[9px] mt-1 text-right opacity-60" x-text="chat.formatted_time"></p>
                                         </div>
                                     </div>
