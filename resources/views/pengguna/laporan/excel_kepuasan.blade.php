@@ -15,7 +15,7 @@
             <td style="vertical-align: top;">{{ \Illuminate\Support\Facades\DB::table('departments')->where('id', $log->department_id)->value('name') ?? '-' }}</td>
             <td style="vertical-align: top;">{{ $log->customer_phone }}</td>
             <td style="vertical-align: top; text-align: center;">{{ $log->rating }}</td>
-            <td style="vertical-align: top;">{{ $log->question }}</td>
+            <td style="vertical-align: top;">{{ $log->context_summary ?: $log->question }}</td>
         </tr>
         @endforeach
     </tbody>

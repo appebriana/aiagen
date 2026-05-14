@@ -102,6 +102,32 @@ def get_memory_path(department_id: str, customer_id: str):
         os.makedirs(dept_dir)
     return os.path.join(dept_dir, f"{customer_id}.json")
 
+def generate_session_summary(chat_history):
+    """Menghasilkan ringkasan singkat dari riwayat percakapan sesi ini."""
+    try:
+        # Hanya ambil 10 pesan terakhir agar ringkas dan hemat token
+        recent_history = chat_history[-10:]
+        messages_str = "\n".join([f"{m['role']}: {m['content']}" for m in recent_history])
+        
+        prompt = (
+            "Berdasarkan percakapan di bawah ini, buatlah ringkasan konteks pertanyaan pelanggan dalam 1-2 kalimat singkat saja. "
+            "Fokus pada apa yang mereka cari atau tanyakan dari awal hingga saat ini.\n\n"
+            "PERCAKAPAN:\n" + messages_str + "\n\n"
+            "RINGKASAN KONTEKS:"
+        )
+        
+        response = client.chat.completions.create(
+            model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
+            messages=[{"role": "system", "content": "Anda adalah asisten perangkum percakapan yang efisien."},
+                      {"role": "user", "content": prompt}],
+            max_tokens=100,
+            temperature=0.3
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        print(f"[ERROR] Gagal membuat ringkasan: {e}")
+        return None
+
 def load_session_memory(department_id: str, customer_id: str):
     path = get_memory_path(department_id, customer_id)
     if os.path.exists(path):

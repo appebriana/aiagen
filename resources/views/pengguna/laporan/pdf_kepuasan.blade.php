@@ -37,7 +37,7 @@
                 <td>{{ \Illuminate\Support\Facades\DB::table('departments')->where('id', $log->department_id)->value('name') ?? '-' }}</td>
                 <td>{{ $log->customer_phone }}</td>
                 <td class="rating">{{ $log->rating }}</td>
-                <td>{{ $log->question }}</td>
+                <td>{{ $log->context_summary ?: $log->question }}</td>
             </tr>
             @endforeach
         </tbody>

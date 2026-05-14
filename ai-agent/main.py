@@ -1,7 +1,7 @@
 import os
 import re
 from fastapi import FastAPI, Request
-from services.openai_service import get_ai_response, clear_memory
+from services.openai_service import get_ai_response, clear_memory, load_session_memory, generate_session_summary
 from services.whatsapp_service import send_whatsapp_message
 from dotenv import load_dotenv
 
@@ -113,6 +113,20 @@ async def handle_webhook(request: Request):
                     
                     # Update log awal tadi dengan jawaban Rating
                     update_ai_response(log_id, thanks_msg, "SYSTEM_RATING", 0, 0)
+
+                    # ------------------------------------------------
+                    # Generate Summary Konteks (Summary dari Awal Sesi)
+                    try:
+                        chat_history = load_session_memory(department_id, customer_id)
+                        if chat_history:
+                            summary = generate_session_summary(chat_history)
+                            if summary:
+                                from services.db_service import update_last_summary
+                                update_last_summary(department_id, reply_to, summary)
+                    except Exception as e:
+                        print(f"[ERROR] Gagal proses summary: {e}")
+                    # ------------------------------------------------
+
                     return {"status": "rating_saved"}
         # ------------------------------------------------
 

@@ -164,7 +164,9 @@
                                 </div>
                             </td>
                             <td class="px-6 py-4 max-w-md">
-                                <p class="text-xs text-secondary-600 line-clamp-2">{{ $log->question }}</p>
+                                <p class="text-xs text-secondary-600 line-clamp-3">
+                                    {{ $log->context_summary ?: $log->question }}
+                                </p>
                             </td>
                             <td class="px-6 py-4 text-right">
                                 <button @click="$dispatch('open-detail', { phone: '{{ $log->customer_phone }}', name: '{{ $log->customer_name }}' })" 

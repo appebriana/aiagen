@@ -240,6 +240,26 @@ def update_ai_response(log_id, answer, model, prompt_tokens, completion_tokens, 
         print(f"Error Database (update_ai_response): {e}")
         return False
 
+def update_last_summary(department_id, customer_phone, summary):
+    """Update context_summary pada interaksi terakhir."""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        query = """
+            UPDATE ai_chat_logs 
+            SET context_summary = %s, updated_at = NOW() 
+            WHERE department_id = %s AND customer_phone = %s
+            ORDER BY created_at DESC LIMIT 1
+        """
+        cursor.execute(query, (summary, department_id, customer_phone))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return True
+    except Exception as e:
+        print(f"Error Database (update_last_summary): {e}")
+        return False
+
 def update_last_rating(department_id, customer_phone, rating):
     """Update rating pada interaksi terakhir yang belum diberi rating."""
     try:
