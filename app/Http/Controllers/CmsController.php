@@ -195,10 +195,13 @@ class CmsController extends Controller
             }
         }
         
+        $phone = trim($request->phone);
+        $messageText = trim($request->message);
+
         // 3. Logika "Smart Pairing": Cek apakah ada pesan pelanggan terakhir yang belum dijawab
         $lastUnanswered = DB::table('ai_chat_logs')
             ->where('department_id', $request->department_id)
-            ->where('customer_phone', $request->phone)
+            ->where('customer_phone', $phone)
             ->where(function($query) {
                 $query->whereNull('answer')->orWhere('answer', '');
             })
@@ -210,7 +213,7 @@ class CmsController extends Controller
             DB::table('ai_chat_logs')
                 ->where('id', $lastUnanswered->id)
                 ->update([
-                    'answer' => $request->message,
+                    'answer' => $messageText,
                     'model' => 'MANUAL_ADMIN',
                     'updated_at' => now(),
                 ]);
@@ -218,9 +221,9 @@ class CmsController extends Controller
             // Jika tidak ada pesan yang menggantung, buat baris baru
             DB::table('ai_chat_logs')->insert([
                 'department_id' => $request->department_id,
-                'customer_phone' => $request->phone,
+                'customer_phone' => $phone,
                 'question' => '[ADMIN MANUAL REPLY]',
-                'answer' => $request->message,
+                'answer' => $messageText,
                 'model' => 'MANUAL_ADMIN',
                 'prompt_tokens' => 0,
                 'completion_tokens' => 0,
@@ -231,11 +234,11 @@ class CmsController extends Controller
             ]);
         }
 
-        // 3. Otomatis matikan AI untuk customer ini (Takeover)
+        // 4. Otomatis matikan AI untuk customer ini (Takeover)
         $dept = Department::find($request->department_id);
         DB::table('customers')
             ->where('user_id', $dept->user_id)
-            ->where('phone', $request->phone)
+            ->where('phone', $phone)
             ->update(['is_ai_enabled' => 0]);
 
         return response()->json(['status' => 'success']);
