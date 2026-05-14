@@ -335,7 +335,7 @@ def get_ai_response(customer_id: str, department_id: str, user_message: str, sys
         name_match = re.search(r'\[\[SET_NAME:\s*(.*?)\]\]', ai_reply)
         if name_match:
             new_name = name_match.group(1).strip()
-            update_customer_nickname(customer_id, new_name)
+            update_customer_nickname(user_id, customer_id, new_name)
             ai_reply = re.sub(r'\[\[SET_NAME:.*?\]\]', '', ai_reply)
 
         # Bersihkan tag sentiment jika ada
