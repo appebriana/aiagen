@@ -139,17 +139,16 @@ client.on('message', async msg => {
     }
 
     try {
-        let isHeld = false;
-        try {
-            const chat = await msg.getChat();
-            const labels = await chat.getLabels();
-            isHeld = labels.some(l => l.name.toUpperCase().includes('HOLD'));
-        } catch (labelError) {
-            console.error(`[${DEVICE_NAME}] Error checking labels:`, labelError.message);
-        }
+        const chat = await msg.getChat();
+        const contact = await msg.getContact();
+        const realNumber = contact.number || msg.from.split('@')[0];
+        const labels = await chat.getLabels();
+        isHeld = labels.some(l => l.name.toUpperCase().includes('HOLD'));
 
-        await axios.post('http://127.0.0.1:8000/webhook', {
+        const webhookUrl = process.env.AI_AGENT_WEBHOOK_URL || 'http://127.0.0.1:8000/webhook';
+        await axios.post(webhookUrl, {
             sender: msg.from,
+            real_number: realNumber,
             message: msg.body,
             department_id: DEPARTMENT_ID,
             device_id: DEVICE_ID,

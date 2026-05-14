@@ -25,8 +25,12 @@ async def handle_webhook(request: Request):
     sender = data.get("sender") or data.get("from")
     author = data.get("author") or sender
     
+    message_id = data.get("message_id")
+    real_number = data.get("real_number")
+    
     # customer_id adalah identitas unik individu untuk memori
-    customer_id = author
+    # Prioritaskan real_number (nomor HP asli) jika ada
+    customer_id = real_number or author or sender
     # reply_to adalah tujuan kirim pesan (Grup atau Individu)
     reply_to = sender
 
@@ -34,7 +38,6 @@ async def handle_webhook(request: Request):
     department_id = data.get("department_id", "default")
     gateway_port = data.get("gateway_port")
     pushname = data.get("pushname")
-    message_id = data.get("message_id")
     
     if customer_id and msg_body:
         # 1. Ambil Pengaturan & Pemilik Departemen

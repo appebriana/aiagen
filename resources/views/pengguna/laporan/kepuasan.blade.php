@@ -156,7 +156,7 @@
                             </td>
                             <td class="px-6 py-4">
                                 <div class="text-sm font-bold text-secondary-900">{{ $log->customer_name }}</div>
-                                <div class="text-[10px] text-secondary-400 font-mono">{{ $log->customer_phone }}</div>
+                                <div class="text-[10px] text-secondary-400 font-mono">{{ str_replace(['@c.us', '@g.us', '@lid'], '', $log->customer_phone) }}</div>
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex items-center justify-center gap-1 bg-amber-50 px-2 py-1 rounded-lg border border-amber-100">
