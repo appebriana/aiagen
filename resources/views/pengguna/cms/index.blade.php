@@ -127,12 +127,12 @@
              :class="mobileView !== 'list' ? 'hidden lg:flex' : 'flex'">
             <div class="p-4 border-b border-secondary-200 bg-white">
                 <div class="relative">
-                    <input type="text" placeholder="Cari percakapan..." class="w-full pl-9 pr-4 py-2 bg-secondary-100 border-none rounded-xl text-sm focus:ring-2 focus:ring-primary-500">
+                    <input type="text" x-model="searchQuery" placeholder="Cari percakapan..." class="w-full pl-9 pr-4 py-2 bg-secondary-100 border-none rounded-xl text-sm focus:ring-2 focus:ring-primary-500">
                     <svg class="w-4 h-4 text-secondary-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 </div>
             </div>
             <div class="flex-1 overflow-y-auto divide-y divide-secondary-100">
-                <template x-for="conv in conversations" :key="conv.customer_phone">
+                <template x-for="conv in filteredConversations" :key="conv.customer_phone">
                     <button @click="selectConversation(conv.customer_phone, conv.customer_name, conv.is_ai_enabled)"
                             class="w-full p-4 flex items-start gap-3 hover:bg-white transition-all text-left group"
                             :class="activePhone === conv.customer_phone ? 'bg-white border-l-4 border-primary-600 shadow-sm' : ''">
@@ -327,6 +327,17 @@
                 selectedDeviceId: {{ $whatsappDevices->first() ? $whatsappDevices->first()->id : 'null' }},
                 conversations: {!! json_encode($conversations) !!},
                 mobileView: 'list', // list, chat, details
+                searchQuery: '',
+
+                get filteredConversations() {
+                    if (!this.searchQuery.trim()) return this.conversations;
+                    const query = this.searchQuery.toLowerCase();
+                    return this.conversations.filter(c => 
+                        c.customer_name.toLowerCase().includes(query) || 
+                        c.customer_phone.includes(query) ||
+                        (c.last_message && c.last_message.toLowerCase().includes(query))
+                    );
+                },
                 
                 async selectConversation(phone, name, aiStatus) {
                     this.activePhone = phone;
