@@ -169,39 +169,15 @@
                                 <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-bold">{{ number_format($item->total) }}</span>
                             </td>
                             <td class="px-6 py-4 text-center">
-                                @php
-                                    $mostSentiment = \Illuminate\Support\Facades\DB::table('ai_chat_logs')
-                                        ->where('customer_phone', $item->customer_phone)
-                                        ->whereIn('department_id', $departmentIds)
-                                        ->whereNotNull('sentiment')
-                                        ->select('sentiment', \Illuminate\Support\Facades\DB::raw('count(*) as count'))
-                                        ->groupBy('sentiment')
-                                        ->orderBy('count', 'desc')
-                                        ->first();
-                                @endphp
-                                @if($mostSentiment)
-                                    @if($mostSentiment->sentiment === 'positive') 😊
-                                    @elseif($mostSentiment->sentiment === 'negative') 😠
-                                    @else 😐 @endif
-                                @else
-                                    -
-                                @endif
+                                @if($item->sentiment_score === 'positive') 😊
+                                @elseif($item->sentiment_score === 'negative') 😠
+                                @else 😐 @endif
                             </td>
                             <td class="px-6 py-4 text-center">
-                                @php
-                                    $isResolved = \Illuminate\Support\Facades\DB::table('ai_chat_logs')
-                                        ->where('customer_phone', $item->customer_phone)
-                                        ->whereIn('department_id', $departmentIds)
-                                        ->whereNotNull('is_resolved')
-                                        ->orderBy('created_at', 'desc')
-                                        ->value('is_resolved');
-                                @endphp
-                                @if($isResolved === 1)
+                                @if($item->resolved_rate >= 0.5)
                                     <span class="text-green-600 font-bold text-xs">YA</span>
-                                @elseif($isResolved === 0)
-                                    <span class="text-red-600 font-bold text-xs">TIDAK</span>
                                 @else
-                                    <span class="text-secondary-400 text-xs">-</span>
+                                    <span class="text-red-600 font-bold text-xs">TIDAK</span>
                                 @endif
                             </td>
                             <td class="px-6 py-4 text-center">
@@ -228,7 +204,7 @@
                                 </button>
                             </td>
                             <td class="px-6 py-4 text-right">
-                                <button @click="showDetail('{{ $item->customer_phone }}', '{{ $item->name }}')" 
+                                <button @click="$dispatch('open-detail', { phone: '{{ $item->customer_phone }}', name: '{{ $item->name }}' })" 
                                         class="text-primary-600 hover:text-primary-900 font-bold text-sm bg-primary-50 px-3 py-1.5 rounded-lg transition-colors">
                                     Lihat Detail
                                 </button>

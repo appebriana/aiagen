@@ -87,7 +87,7 @@ class ReportController extends Controller
             ->limit(10)
             ->get();
 
-        // Cari nama customer dari tabel customers jika ada
+        // Cari nama customer, sentiment rata-rata, dan status terjawab
         $targetUserId = $selectedUser->id;
         foreach ($topInteractions as $item) {
             $customer = DB::table('customers')
@@ -96,6 +96,24 @@ class ReportController extends Controller
                 ->first();
             $item->name = $customer ? ($customer->nickname ?: $customer->name) : 'Unknown';
             $item->is_ai_enabled = $customer ? $customer->is_ai_enabled : true;
+
+            // Ambil sample sentiment dan resolved status (rata-rata)
+            $metrics = DB::table('ai_chat_logs')
+                ->whereIn('department_id', $departmentIds)
+                ->where('customer_phone', $item->customer_phone)
+                ->select(
+                    DB::raw('SUM(CASE WHEN sentiment = "positive" THEN 1 ELSE 0 END) as pos'),
+                    DB::raw('SUM(CASE WHEN sentiment = "negative" THEN 1 ELSE 0 END) as neg'),
+                    DB::raw('COUNT(sentiment) as total_sent'),
+                    DB::raw('AVG(is_resolved) as resolved_rate')
+                )->first();
+            
+            $item->sentiment_score = 'neutral';
+            if ($metrics->total_sent > 0) {
+                if ($metrics->pos > $metrics->neg) $item->sentiment_score = 'positive';
+                elseif ($metrics->neg > $metrics->pos) $item->sentiment_score = 'negative';
+            }
+            $item->resolved_rate = $metrics->resolved_rate ?? 0;
         }
 
         return view('pengguna.laporan.interaksi', compact('stats', 'topInteractions', 'range', 'type', 'penggunaUsers', 'selectedUser', 'departmentIds'));
@@ -297,7 +315,7 @@ class ReportController extends Controller
                 ->all();
 
             for ($i = 1; $i <= 12; $i++) {
-                $labels[] = Carbon::create()->month($i)->translatedFormat('M');
+                $labels[] = Carbon::create()->day(1)->month($i)->translatedFormat('M');
                 $counts[] = $results[$i] ?? 0;
             }
         }
