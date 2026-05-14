@@ -68,53 +68,58 @@
             </div>
 
             {{-- Modal Body (Chat Logs) --}}
-            <div x-ref="chatContainer" class="p-6 max-h-[60vh] overflow-y-auto bg-secondary-50/50 space-y-4">
+            <div x-ref="chatContainer" class="p-6 max-h-[65vh] overflow-y-auto bg-[#efeae2] space-y-3" style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
                 <template x-if="loading">
                     <div class="flex justify-center py-12">
-                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#075e54]"></div>
                     </div>
                 </template>
 
                 <template x-if="!loading && logs.length === 0">
-                    <div class="text-center py-12 text-secondary-400 italic">Tidak ada riwayat percakapan.</div>
+                    <div class="text-center py-12 text-secondary-500 italic bg-white/50 rounded-2xl">Tidak ada riwayat percakapan.</div>
                 </template>
 
-                    <template x-for="log in logs" :key="log.id">
-                        <div class="space-y-3">
-                            {{-- Customer Message (Left) --}}
-                            <div class="flex justify-start">
-                                <div class="max-w-[80%] bg-white text-secondary-900 p-3 rounded-2xl rounded-tl-none shadow-sm border border-secondary-200">
-                                    <p class="text-sm" x-text="log.question"></p>
-                                    <p class="text-[10px] text-secondary-400 mt-1.5" x-text="log.formatted_date"></p>
-                                </div>
-                            </div>
-                            
-                            {{-- AI/Admin Response (Right) --}}
-                            <div class="flex justify-end">
-                                <div class="max-w-[80%] bg-emerald-600 text-white p-3 rounded-2xl rounded-tr-none shadow-sm relative">
-                                    <div class="flex items-center gap-1.5 mb-1 opacity-80">
-                                        <span class="text-[9px] font-bold uppercase tracking-wider" 
-                                              x-text="log.model === 'MANUAL_ADMIN' ? 'Admin' : 'AI Agent'"></span>
-                                    </div>
-                                    <p class="text-sm whitespace-pre-wrap" x-text="log.answer"></p>
-                                    <div class="flex items-center justify-between gap-4 mt-2">
-                                        <div class="flex items-center gap-2">
-                                            <p class="text-[10px] text-emerald-100" x-text="log.formatted_date"></p>
-                                            <template x-if="log.sentiment">
-                                                <span class="text-xs" :title="log.sentiment" x-text="log.sentiment === 'positive' ? '😊' : (log.sentiment === 'negative' ? '😠' : '😐')"></span>
-                                            </template>
-                                        </div>
-                                        <template x-if="log.rating">
-                                            <div class="flex items-center gap-0.5 bg-white/20 px-2 py-0.5 rounded-lg">
-                                                <span class="text-[10px] font-bold" x-text="log.rating"></span>
-                                                <svg class="w-2.5 h-2.5 fill-current text-amber-300" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                                            </div>
-                                        </template>
-                                    </div>
+                <template x-for="log in logs" :key="log.id">
+                    <div class="flex flex-col space-y-1">
+                        {{-- Customer Message (Left) --}}
+                        <div class="flex justify-start">
+                            <div class="max-w-[85%] bg-white text-[#111b21] p-2.5 px-4 rounded-2xl rounded-tl-none shadow-sm relative border-b border-secondary-200">
+                                <p class="text-[13.5px] leading-relaxed" x-text="log.question"></p>
+                                <div class="flex justify-end mt-1">
+                                    <span class="text-[10px] text-[#667781]" x-text="log.formatted_date.split(' ').pop()"></span>
                                 </div>
                             </div>
                         </div>
-                    </template>
+                        
+                        {{-- AI/Admin Response (Right) --}}
+                        <div class="flex justify-end">
+                            <div class="max-w-[85%] bg-[#dcf8c6] text-[#111b21] p-2.5 px-4 rounded-2xl rounded-tr-none shadow-sm relative border-b border-emerald-200/50">
+                                <div class="flex items-center gap-1.5 mb-0.5 opacity-70">
+                                    <span class="text-[9px] font-bold uppercase tracking-widest text-[#075e54]" 
+                                          x-text="log.model === 'MANUAL_ADMIN' ? 'Admin' : 'AI Agent'"></span>
+                                </div>
+                                <p class="text-[13.5px] leading-relaxed whitespace-pre-wrap" x-text="log.answer"></p>
+                                <div class="flex items-center justify-end gap-2 mt-1">
+                                    <p class="text-[10px] text-[#667781]" x-text="log.formatted_date.split(' ').pop()"></p>
+                                    
+                                    <template x-if="log.sentiment">
+                                        <span class="text-xs" :title="log.sentiment" x-text="log.sentiment === 'positive' ? '😊' : (log.sentiment === 'negative' ? '😠' : '😐')"></span>
+                                    </template>
+
+                                    <template x-if="log.rating">
+                                        <div class="flex items-center gap-0.5 bg-black/5 px-1.5 py-0.5 rounded-full">
+                                            <span class="text-[9px] font-bold" x-text="log.rating"></span>
+                                            <svg class="w-2 h-2 fill-current text-amber-500" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                        </div>
+                                    </template>
+                                    
+                                    {{-- Double Checkmark --}}
+                                    <svg class="w-3.5 h-3.5 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12l4 4L18 4M9 18l4 4L22 8"/></svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
             </div>
 
             {{-- Modal Footer --}}
