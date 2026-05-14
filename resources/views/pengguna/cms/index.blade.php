@@ -10,11 +10,12 @@
             activeName: "", 
             chats: [], 
             loading: false,
+            sending: false,
             message: "",
             isAiEnabled: true,
             activePlatform: "{{ $whatsappDevices->first() ? "wa-".$whatsappDevices->first()->id : "wa" }}",
             selectedDeviceId: {{ $whatsappDevices->first() ? $whatsappDevices->first()->id : "null" }},
-            conversations: @json($conversations),
+            conversations: {{ Js::from($conversations) }},
             
             async selectConversation(phone, name, aiStatus) {
                 this.activePhone = phone;
@@ -57,7 +58,8 @@
             },
 
             async sendMessage() {
-                if (!this.message.trim() || !this.activePhone) return;
+                if (!this.message.trim() || !this.activePhone || this.sending) return;
+                this.sending = true;
                 try {
                     const prefix = "{{ auth()->user()->isAdmin() ? "/admin" : "/pengguna" }}";
                     const response = await fetch(`${prefix}/cms/send`, {
@@ -76,10 +78,12 @@
                     if (response.ok) {
                         this.message = "";
                         this.isAiEnabled = false;
-                        this.fetchChats();
+                        await this.fetchChats();
                     }
                 } catch (error) {
                     console.error("Error sending message:", error);
+                } finally {
+                    this.sending = false;
                 }
             },
 
@@ -326,8 +330,10 @@
                                       class="flex-1 bg-transparent border-none focus:ring-0 text-sm resize-none py-2 max-h-32 scrollbar-hide"
                                       rows="1"></textarea>
                             <button @click="sendMessage()" 
-                                    class="p-2.5 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-all shadow-lg shadow-primary-500/20 active:scale-95">
-                                <svg class="w-5 h-5 rotate-90" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/></svg>
+                                    :disabled="sending"
+                                    class="p-2.5 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-all shadow-lg shadow-primary-500/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                                <svg x-show="!sending" class="w-5 h-5 rotate-90" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/></svg>
+                                <svg x-show="sending" class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                             </button>
                         </div>
                     </div>
