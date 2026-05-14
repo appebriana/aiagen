@@ -336,7 +336,7 @@ class ReportController extends Controller
             $query->whereYear('created_at', Carbon::now()->year);
         }
 
-        $logs = $query->orderBy('created_at', 'desc')->get();
+        $logs = $query->orderBy('created_at', 'asc')->get();
 
         foreach ($logs as $log) {
             $log->formatted_date = Carbon::parse($log->created_at)->translatedFormat('d M Y H:i');

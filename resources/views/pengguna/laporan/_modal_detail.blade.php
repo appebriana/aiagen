@@ -5,6 +5,18 @@
         name: '', 
         logs: [], 
         loading: false,
+        init() {
+            this.$watch('logs', value => {
+                if (value.length > 0) {
+                    this.$nextTick(() => {
+                        const container = this.$refs.chatContainer;
+                        if (container) {
+                            container.scrollTop = container.scrollHeight;
+                        }
+                    });
+                }
+            });
+        },
         async fetchLogs() {
             this.loading = true;
             this.logs = [];
@@ -56,7 +68,7 @@
             </div>
 
             {{-- Modal Body (Chat Logs) --}}
-            <div class="p-6 max-h-[60vh] overflow-y-auto bg-secondary-50/50 space-y-4">
+            <div x-ref="chatContainer" class="p-6 max-h-[60vh] overflow-y-auto bg-secondary-50/50 space-y-4">
                 <template x-if="loading">
                     <div class="flex justify-center py-12">
                         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
