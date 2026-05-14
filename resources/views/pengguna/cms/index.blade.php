@@ -5,15 +5,15 @@
 
     @if($activeDepartment)
     <div class="flex flex-1 w-full overflow-hidden" 
-         x-data="{ 
+         x-data='{ 
             activePhone: null, 
-            activeName: '', 
+            activeName: "", 
             chats: [], 
             loading: false,
-            message: '',
+            message: "",
             isAiEnabled: true,
-            activePlatform: '{{ $whatsappDevices->first() ? 'wa-'.$whatsappDevices->first()->id : 'wa' }}',
-            selectedDeviceId: {{ $whatsappDevices->first() ? $whatsappDevices->first()->id : 'null' }},
+            activePlatform: "{{ $whatsappDevices->first() ? "wa-".$whatsappDevices->first()->id : "wa" }}",
+            selectedDeviceId: {{ $whatsappDevices->first() ? $whatsappDevices->first()->id : "null" }},
             conversations: @json($conversations),
             
             async selectConversation(phone, name, aiStatus) {
@@ -25,14 +25,14 @@
 
             async fetchConversations() {
                 try {
-                    const prefix = '{{ auth()->user()->isAdmin() ? '/admin' : '/pengguna' }}';
+                    const prefix = "{{ auth()->user()->isAdmin() ? "/admin" : "/pengguna" }}";
                     const response = await fetch(`${prefix}/cms/conversations/{{ $activeDepartment->id }}`);
                     const result = await response.json();
-                    if (result.status === 'success') {
+                    if (result.status === "success") {
                         this.conversations = result.data;
                     }
                 } catch (error) {
-                    console.error('Error fetching conversations:', error);
+                    console.error("Error fetching conversations:", error);
                 }
             },
 
@@ -40,18 +40,17 @@
                 if (!this.activePhone) return;
                 if (!background) this.loading = true;
                 try {
-                    const prefix = '{{ auth()->user()->isAdmin() ? '/admin' : '/pengguna' }}';
+                    const prefix = "{{ auth()->user()->isAdmin() ? "/admin" : "/pengguna" }}";
                     const response = await fetch(`${prefix}/cms/chats/{{ $activeDepartment->id }}/${this.activePhone}`);
                     const result = await response.json();
-                    if (result.status === 'success') {
-                        // Hanya update jika data berbeda untuk menghindari flicker
+                    if (result.status === "success") {
                         if (JSON.stringify(this.chats) !== JSON.stringify(result.data)) {
                             this.chats = result.data;
                             this.scrollToBottom();
                         }
                     }
                 } catch (error) {
-                    console.error('Error fetching chats:', error);
+                    console.error("Error fetching chats:", error);
                 } finally {
                     if (!background) this.loading = false;
                 }
@@ -59,75 +58,71 @@
 
             async sendMessage() {
                 if (!this.message.trim() || !this.activePhone) return;
-                
                 try {
-                    const prefix = '{{ auth()->user()->isAdmin() ? '/admin' : '/pengguna' }}';
+                    const prefix = "{{ auth()->user()->isAdmin() ? "/admin" : "/pengguna" }}";
                     const response = await fetch(`${prefix}/cms/send`, {
-                        method: 'POST',
+                        method: "POST",
                         headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            "Content-Type": "application/json",
+                            "X-CSRF-TOKEN": "{{ csrf_token() }}"
                         },
                         body: JSON.stringify({
-                            department_id: '{{ $activeDepartment->id }}',
+                            department_id: "{{ $activeDepartment->id }}",
                             phone: this.activePhone,
                             message: this.message,
                             device_id: this.selectedDeviceId
                         })
                     });
-
                     if (response.ok) {
-                        this.message = '';
-                        this.isAiEnabled = false; // Takeover otomatis
+                        this.message = "";
+                        this.isAiEnabled = false;
                         this.fetchChats();
                     }
                 } catch (error) {
-                    console.error('Error sending message:', error);
+                    console.error("Error sending message:", error);
                 }
             },
 
             async toggleAi() {
                 try {
-                    const prefix = '{{ auth()->user()->isAdmin() ? '/admin' : '/pengguna' }}';
+                    const prefix = "{{ auth()->user()->isAdmin() ? "/admin" : "/pengguna" }}";
                     const newStatus = this.isAiEnabled ? 0 : 1;
                     const response = await fetch(`${prefix}/laporan/interaksi/wa/toggle-ai`, {
-                        method: 'POST',
+                        method: "POST",
                         headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            "Content-Type": "application/json",
+                            "X-CSRF-TOKEN": "{{ csrf_token() }}"
                         },
                         body: JSON.stringify({
                             phone: this.activePhone,
                             status: newStatus,
-                            user_id: '{{ $activeDepartment->user_id }}'
+                            user_id: "{{ $activeDepartment->user_id }}"
                         })
                     });
-
                     if (response.ok) {
                         this.isAiEnabled = !this.isAiEnabled;
                     }
                 } catch (error) {
-                    console.error('Error toggling AI:', error);
+                    console.error("Error toggling AI:", error);
                 }
             },
 
             scrollToBottom() {
                 setTimeout(() => {
-                    const container = document.getElementById('chat-scroll');
+                    const container = document.getElementById("chat-scroll");
                     if (container) container.scrollTop = container.scrollHeight;
                 }, 100);
             },
 
             cleanMessage(text) {
-                if (!text) return '';
-                // Menghapus semua tag teknis [[...]] dari tampilan chat
-                return text.replace(/\[\[.*?\]\]/g, '').trim();
+                if (!text) return "";
+                return text.replace(/\[\[.*?\]\]/g, "").trim();
             }
-         }"
-         x-init="setInterval(() => { 
+         }'
+         x-init='setInterval(() => { 
                 fetchConversations();
                 if(activePhone && !loading) fetchChats(true); 
-             }, 5000)">
+             }, 5000)'>
         
         {{-- 0. Platform Selector (Far Left) --}}
         <div class="w-20 flex-shrink-0 bg-secondary-100 border-r border-secondary-200 flex flex-col items-center py-6 gap-6 overflow-y-auto scrollbar-hide">
