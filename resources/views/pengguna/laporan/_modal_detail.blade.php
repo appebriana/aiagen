@@ -5,15 +5,18 @@
         name: '', 
         logs: [], 
         loading: false,
+        scrollToBottom() {
+            setTimeout(() => {
+                const container = this.$refs.chatContainer;
+                if (container) {
+                    container.scrollTop = container.scrollHeight;
+                }
+            }, 100);
+        },
         init() {
             this.$watch('logs', value => {
                 if (value.length > 0) {
-                    this.$nextTick(() => {
-                        const container = this.$refs.chatContainer;
-                        if (container) {
-                            container.scrollTop = container.scrollHeight;
-                        }
-                    });
+                    this.scrollToBottom();
                 }
             });
         },
@@ -28,6 +31,7 @@
                 const result = await response.json();
                 if (result.status === 'success') {
                     this.logs = result.data;
+                    this.scrollToBottom();
                 }
             } catch (error) {
                 console.error('Gagal mengambil log:', error);
