@@ -70,6 +70,19 @@
                     <div class="text-center py-12 text-secondary-500 italic bg-white/50 rounded-2xl">Tidak ada riwayat percakapan.</div>
                 </template>
 
+                {{-- AI Session Summary (If Available) --}}
+                <template x-if="!loading && logs.length > 0 && logs[0].context_summary">
+                    <div class="mb-6 px-4 py-3 bg-primary-50 border border-primary-100 rounded-2xl shadow-sm">
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="w-6 h-6 bg-primary-600 rounded-lg flex items-center justify-center">
+                                <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                            </div>
+                            <span class="text-[10px] font-black uppercase tracking-widest text-primary-700">Ringkasan Konteks AI</span>
+                        </div>
+                        <p class="text-[13px] text-secondary-700 leading-relaxed italic" x-text="logs[0].context_summary"></p>
+                    </div>
+                </template>
+
                 <template x-for="log in logs" :key="log.id">
                     <div class="flex flex-col space-y-1 mb-4">
                         {{-- Customer Message (Left) --}}

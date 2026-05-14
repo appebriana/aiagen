@@ -169,6 +169,108 @@
                     </div>
                 </header>
 
+                {{-- ═══ MOBILE FLOATING BOTTOM NAV ═══ --}}
+                <div class="lg:hidden fixed bottom-6 left-6 right-6 z-[100] bg-white/80 backdrop-blur-2xl border border-white/50 rounded-2xl shadow-[0_15px_35px_rgba(0,0,0,0.1)] px-3 py-2">
+                    <div class="flex items-center justify-around">
+                        @php 
+                            $isAdmin = auth()->user()->isAdmin();
+                            $routePrefix = $isAdmin ? 'admin' : 'pengguna';
+                        @endphp
+                        <a href="{{ route($routePrefix . '.dashboard') }}" 
+                           class="flex flex-col items-center gap-0.5 py-1 px-3 rounded-2xl transition-all {{ request()->routeIs('*.dashboard') && !request()->is('*/ai-agen*') ? 'text-primary-600 bg-primary-50' : 'text-secondary-400' }}">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                            <span class="text-[9px] font-bold">Beranda</span>
+                        </a>
+
+                        <a href="{{ route($routePrefix . '.ai-agen.index') }}" 
+                           class="flex flex-col items-center gap-0.5 py-1 px-3 rounded-2xl transition-all {{ (request()->is('*/ai-agen*') || request()->is('*/laporan*')) ? 'text-primary-600 bg-primary-50' : 'text-secondary-400' }}">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                            <span class="text-[9px] font-bold">AI Agen</span>
+                        </a>
+
+                        <button @click="mobileSidebar = !mobileSidebar" 
+                                class="flex flex-col items-center gap-0.5 py-1 px-3 rounded-2xl transition-all"
+                                :class="mobileSidebar ? 'text-primary-600 bg-primary-50' : 'text-secondary-400'">
+                            <div class="relative w-5 h-5">
+                                <svg class="w-5 h-5 absolute inset-0 transition-all duration-500" :class="mobileSidebar ? 'opacity-0 rotate-90 scale-75' : 'opacity-100 rotate-0 scale-100'" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                                <svg class="w-5 h-5 absolute inset-0 transition-all duration-300" :class="mobileSidebar ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-90 scale-75'" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </div>
+                            <span class="text-[9px] font-bold" x-text="mobileSidebar ? 'Tutup' : 'Menu'"></span>
+                        </button>
+
+                        <a href="{{ route($routePrefix . '.pengaturan.index') }}" 
+                           class="flex flex-col items-center gap-0.5 py-1 px-3 rounded-2xl transition-all {{ request()->is('*/pengaturan*') || request()->routeIs('*.profile.*') || request()->routeIs('*.users.*') ? 'text-primary-600 bg-primary-50' : 'text-secondary-400' }}">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            <span class="text-[9px] font-bold">Setting</span>
+                        </a>
+
+                        @if(auth()->user()->isAdmin())
+                            <a href="{{ route('admin.feedback.index') }}" 
+                               class="flex flex-col items-center gap-0.5 py-1 px-3 rounded-2xl transition-all {{ request()->routeIs('admin.feedback.index') ? 'text-primary-600 bg-primary-50' : 'text-secondary-400' }}">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+                                <span class="text-[9px] font-bold">Feedback</span>
+                            </a>
+                        @else
+                            <button @click="feedbackOpen = true" 
+                               class="flex flex-col items-center gap-0.5 py-1 px-3 rounded-2xl transition-all"
+                               :class="feedbackOpen ? 'text-primary-600 bg-primary-50' : 'text-secondary-400'">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+                                <span class="text-[9px] font-bold">Feedback</span>
+                            </button>
+                        @endif
+                    </div>
+                </div>
+
+                {{-- Backdrop overlay --}}
+                <div x-show="mobileSidebar" x-cloak
+                     x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+                     x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+                     @click="mobileSidebar = false"
+                     class="lg:hidden fixed inset-0 z-[90] bg-primary-950/20 backdrop-blur-sm"></div>
+
+                {{-- Aesthetic Left Floating Sidebar (Mobile CMS Departments) --}}
+                <div x-show="mobileSidebar" x-cloak
+                     x-transition:enter="transition transform ease-out duration-500 cubic-bezier(0.34, 1.56, 0.64, 1)"
+                     x-transition:enter-start="-translate-x-full opacity-0"
+                     x-transition:enter-end="translate-x-0 opacity-100"
+                     x-transition:leave="transition transform ease-in duration-300"
+                     x-transition:leave-start="translate-x-0 opacity-100"
+                     x-transition:leave-end="-translate-x-full opacity-0"
+                     class="lg:hidden fixed top-4 bottom-24 left-4 w-[calc(100vw-2rem)] max-w-[288px] z-[95] overflow-hidden flex flex-col">
+                    <div class="bg-white/90 backdrop-blur-2xl rounded-2xl shadow-[10px_10px_40px_rgba(0,0,0,0.12)] border border-white/50 flex flex-col h-full">
+                        
+                        <div class="p-5 overflow-y-auto flex-1 scrollbar-hide" x-data="{ searchDept: '' }">
+                            <p class="px-3 text-[10px] font-bold text-primary-500 uppercase tracking-widest mb-4">Departemen CMS</p>
+                            
+                            {{-- Search Department Mobile --}}
+                            <div class="px-3 mb-4">
+                                <div class="relative">
+                                    <input type="text" x-model="searchDept" placeholder="Cari departemen..." 
+                                           class="w-full pl-8 pr-3 py-1.5 bg-secondary-100 border-none rounded-lg text-xs text-secondary-900 placeholder-secondary-400 focus:ring-1 focus:ring-primary-500 transition-all">
+                                    <svg class="w-3.5 h-3.5 text-secondary-400 absolute left-2.5 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                </div>
+                            </div>
+
+                            <div class="space-y-1">
+                                @forelse($departments as $dept)
+                                    <a href="?dept={{ $dept->id }}&user_id={{ $selectedUserId }}"
+                                       x-show="searchDept === '' || '{{ strtolower($dept->name) }}'.includes(searchDept.toLowerCase())"
+                                       @click="mobileSidebar = false"
+                                       class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
+                                              {{ ($activeDepartment && $activeDepartment->id == $dept->id) ? 'bg-primary-600 text-white shadow-lg shadow-primary-200' : 'text-secondary-600 hover:bg-secondary-50' }}">
+                                        <div class="w-2 h-2 rounded-full {{ $dept->is_active ? 'bg-green-400' : 'bg-secondary-300' }}"></div>
+                                        <span class="truncate">{{ $dept->name }}</span>
+                                    </a>
+                                @empty
+                                    <div class="px-3 py-4 text-center">
+                                        <p class="text-[10px] text-secondary-400">Tidak ada departemen.</p>
+                                    </div>
+                                @endforelse
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 {{-- Page Content --}}
                 <main class="flex-1 flex flex-col overflow-hidden">
                     {{ $slot }}
