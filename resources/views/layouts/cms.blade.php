@@ -19,7 +19,16 @@
     <body class="font-sans antialiased">
         <x-skeleton-loader />
 
-        <div class="h-screen bg-secondary-200 flex overflow-hidden" x-data="{ sidebarOpen: true, mobileSidebar: false, feedbackOpen: false, feedbackSuccessOpen: false, feedbackMessage: '', feedbackLoading: false }">
+        <div class="h-screen bg-secondary-200 flex overflow-hidden" 
+             x-data="{ 
+                sidebarOpen: localStorage.getItem('sidebarOpen') === null ? true : localStorage.getItem('sidebarOpen') === 'true', 
+                mobileSidebar: false, 
+                feedbackOpen: false, 
+                feedbackSuccessOpen: false, 
+                feedbackMessage: '', 
+                feedbackLoading: false 
+             }"
+             x-init="$watch('sidebarOpen', val => localStorage.setItem('sidebarOpen', val))">
 
             {{-- ═══ SIDEBAR (Desktop) ═══ --}}
             <aside
