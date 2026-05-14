@@ -361,9 +361,14 @@
                             this.message = "";
                             this.isAiEnabled = false;
                             await this.fetchChats();
+                        } else {
+                            const errData = await response.json().catch(() => null);
+                            const errMsg = errData && errData.message ? errData.message : response.statusText;
+                            alert("Gagal mengirim pesan. Silakan periksa koneksi atau refresh halaman. (Error: " + response.status + " " + errMsg + ")");
                         }
                     } catch (error) {
                         console.error("Error sending message:", error);
+                        alert("Gagal menghubungi server: " + error.message);
                     } finally {
                         this.sending = false;
                     }
