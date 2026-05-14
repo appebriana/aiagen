@@ -66,7 +66,7 @@ async def handle_webhook(request: Request):
             print(f"[DEBUG] Message from {customer_id} in {reply_to}: {reason}. AI tidak menjawab.")
             
             # Tetap log pesan masuk agar muncul di CMS (Gunakan reply_to/sender agar grup ter-grouping)
-            log_ai_response(department_id, reply_to, msg_body, None, "LOG_ONLY", 0, 0)
+            log_ai_response(department_id, reply_to, msg_body, "", "LOG_ONLY", 0, 0)
             
             return {"status": "logged_only", "reason": reason}
         # ------------------------------------------------
@@ -138,7 +138,7 @@ async def handle_webhook(request: Request):
         if result and result.get("status") == "success":
             return {"status": "success", "ai_reply": answer}
         else:
-            return {"status": "failed_to_send_to_gateway", "error": str(result)}tr(result)}
+            return {"status": "failed_to_send_to_gateway", "error": str(result)}
         
     return {"status": "ignored"}
 
