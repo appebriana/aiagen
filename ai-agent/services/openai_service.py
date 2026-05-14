@@ -328,7 +328,6 @@ def get_ai_response(customer_id: str, department_id: str, user_message: str, sys
             if ai_reply.strip().upper() == "[[TIDAK_TAHU]]":
                 ai_reply = fallback_reply
             else:
-                import re
                 ai_reply = re.sub(r"\[\[TIDAK_TAHU\]\]", "", ai_reply, flags=re.IGNORECASE).strip()
         
         # Bersihkan tag nama jika ada
