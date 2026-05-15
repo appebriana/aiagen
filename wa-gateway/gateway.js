@@ -296,15 +296,27 @@ app.post('/send', async (req, res) => {
             options.quotedMessageId = reply_to_msg_id;
         }
         
-        // Safely extract message ID
+        // 1. Resolve ID yang benar (Mencegah error No LID)
+        let finalTarget = target;
+        try {
+            const numberId = await client.getNumberId(target.split('@')[0]);
+            if (numberId) {
+                finalTarget = numberId._serialized;
+                console.log(`[${DEVICE_NAME}] ID Resolved: ${target} -> ${finalTarget}`);
+            }
+        } catch (e) {
+            console.warn(`[${DEVICE_NAME}] Gagal resolve ID untuk ${target}, mencoba kirim langsung.`);
+        }
+
+        // 2. Kirim Pesan
         let msgId = null;
         try {
-            // Gunakan client.sendMessage secara langsung, lebih stabil dibanding chat.sendMessage
-            const sentMsg = await client.sendMessage(target, message, options);
+            // Gunakan ID yang sudah di-resolve (LID atau c.us yang valid)
+            const sentMsg = await client.sendMessage(finalTarget, message, options);
             msgId = sentMsg?.id?._serialized || null;
             await chat.clearState();
         } catch(e) {
-            console.error(`[${DEVICE_NAME}] Detail error kirim:`, e.message);
+            console.error(`[${DEVICE_NAME}] Detail error kirim ke ${finalTarget}:`, e.message);
             throw e;
         }
         
