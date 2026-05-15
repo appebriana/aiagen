@@ -20,6 +20,7 @@ let initRequested = false;
 // Ambil nama perangkat asli dari DB agar log rapi
 async function fetchDeviceName() {
     try {
+        // Semua API (Settings & Status) dihandle oleh Python AI Agent (Port 8000)
         const settingsRes = await axios.get(`http://127.0.0.1:8000/settings/${DEPARTMENT_ID}`);
         if (settingsRes.data && settingsRes.data.name) {
             DEVICE_NAME = settingsRes.data.name;
@@ -31,10 +32,9 @@ fetchDeviceName();
 const client = new Client({
     authStrategy: new LocalAuth({
         clientId: DEVICE_ID ? `device-${DEVICE_ID}` : `dept-${DEPARTMENT_ID}`,
-        // Gunakan folder terpisah untuk tiap device agar tidak ada file lock yang bentrok
-        dataPath: DEVICE_ID ? `./.sessions/device-${DEVICE_ID}` : `./.sessions/dept-${DEPARTMENT_ID}`
+        dataPath: './.wwebjs_auth'
     }),
-    authTimeoutMs: 60000, // Tambah timeout jadi 60 detik
+    authTimeoutMs: 90000, // Tambah jadi 90 detik untuk sinkronisasi berat
     puppeteer: {
         args: [
             '--no-sandbox',
@@ -43,11 +43,11 @@ const client = new Client({
             '--no-zygote',
             '--disable-gpu',
             '--disable-extensions',
-            '--disable-accelerated-2d-canvas',
-            '--proxy-server=\'direct://\'',
-            '--proxy-bypass-list=*'
+            '--disable-web-security'
         ],
-        headless: true
+        headless: true,
+        // Tambahkan timeout untuk launch browser
+        timeout: 60000
     }
 });
 
