@@ -84,25 +84,31 @@ async def handle_webhook(request: Request):
         # Ambil flag is_triggered dari gateway (default True untuk PC, False untuk Grup tanpa trigger)
         is_triggered = data.get("is_triggered", True)
 
-        # --- FITUR HOLD / HUMAN TAKEOVER (Sync Dua Arah) ---
+        # --- FITUR HOLD / HUMAN TAKEOVER (Sync Dua Arah dengan Tracking Sumber) ---
         is_held_by_label = data.get("is_held_by_label", False)
         is_ai_enabled = customer.get('is_ai_enabled', True) if customer else True
+        was_held_by_label = customer.get('held_by_label', False) if customer else False
 
-        # 1. Jika ada label HOLD di WA tapi di DB masih aktif -> Matikan AI di DB (Sync Mati)
+        # 1. Label HOLD ditambahkan di WA → Matikan AI + tandai sumber = label
         if is_held_by_label and is_ai_enabled:
             print(f"[SYNC] Label HOLD terdeteksi di WA. Mematikan AI untuk {customer_id}")
-            from services.db_service import set_customer_ai_status
+            from services.db_service import set_customer_ai_status, set_held_by_label
             set_customer_ai_status(owner_id, customer_id, False)
-            is_ai_enabled = False # Update variabel lokal agar blok di bawah menangkapnya
+            set_held_by_label(owner_id, customer_id, True)
+            is_ai_enabled = False
 
-        # 2. Jika label HOLD sudah dihapus di WA tapi di DB masih mati -> Hidupkan AI di DB (Sync Hidup)
-        elif not is_held_by_label and not is_ai_enabled and is_triggered:
+        # 2. Label HOLD dihapus di WA + sebelumnya MEMANG dimatikan oleh label → Hidupkan AI
+        elif not is_held_by_label and not is_ai_enabled and was_held_by_label:
             print(f"[SYNC] Label HOLD dihapus di WA. Mengaktifkan kembali AI untuk {customer_id}")
-            from services.db_service import set_customer_ai_status
+            from services.db_service import set_customer_ai_status, set_held_by_label
             set_customer_ai_status(owner_id, customer_id, True)
-            is_ai_enabled = True # Update variabel lokal agar lanjut ke proses AI
+            set_held_by_label(owner_id, customer_id, False)
+            is_ai_enabled = True
 
-        # 3. Cek apakah pesan harus diabaikan (karena sedang di-hold atau tidak di-trigger)
+        # 3. AI dimatikan dari CMS (tanpa label) → JANGAN auto-resume
+        # (tidak perlu aksi, is_ai_enabled sudah False dari DB)
+
+        # 4. Cek apakah pesan harus diabaikan
         if not is_ai_enabled or not is_triggered:
             reason = "Not Triggered"
             if is_held_by_label or not is_ai_enabled: 

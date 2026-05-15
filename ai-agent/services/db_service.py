@@ -198,6 +198,24 @@ def set_customer_ai_status(user_id: int, phone: str, status: bool):
         print(f"Error Database (set_customer_ai_status): {e}")
         return False
 
+def set_held_by_label(user_id: int, phone: str, held: bool):
+    """Tandai apakah customer di-hold oleh label WhatsApp atau oleh CMS."""
+    try:
+        phone = normalize_phone(phone)
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE customers SET held_by_label = %s, updated_at = NOW() WHERE user_id = %s AND (phone = %s OR phone = %s OR phone = %s OR phone = %s)", 
+            (1 if held else 0, user_id, phone, phone + '@s.whatsapp.net', phone + '@c.us', phone + '@lid')
+        )
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return True
+    except Exception as e:
+        print(f"Error Database (set_held_by_label): {e}")
+        return False
+
 def update_customer_nickname(user_id: int, phone: str, nickname: str):
     try:
         phone = normalize_phone(phone)
