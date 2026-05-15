@@ -211,6 +211,7 @@ class CmsController extends Controller
 
         $departmentId = (int)$request->department_id;
         $deviceId = $request->device_id;
+        $waMessageId = null;
         $phone = $this->normalizePhone(trim($request->phone));
         $messageText = trim($request->message);
         
@@ -248,8 +249,6 @@ class CmsController extends Controller
                 \Illuminate\Support\Facades\Log::error("CMS Send Error: " . $e->getMessage());
             }
         }
-        
-        $waMessageId = $waMessageId ?? null;
         
         // 3. Logika "Smart Pairing": Cek apakah ada pesan pelanggan terakhir yang belum dijawab
         $lastUnanswered = DB::table('ai_chat_logs')
