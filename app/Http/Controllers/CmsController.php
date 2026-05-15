@@ -202,126 +202,127 @@ class CmsController extends Controller
 
     public function sendMessage(Request $request)
     {
-        $request->validate([
-            'department_id' => 'required|exists:departments,id',
-            'phone' => 'required',
-            'message' => 'required',
-            'device_id' => 'nullable|exists:whatsapp_devices,id'
-        ]);
+        try {
+            $request->validate([
+                'department_id' => 'required|exists:departments,id',
+                'phone' => 'required',
+                'message' => 'required',
+            ]);
 
-        $departmentId = (int)$request->department_id;
-        $deviceId = $request->device_id;
-        $waMessageId = null;
-        $phone = $this->normalizePhone(trim($request->phone));
-        $messageText = trim($request->message);
-        
-        // Jika device_id tidak dikirim, coba ambil device pertama yang connected di dept ini
-        if (!$deviceId) {
-            $device = DB::table('whatsapp_devices')
-                ->where('department_id', $departmentId)
-                ->where('status', 'connected')
-                ->first();
-            $deviceId = $device ? $device->id : null;
-        }
-
-        // 1. Kirim ke Gateway jika ada device yang aktif
-        if ($deviceId) {
-            $port = 3000 + $departmentId;
-            try {
-                // Konversi format nomor telepon jika perlu (gateway biasanya butuh @c.us)
-                $target = $phone;
-                if (!str_contains($target, '@')) {
-                    $target = str_replace(['+', ' '], '', $target);
-                    $target = $target . '@c.us';
-                }
-
-                \Illuminate\Support\Facades\Log::info("CMS Send: Mengirim ke gateway port {$port}, target: {$target}");
-
-                $gatewayResponse = \Illuminate\Support\Facades\Http::timeout(10)->post("http://127.0.0.1:{$port}/send", [
-                    'target' => $target,
-                    'message' => $messageText,
-                    'reply_to_msg_id' => $request->reply_to_msg_id
-                ]);
-
-                if ($gatewayResponse->successful()) {
-                    $resData = $gatewayResponse->json();
-                    $waMessageId = $resData['message_id'] ?? null;
-                    \Illuminate\Support\Facades\Log::info("CMS Send: Gateway berhasil, message_id: {$waMessageId}");
-                } else {
-                    \Illuminate\Support\Facades\Log::warning("CMS Send: Gateway returned status " . $gatewayResponse->status() . " body: " . $gatewayResponse->body());
-                }
-            } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error("CMS Send Error: " . $e->getMessage());
-                // Tetap lanjut simpan ke DB meskipun gateway gagal
+            $departmentId = (int)$request->department_id;
+            $deviceId = $request->device_id;
+            $waMessageId = null;
+            $phone = $this->normalizePhone(trim($request->phone));
+            $messageText = trim($request->message);
+            
+            // Jika device_id tidak dikirim, coba ambil device pertama yang connected di dept ini
+            if (!$deviceId) {
+                $device = DB::table('whatsapp_devices')
+                    ->where('department_id', $departmentId)
+                    ->where('status', 'connected')
+                    ->first();
+                $deviceId = $device ? $device->id : null;
             }
-        } else {
-            \Illuminate\Support\Facades\Log::warning("CMS Send: Tidak ada device aktif untuk dept {$departmentId}");
-        }
 
-        // 2. SELALU simpan ke database (terlepas dari gateway berhasil atau gagal)
-        \Illuminate\Support\Facades\Log::info("CMS Send: Menyimpan ke DB, phone: {$phone}, message: " . substr($messageText, 0, 50));
-        
-        $lastUnanswered = DB::table('ai_chat_logs')
-            ->where('department_id', $departmentId)
-            ->where(function($q) use ($phone) {
-                $q->where('customer_phone', $phone)
-                  ->orWhere('customer_phone', $phone . '@s.whatsapp.net')
-                  ->orWhere('customer_phone', $phone . '@c.us')
-                  ->orWhere('customer_phone', $phone . '@lid');
-            })
-            ->where(function($query) {
-                $query->whereNull('answer')->orWhere('answer', '');
-            })
-            ->orderBy('id', 'desc')
-            ->first();
+            // 1. Kirim ke Gateway jika ada device yang aktif
+            if ($deviceId) {
+                $port = 3000 + $departmentId;
+                try {
+                    $target = $phone;
+                    if (!str_contains($target, '@')) {
+                        $target = str_replace(['+', ' '], '', $target);
+                        $target = $target . '@c.us';
+                    }
 
-        if ($lastUnanswered) {
-            \Illuminate\Support\Facades\Log::info("CMS Send: Update existing row #{$lastUnanswered->id}");
-            DB::table('ai_chat_logs')
-                ->where('id', $lastUnanswered->id)
-                ->update([
+                    \Illuminate\Support\Facades\Log::info("CMS Send: Mengirim ke gateway port {$port}, target: {$target}");
+
+                    $gatewayResponse = \Illuminate\Support\Facades\Http::timeout(3)->post("http://127.0.0.1:{$port}/send", [
+                        'target' => $target,
+                        'message' => $messageText,
+                        'reply_to_msg_id' => $request->reply_to_msg_id
+                    ]);
+
+                    if ($gatewayResponse->successful()) {
+                        $resData = $gatewayResponse->json();
+                        $waMessageId = $resData['message_id'] ?? null;
+                        \Illuminate\Support\Facades\Log::info("CMS Send: Gateway berhasil, message_id: {$waMessageId}");
+                    } else {
+                        \Illuminate\Support\Facades\Log::warning("CMS Send: Gateway error status " . $gatewayResponse->status());
+                    }
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error("CMS Send Gateway Error: " . $e->getMessage());
+                }
+            } else {
+                \Illuminate\Support\Facades\Log::warning("CMS Send: Tidak ada device aktif untuk dept {$departmentId}");
+            }
+
+            // 2. SELALU simpan ke database
+            \Illuminate\Support\Facades\Log::info("CMS Send: Menyimpan ke DB, phone: {$phone}");
+            
+            $lastUnanswered = DB::table('ai_chat_logs')
+                ->where('department_id', $departmentId)
+                ->where(function($q) use ($phone) {
+                    $q->where('customer_phone', $phone)
+                      ->orWhere('customer_phone', $phone . '@s.whatsapp.net')
+                      ->orWhere('customer_phone', $phone . '@c.us')
+                      ->orWhere('customer_phone', $phone . '@lid');
+                })
+                ->where(function($query) {
+                    $query->whereNull('answer')->orWhere('answer', '');
+                })
+                ->orderBy('id', 'desc')
+                ->first();
+
+            if ($lastUnanswered) {
+                DB::table('ai_chat_logs')
+                    ->where('id', $lastUnanswered->id)
+                    ->update([
+                        'answer' => $messageText,
+                        'wa_message_id' => $waMessageId,
+                        'model' => 'MANUAL_ADMIN',
+                        'updated_at' => DB::raw('NOW()'),
+                    ]);
+            } else {
+                DB::table('ai_chat_logs')->insert([
+                    'department_id' => $departmentId,
+                    'customer_phone' => $phone,
+                    'question' => '[ADMIN MANUAL REPLY]',
                     'answer' => $messageText,
                     'wa_message_id' => $waMessageId,
                     'model' => 'MANUAL_ADMIN',
+                    'prompt_tokens' => 0,
+                    'completion_tokens' => 0,
+                    'total_tokens' => 0,
+                    'cost' => 0,
+                    'created_at' => DB::raw('NOW()'),
                     'updated_at' => DB::raw('NOW()'),
                 ]);
-        } else {
-            \Illuminate\Support\Facades\Log::info("CMS Send: Insert new row untuk {$phone}");
-            DB::table('ai_chat_logs')->insert([
-                'department_id' => $departmentId,
-                'customer_phone' => $phone,
-                'question' => '[ADMIN MANUAL REPLY]',
-                'answer' => $messageText,
-                'wa_message_id' => $waMessageId,
-                'model' => 'MANUAL_ADMIN',
-                'prompt_tokens' => 0,
-                'completion_tokens' => 0,
-                'total_tokens' => 0,
-                'cost' => 0,
-                'created_at' => DB::raw('NOW()'),
-                'updated_at' => DB::raw('NOW()'),
-            ]);
-        }
+            }
 
-        // 4. Otomatis matikan AI untuk customer ini (Takeover)
-        $dept = Department::find($departmentId);
-        if ($dept) {
-            DB::table('customers')
-                ->where('user_id', $dept->user_id)
-                ->where(function($q) use ($phone) {
-                    $q->where('phone', $phone)
-                      ->orWhere('phone', $phone . '@s.whatsapp.net')
-                      ->orWhere('phone', $phone . '@c.us')
-                      ->orWhere('phone', $phone . '@lid');
-                })
-                ->update([
-                    'is_ai_enabled' => 0,
-                    'updated_at' => DB::raw('NOW()')
-                ]);
-        }
+            // 3. Otomatis matikan AI untuk customer ini (Takeover)
+            $dept = Department::find($departmentId);
+            if ($dept) {
+                DB::table('customers')
+                    ->where('user_id', $dept->user_id)
+                    ->where(function($q) use ($phone) {
+                        $q->where('phone', $phone)
+                          ->orWhere('phone', $phone . '@s.whatsapp.net')
+                          ->orWhere('phone', $phone . '@c.us')
+                          ->orWhere('phone', $phone . '@lid');
+                    })
+                    ->update([
+                        'is_ai_enabled' => 0,
+                        'updated_at' => DB::raw('NOW()')
+                    ]);
+            }
 
-        \Illuminate\Support\Facades\Log::info("CMS Send: Selesai, return success");
-        return response()->json(['status' => 'success']);
+            return response()->json(['status' => 'success']);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['status' => 'error', 'message' => $e->errors()], 422);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("CMS Send FATAL: " . $e->getMessage() . " | " . $e->getTraceAsString());
+            return response()->json(['status' => 'error', 'message' => 'Server error: ' . $e->getMessage()], 500);
+        }
     }
 
     public function deleteMessage(Request $request)
