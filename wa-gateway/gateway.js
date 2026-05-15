@@ -300,24 +300,33 @@ app.post('/send', async (req, res) => {
         // 1. Resolve ID yang benar (Mencegah error No LID)
         let finalTarget = target;
         try {
-            const numberId = await client.getNumberId(target.split('@')[0]);
+            // Bersihkan nomor dari segala suffix untuk pengecekan murni
+            const cleanNumber = target.split('@')[0].replace(/[^0-9]/g, '');
+            const numberId = await client.getNumberId(cleanNumber);
+            
             if (numberId) {
                 finalTarget = numberId._serialized;
                 console.log(`[${DEVICE_NAME}] ID Resolved: ${target} -> ${finalTarget}`);
+            } else {
+                // Jika tidak ditemukan, pastikan minimal menggunakan format standar @c.us
+                if (!finalTarget.includes('@')) {
+                    finalTarget = `${cleanNumber}@c.us`;
+                }
             }
         } catch (e) {
-            console.warn(`[${DEVICE_NAME}] Gagal resolve ID untuk ${target}, mencoba kirim langsung.`);
+            console.warn(`[${DEVICE_NAME}] Gagal resolve ID untuk ${target}:`, e.message);
         }
 
         // 2. Kirim Pesan
         let msgId = null;
         try {
-            // Gunakan ID yang sudah di-resolve (LID atau c.us yang valid)
+            console.log(`[${DEVICE_NAME}] Mencoba kirim ke: ${finalTarget}`);
             const sentMsg = await client.sendMessage(finalTarget, message, options);
             msgId = sentMsg?.id?._serialized || null;
             await chat.clearState();
+            console.log(`[${DEVICE_NAME}] Pesan terkirim! ID: ${msgId}`);
         } catch(e) {
-            console.error(`[${DEVICE_NAME}] Detail error kirim ke ${finalTarget}:`, e.message);
+            console.error(`[${DEVICE_NAME}] GAGAL KIRIM ke ${finalTarget}:`, e.message);
             throw e;
         }
         
