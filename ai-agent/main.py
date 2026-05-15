@@ -84,27 +84,34 @@ async def handle_webhook(request: Request):
         # Ambil flag is_triggered dari gateway (default True untuk PC, False untuk Grup tanpa trigger)
         is_triggered = data.get("is_triggered", True)
 
-        # --- FITUR HOLD / HUMAN TAKEOVER ---
+        # --- FITUR HOLD / HUMAN TAKEOVER (Sync Dua Arah) ---
         is_held_by_label = data.get("is_held_by_label", False)
-        # Gunakan field is_ai_enabled (default True jika tidak ada)
         is_ai_enabled = customer.get('is_ai_enabled', True) if customer else True
 
-        if is_held_by_label or not is_ai_enabled or not is_triggered:
+        # 1. Jika ada label HOLD di WA tapi di DB masih aktif -> Matikan AI di DB (Sync Mati)
+        if is_held_by_label and is_ai_enabled:
+            print(f"[SYNC] Label HOLD terdeteksi di WA. Mematikan AI untuk {customer_id}")
+            from services.db_service import set_customer_ai_status
+            set_customer_ai_status(owner_id, customer_id, False)
+            is_ai_enabled = False # Update variabel lokal agar blok di bawah menangkapnya
+
+        # 2. Jika label HOLD sudah dihapus di WA tapi di DB masih mati -> Hidupkan AI di DB (Sync Hidup)
+        elif not is_held_by_label and not is_ai_enabled and is_triggered:
+            print(f"[SYNC] Label HOLD dihapus di WA. Mengaktifkan kembali AI untuk {customer_id}")
+            from services.db_service import set_customer_ai_status
+            set_customer_ai_status(owner_id, customer_id, True)
+            is_ai_enabled = True # Update variabel lokal agar lanjut ke proses AI
+
+        # 3. Cek apakah pesan harus diabaikan (karena sedang di-hold atau tidak di-trigger)
+        if not is_ai_enabled or not is_triggered:
             reason = "Not Triggered"
-            if is_held_by_label: 
-                reason = "Label WA (HOLD)"
-                # Sinkronisasi otomatis ke database agar CMS ikut berubah jadi Human Takeover
-                from services.db_service import set_customer_ai_status
-                set_customer_ai_status(owner_id, customer_id, False)
-            elif not is_ai_enabled: 
-                reason = "Dashboard (Takeover)"
+            if is_held_by_label or not is_ai_enabled: 
+                reason = "Human Takeover (HOLD)"
             
             print(f"[DEBUG] Message from {customer_id} in {reply_to}: {reason}. AI tidak menjawab.")
-            
-            # Update log awal tadi menjadi status LOG_ONLY
             update_ai_response(log_id, "", reason, 0, 0)
-            
             return {"status": "logged_only", "reason": reason}
+        # ----------------------------------------------------
         # ------------------------------------------------
         from services.whatsapp_service import send_whatsapp_message, send_typing_indicator, stop_typing_indicator
 
