@@ -242,7 +242,7 @@ def log_ai_response(department_id, customer_phone, question, answer, model, prom
         print(f"Error Database (log_ai_response): {e}")
         return False
 
-def update_ai_response(log_id, answer, model, prompt_tokens, completion_tokens, sentiment=None):
+def update_ai_response(log_id, answer, model, prompt_tokens, completion_tokens, sentiment=None, wa_message_id=None):
     """Update log chat yang sudah ada dengan jawaban AI."""
     try:
         cost = (prompt_tokens * 0.00000015) + (completion_tokens * 0.00000060)
@@ -253,12 +253,12 @@ def update_ai_response(log_id, answer, model, prompt_tokens, completion_tokens, 
         query = """
             UPDATE ai_chat_logs 
             SET answer = %s, model = %s, prompt_tokens = %s, completion_tokens = %s, 
-                total_tokens = %s, cost = %s, sentiment = %s, updated_at = NOW() 
+                total_tokens = %s, cost = %s, sentiment = %s, wa_message_id = %s, updated_at = NOW() 
             WHERE id = %s
         """
         cursor.execute(query, (
             answer, model, prompt_tokens, completion_tokens, 
-            total_tokens, cost, sentiment, log_id
+            total_tokens, cost, sentiment, wa_message_id, log_id
         ))
         conn.commit()
         cursor.close()

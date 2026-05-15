@@ -197,8 +197,11 @@ async def handle_webhook(request: Request):
         # Kirim Balasan ke WhatsApp
         result = await send_whatsapp_message(reply_to, answer, department_id, gateway_port, message_id)
 
-        # Update Log yang sudah ada (Termasuk Token & Sentiment)
-        update_ai_response(log_id, answer, os.getenv("OPENAI_MODEL", "gpt-4o-mini"), p_tokens, c_tokens, sentiment)
+        # Ambil message_id dari gateway (jika ada)
+        wa_message_id = result.get("message_id") if result and result.get("status") == "success" else None
+        
+        # Update Log yang sudah ada (Termasuk Token, Sentiment, dan wa_message_id)
+        update_ai_response(log_id, answer, os.getenv("OPENAI_MODEL", "gpt-4o-mini"), p_tokens, c_tokens, sentiment, wa_message_id)
         
         if result and result.get("status") == "success":
             return {"status": "success", "ai_reply": answer}
