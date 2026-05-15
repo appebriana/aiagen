@@ -302,20 +302,33 @@ app.post('/send', async (req, res) => {
         let sentMsg = null;
         let lastError = null;
         
-        // Strategi 1: Resolve ID via getNumberId (paling akurat)
-        try {
-            const numberId = await client.getNumberId(cleanNumber);
-            if (numberId) {
-                const resolvedId = numberId._serialized;
-                console.log(`[${DEVICE_NAME}] Strategi 1 - ID Resolved: ${cleanNumber} -> ${resolvedId}`);
-                sentMsg = await client.sendMessage(resolvedId, message, options);
+        // Strategi 0: Jika target sudah punya suffix (@c.us, @lid, dll), coba langsung
+        if (target.includes('@') && target !== `${cleanNumber}@c.us`) {
+            try {
+                console.log(`[${DEVICE_NAME}] Strategi 0 - Kirim dengan format asli: ${target}`);
+                sentMsg = await client.sendMessage(target, message, options);
+            } catch (e) {
+                lastError = e;
+                console.warn(`[${DEVICE_NAME}] Strategi 0 gagal:`, e.message);
             }
-        } catch (e) {
-            lastError = e;
-            console.warn(`[${DEVICE_NAME}] Strategi 1 gagal:`, e.message);
+        }
+
+        // Strategi 1: Resolve ID via getNumberId
+        if (!sentMsg) {
+            try {
+                const numberId = await client.getNumberId(cleanNumber);
+                if (numberId) {
+                    const resolvedId = numberId._serialized;
+                    console.log(`[${DEVICE_NAME}] Strategi 1 - ID Resolved: ${cleanNumber} -> ${resolvedId}`);
+                    sentMsg = await client.sendMessage(resolvedId, message, options);
+                }
+            } catch (e) {
+                lastError = e;
+                console.warn(`[${DEVICE_NAME}] Strategi 1 gagal:`, e.message);
+            }
         }
         
-        // Strategi 2: Kirim langsung ke nomor@c.us
+        // Strategi 2: nomor@c.us
         if (!sentMsg) {
             try {
                 const cUsId = `${cleanNumber}@c.us`;
@@ -327,7 +340,7 @@ app.post('/send', async (req, res) => {
             }
         }
         
-        // Strategi 3: Kirim ke nomor@s.whatsapp.net (format alternatif)
+        // Strategi 3: nomor@s.whatsapp.net
         if (!sentMsg) {
             try {
                 const sNetId = `${cleanNumber}@s.whatsapp.net`;
@@ -335,7 +348,19 @@ app.post('/send', async (req, res) => {
                 sentMsg = await client.sendMessage(sNetId, message, options);
             } catch (e) {
                 lastError = e;
-                console.error(`[${DEVICE_NAME}] Semua strategi gagal untuk ${cleanNumber}:`, e.message);
+                console.warn(`[${DEVICE_NAME}] Strategi 3 gagal:`, e.message);
+            }
+        }
+
+        // Strategi 4: nomor@lid (format LID terbaru WhatsApp)
+        if (!sentMsg) {
+            try {
+                const lidId = `${cleanNumber}@lid`;
+                console.log(`[${DEVICE_NAME}] Strategi 4 - Kirim ke: ${lidId}`);
+                sentMsg = await client.sendMessage(lidId, message, options);
+            } catch (e) {
+                lastError = e;
+                console.error(`[${DEVICE_NAME}] SEMUA strategi gagal untuk ${cleanNumber}:`, e.message);
             }
         }
         

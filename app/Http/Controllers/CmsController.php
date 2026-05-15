@@ -228,7 +228,20 @@ class CmsController extends Controller
             if ($deviceId) {
                 $port = 3000 + $departmentId;
                 try {
-                    $target = $phone;
+                    // Cari format nomor asli dari database (bisa @c.us, @lid, atau @s.whatsapp.net)
+                    $originalPhone = DB::table('ai_chat_logs')
+                        ->where('department_id', $departmentId)
+                        ->where(function($q) use ($phone) {
+                            $q->where('customer_phone', $phone)
+                              ->orWhere('customer_phone', $phone . '@s.whatsapp.net')
+                              ->orWhere('customer_phone', $phone . '@c.us')
+                              ->orWhere('customer_phone', $phone . '@lid');
+                        })
+                        ->orderBy('id', 'desc')
+                        ->value('customer_phone');
+                    
+                    // Gunakan format asli jika ditemukan, fallback ke @c.us
+                    $target = $originalPhone ?: $phone;
                     if (!str_contains($target, '@')) {
                         $target = str_replace(['+', ' '], '', $target);
                         $target = $target . '@c.us';
