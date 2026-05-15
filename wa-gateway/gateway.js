@@ -245,6 +245,35 @@ app.post('/stop-typing', async (req, res) => {
     }
 });
 
+app.post('/set-label', async (req, res) => {
+    const { target, labelName, action } = req.body; // action: 'add' or 'remove'
+    try {
+        const chat = await client.getChatById(target);
+        const labels = await client.getLabels();
+        const targetLabel = labels.find(l => l.name.toUpperCase().includes(labelName.toUpperCase()));
+        
+        if (!targetLabel) {
+            return res.status(404).json({ status: 'error', message: `Label '${labelName}' not found in WhatsApp.` });
+        }
+
+        if (action === 'add') {
+            // Cek jika sudah punya label tersebut agar tidak double (walau library biasanya handle)
+            const chatLabels = await chat.getLabels();
+            if (!chatLabels.find(l => l.id === targetLabel.id)) {
+                await client.addLabelToChat(targetLabel.id, chat.id._serialized);
+            }
+        } else {
+            // Remove label
+            await client.removeLabelFromChat(targetLabel.id, chat.id._serialized);
+        }
+
+        res.json({ status: 'success' });
+    } catch (error) {
+        console.error("Label Error:", error.message);
+        res.status(500).json({ status: 'error', message: error.message });
+    }
+});
+
 app.post('/send', async (req, res) => {
     const { target, message, reply_to_msg_id } = req.body;
     try {

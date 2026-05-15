@@ -264,17 +264,49 @@ class ReportController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
         }
 
+        $phone = $request->phone;
+        $status = $request->status;
+
         $affected = DB::table('customers')
             ->where('user_id', $request->user_id)
-            ->where('phone', $request->phone)
+            ->where('phone', $phone)
             ->update([
-                'is_ai_enabled' => $request->status,
+                'is_ai_enabled' => $status,
                 'updated_at' => now()
             ]);
 
+        // --- SINKRONISASI KE LABEL WHATSAPP ---
+        try {
+            // Cari departemen pertama yang dimiliki user ini yang punya device connected
+            $device = DB::table('whatsapp_devices')
+                ->join('departments', 'whatsapp_devices.department_id', '=', 'departments.id')
+                ->where('departments.user_id', $request->user_id)
+                ->where('whatsapp_devices.status', 'connected')
+                ->select('whatsapp_devices.*')
+                ->first();
+
+            if ($device) {
+                $port = 3000 + $device->department_id;
+                $target = $phone;
+                if (!str_contains($target, '@')) {
+                    $target = str_replace(['+', ' '], '', $target);
+                    $target = $target . '@c.us';
+                }
+
+                \Illuminate\Support\Facades\Http::timeout(5)->post("http://127.0.0.1:{$port}/set-label", [
+                    'target' => $target,
+                    'labelName' => 'HOLD',
+                    'action' => $status ? 'remove' : 'add'
+                ]);
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Label Sync Error: " . $e->getMessage());
+        }
+        // --------------------------------------
+
         return response()->json([
             'status' => 'success',
-            'message' => $request->status ? 'AI diaktifkan kembali.' : 'AI dinonaktifkan (Human Takeover).',
+            'message' => $status ? 'AI diaktifkan kembali.' : 'AI dinonaktifkan (Human Takeover).',
             'affected' => $affected
         ]);
     }

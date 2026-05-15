@@ -91,8 +91,13 @@ async def handle_webhook(request: Request):
 
         if is_held_by_label or not is_ai_enabled or not is_triggered:
             reason = "Not Triggered"
-            if is_held_by_label: reason = "Label WA"
-            elif not is_ai_enabled: reason = "Dashboard (Takeover)"
+            if is_held_by_label: 
+                reason = "Label WA (HOLD)"
+                # Sinkronisasi otomatis ke database agar CMS ikut berubah jadi Human Takeover
+                from services.db_service import set_customer_ai_status
+                set_customer_ai_status(owner_id, customer_id, False)
+            elif not is_ai_enabled: 
+                reason = "Dashboard (Takeover)"
             
             print(f"[DEBUG] Message from {customer_id} in {reply_to}: {reason}. AI tidak menjawab.")
             
