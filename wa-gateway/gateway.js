@@ -46,6 +46,7 @@ const client = new Client({
             '--disable-web-security'
         ],
         headless: true,
+        protocolTimeout: 0,
         // Tambahkan timeout untuk launch browser
         timeout: 60000
     }
