@@ -225,8 +225,8 @@
                                                         class="p-1 text-secondary-400 hover:text-white transition-colors">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 10h-10a8 8 0 00-8 8v2M21 10l-6 6m6-6l-6-6"/></svg>
                                                 </button>
-                                                {{-- Delete Button --}}
-                                                <template x-if="chat.answer !== '[PESAN DITARIK]'">
+                                                {{-- Delete Button (Hanya muncul jika ada ID pesan dan bukan pesan ditarik) --}}
+                                                <template x-if="chat.wa_message_id && chat.answer !== '[PESAN DITARIK]'">
                                                     <button @click="if(confirm('Tarik pesan ini dari WhatsApp?')) deleteMessage(chat.id)" 
                                                             class="p-1 text-secondary-400 hover:text-rose-400 transition-colors">
                                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
