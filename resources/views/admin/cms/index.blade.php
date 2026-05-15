@@ -345,6 +345,10 @@
                                 this.chats = result.data;
                                 this.scrollToBottom();
                             }
+                            // Sync status AI dari backend (termasuk hasil label sync)
+                            if (result.is_ai_enabled !== undefined) {
+                                this.isAiEnabled = result.is_ai_enabled;
+                            }
                         }
                     } catch (error) {
                         console.error("Error fetching chats:", error);

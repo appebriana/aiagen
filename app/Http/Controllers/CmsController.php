@@ -199,18 +199,17 @@ class CmsController extends Controller
                     
                     if ($labelResponse->successful()) {
                         $isHeldByWA = $labelResponse->json('is_held') ?? false;
-                        $heldByLabel = (bool)($customer->held_by_label ?? false);
                         $isAiEnabled = (bool)$customer->is_ai_enabled;
 
-                        // Label HOLD baru ditambahkan di WA → matikan AI
+                        // Label HOLD ada di WA tapi AI masih aktif → matikan AI
                         if ($isHeldByWA && $isAiEnabled) {
                             DB::table('customers')->where('id', $customer->id)
-                                ->update(['is_ai_enabled' => 0, 'held_by_label' => 1, 'updated_at' => DB::raw('NOW()')]);
+                                ->update(['is_ai_enabled' => 0, 'updated_at' => DB::raw('NOW()')]);
                         }
-                        // Label HOLD dihapus di WA + sebelumnya di-hold oleh label → hidupkan AI
-                        elseif (!$isHeldByWA && !$isAiEnabled && $heldByLabel) {
+                        // Label HOLD TIDAK ada di WA tapi AI mati → hidupkan AI
+                        elseif (!$isHeldByWA && !$isAiEnabled) {
                             DB::table('customers')->where('id', $customer->id)
-                                ->update(['is_ai_enabled' => 1, 'held_by_label' => 0, 'updated_at' => DB::raw('NOW()')]);
+                                ->update(['is_ai_enabled' => 1, 'updated_at' => DB::raw('NOW()')]);
                         }
                     }
                 }
@@ -236,9 +235,28 @@ class CmsController extends Controller
             $log->formatted_time = \Carbon\Carbon::parse($log->created_at)->format('H:i');
         }
 
+        // Ambil status AI terbaru setelah sync
+        $dept = $dept ?? Department::find($departmentId);
+        $latestAiStatus = true;
+        if ($dept) {
+            $cust = DB::table('customers')
+                ->where('user_id', $dept->user_id)
+                ->where(function($q) use ($phone) {
+                    $q->where('phone', $phone)
+                      ->orWhere('phone', $phone . '@s.whatsapp.net')
+                      ->orWhere('phone', $phone . '@c.us')
+                      ->orWhere('phone', $phone . '@lid');
+                })
+                ->first();
+            if ($cust) {
+                $latestAiStatus = (bool)$cust->is_ai_enabled;
+            }
+        }
+
         return response()->json([
             'status' => 'success',
-            'data' => $logs
+            'data' => $logs,
+            'is_ai_enabled' => $latestAiStatus
         ]);
     }
 
