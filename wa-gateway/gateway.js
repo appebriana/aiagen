@@ -296,14 +296,17 @@ app.post('/send', async (req, res) => {
             options.quotedMessageId = reply_to_msg_id;
         }
         
-        const sentMsg = await chat.sendMessage(message, options);
-        await chat.clearState();
-        
         // Safely extract message ID
         let msgId = null;
         try {
+            // Gunakan client.sendMessage secara langsung, lebih stabil dibanding chat.sendMessage
+            const sentMsg = await client.sendMessage(target, message, options);
             msgId = sentMsg?.id?._serialized || null;
-        } catch(e) {}
+            await chat.clearState();
+        } catch(e) {
+            console.error(`[${DEVICE_NAME}] Detail error kirim:`, e.message);
+            throw e;
+        }
         
         res.json({ 
             status: 'success', 
