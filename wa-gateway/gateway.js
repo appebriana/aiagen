@@ -298,11 +298,19 @@ app.post('/send', async (req, res) => {
         
         const sentMsg = await chat.sendMessage(message, options);
         await chat.clearState();
+        
+        // Safely extract message ID
+        let msgId = null;
+        try {
+            msgId = sentMsg?.id?._serialized || null;
+        } catch(e) {}
+        
         res.json({ 
             status: 'success', 
-            message_id: sentMsg.id._serialized 
+            message_id: msgId 
         });
     } catch (error) {
+        console.error(`[${DEVICE_NAME}] Gagal kirim pesan:`, error.message);
         res.status(500).json({ status: 'error', message: error.message });
     }
 });

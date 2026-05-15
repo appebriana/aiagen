@@ -235,6 +235,8 @@ class CmsController extends Controller
                     $target = $target . '@c.us';
                 }
 
+                \Illuminate\Support\Facades\Log::info("CMS Send: Mengirim ke gateway port {$port}, target: {$target}");
+
                 $gatewayResponse = \Illuminate\Support\Facades\Http::timeout(10)->post("http://127.0.0.1:{$port}/send", [
                     'target' => $target,
                     'message' => $messageText,
@@ -244,13 +246,21 @@ class CmsController extends Controller
                 if ($gatewayResponse->successful()) {
                     $resData = $gatewayResponse->json();
                     $waMessageId = $resData['message_id'] ?? null;
+                    \Illuminate\Support\Facades\Log::info("CMS Send: Gateway berhasil, message_id: {$waMessageId}");
+                } else {
+                    \Illuminate\Support\Facades\Log::warning("CMS Send: Gateway returned status " . $gatewayResponse->status() . " body: " . $gatewayResponse->body());
                 }
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::error("CMS Send Error: " . $e->getMessage());
+                // Tetap lanjut simpan ke DB meskipun gateway gagal
             }
+        } else {
+            \Illuminate\Support\Facades\Log::warning("CMS Send: Tidak ada device aktif untuk dept {$departmentId}");
         }
+
+        // 2. SELALU simpan ke database (terlepas dari gateway berhasil atau gagal)
+        \Illuminate\Support\Facades\Log::info("CMS Send: Menyimpan ke DB, phone: {$phone}, message: " . substr($messageText, 0, 50));
         
-        // 3. Logika "Smart Pairing": Cek apakah ada pesan pelanggan terakhir yang belum dijawab
         $lastUnanswered = DB::table('ai_chat_logs')
             ->where('department_id', $departmentId)
             ->where(function($q) use ($phone) {
@@ -266,7 +276,7 @@ class CmsController extends Controller
             ->first();
 
         if ($lastUnanswered) {
-            // Update pesan yang menggantung agar sejajar di tampilan
+            \Illuminate\Support\Facades\Log::info("CMS Send: Update existing row #{$lastUnanswered->id}");
             DB::table('ai_chat_logs')
                 ->where('id', $lastUnanswered->id)
                 ->update([
@@ -276,7 +286,7 @@ class CmsController extends Controller
                     'updated_at' => DB::raw('NOW()'),
                 ]);
         } else {
-            // Jika tidak ada pesan yang menggantung, buat baris baru
+            \Illuminate\Support\Facades\Log::info("CMS Send: Insert new row untuk {$phone}");
             DB::table('ai_chat_logs')->insert([
                 'department_id' => $departmentId,
                 'customer_phone' => $phone,
@@ -310,6 +320,7 @@ class CmsController extends Controller
                 ]);
         }
 
+        \Illuminate\Support\Facades\Log::info("CMS Send: Selesai, return success");
         return response()->json(['status' => 'success']);
     }
 
