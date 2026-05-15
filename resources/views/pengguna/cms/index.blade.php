@@ -191,17 +191,22 @@
                             <div class="space-y-3">
                                 {{-- User Message --}}
                                 <template x-if="chat.question && chat.question !== '[ADMIN MANUAL REPLY]'">
-                                    <div class="flex justify-start">
-                                        <div class="max-w-[75%] bg-white p-3 rounded-2xl rounded-tl-none shadow-sm border border-secondary-200">
+                                    <div class="flex justify-start group">
+                                        <div class="max-w-[75%] bg-white p-3 rounded-2xl rounded-tl-none shadow-sm border border-secondary-200 relative">
                                             <p class="text-sm text-secondary-800" x-text="cleanMessage(chat.question)"></p>
                                             <p class="text-[9px] text-secondary-400 mt-1 text-right" x-text="chat.formatted_time"></p>
+                                            
+                                            <button @click="replyingTo = { id: chat.wa_message_id || chat.id, body: chat.question }" 
+                                                    class="absolute -right-8 top-1/2 -translate-y-1/2 p-1 text-secondary-400 hover:text-primary-600 opacity-0 group-hover:opacity-100 transition-opacity hidden md:block">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+                                            </button>
                                         </div>
                                     </div>
                                 </template>
                                 {{-- AI / Admin Answer --}}
                                 <template x-if="chat.answer && chat.answer.trim() !== ''">
-                                    <div class="flex justify-end">
-                                        <div class="max-w-[75%] p-3 rounded-2xl rounded-tr-none shadow-md"
+                                    <div class="flex justify-end group">
+                                        <div class="max-w-[75%] p-3 rounded-2xl rounded-tr-none shadow-md relative"
                                              :class="chat.question === '[ADMIN MANUAL REPLY]' ? 'bg-indigo-600 text-white' : 'bg-primary-700 text-white'">
                                             <div class="flex items-center gap-1.5 mb-1 opacity-70">
                                                 <template x-if="chat.question === '[ADMIN MANUAL REPLY]'">
@@ -213,6 +218,10 @@
                                             </div>
                                             <p class="text-sm" x-text="cleanMessage(chat.answer)"></p>
                                             <p class="text-[9px] mt-1 text-right opacity-60" x-text="chat.formatted_time"></p>
+                                            <button @click="replyingTo = { id: chat.id, body: chat.answer }" 
+                                                    class="absolute -left-8 top-1/2 -translate-y-1/2 p-1 text-secondary-400 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity hidden md:block">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 10h-10a8 8 0 00-8 8v2M21 10l-6 6m6-6l-6-6"/></svg>
+                                            </button>
                                         </div>
                                     </div>
                                 </template>
@@ -222,6 +231,18 @@
 
                     {{-- Input Box --}}
                     <div class="p-4 bg-white border-t border-secondary-200 pb-28 lg:pb-4">
+                        {{-- Reply Preview --}}
+                        <template x-if="replyingTo">
+                            <div class="mb-2 p-2 bg-secondary-100 rounded-lg flex items-center justify-between border-l-4 border-primary-600">
+                                <div class="flex-1 truncate mr-4 text-xs">
+                                    <span class="font-bold block text-primary-700">Membalas:</span>
+                                    <span class="text-secondary-600" x-text="replyingTo.body"></span>
+                                </div>
+                                <button @click="replyingTo = null" class="p-1 hover:bg-secondary-200 rounded-full">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </button>
+                            </div>
+                        </template>
                         <div class="flex items-end gap-3 bg-secondary-100 rounded-2xl p-2 pr-3">
                             <textarea x-model="message" 
                                       @keydown.enter.prevent="if(!event.shiftKey) sendMessage()"
@@ -322,6 +343,7 @@
                 loading: false,
                 sending: false,
                 message: "",
+                replyingTo: null,
                 isAiEnabled: true,
                 activePlatform: "{{ $whatsappDevices->first() ? 'wa-'.$whatsappDevices->first()->id : 'wa' }}",
                 selectedDeviceId: {{ $whatsappDevices->first() ? $whatsappDevices->first()->id : 'null' }},
@@ -344,6 +366,7 @@
                     this.activeName = name;
                     this.isAiEnabled = aiStatus;
                     this.mobileView = 'chat';
+                    this.replyingTo = null;
                     this.fetchChats();
                 },
 
@@ -395,11 +418,13 @@
                                 department_id: "{{ $activeDepartment->id ?? '' }}",
                                 phone: this.activePhone,
                                 message: this.message,
-                                device_id: this.selectedDeviceId
+                                device_id: this.selectedDeviceId,
+                                reply_to_msg_id: this.replyingTo ? this.replyingTo.id : null
                             })
                         });
                         if (response.ok) {
                             this.message = "";
+                            this.replyingTo = null;
                             this.isAiEnabled = false;
                             await this.fetchChats();
                         } else {
