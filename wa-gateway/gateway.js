@@ -31,10 +31,22 @@ fetchDeviceName();
 const client = new Client({
     authStrategy: new LocalAuth({
         clientId: DEVICE_ID ? `device-${DEVICE_ID}` : `dept-${DEPARTMENT_ID}`,
-        dataPath: './.wwebjs_auth'
+        // Gunakan folder terpisah untuk tiap device agar tidak ada file lock yang bentrok
+        dataPath: DEVICE_ID ? `./.sessions/device-${DEVICE_ID}` : `./.sessions/dept-${DEPARTMENT_ID}`
     }),
+    authTimeoutMs: 60000, // Tambah timeout jadi 60 detik
     puppeteer: {
-        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--no-zygote'],
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--no-zygote',
+            '--disable-gpu',
+            '--disable-extensions',
+            '--disable-accelerated-2d-canvas',
+            '--proxy-server=\'direct://\'',
+            '--proxy-bypass-list=*'
+        ],
         headless: true
     }
 });
