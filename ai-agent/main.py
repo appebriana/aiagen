@@ -202,6 +202,9 @@ async def handle_webhook(request: Request):
 
         # Kirim Balasan ke WhatsApp
         result = await send_whatsapp_message(reply_to, answer, department_id, gateway_port, message_id)
+        
+        # Hentikan indikator "Mengetik..."
+        await stop_typing_indicator(reply_to, department_id, gateway_port)
 
         # Ambil message_id dari gateway (jika ada)
         wa_message_id = result.get("message_id") if result and result.get("status") == "success" else None
