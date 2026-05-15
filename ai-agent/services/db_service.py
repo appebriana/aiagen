@@ -16,6 +16,16 @@ def get_db_connection():
         collation="utf8mb4_unicode_ci"
     )
 
+def normalize_phone(phone):
+    """Strip WhatsApp JID suffixes (@s.whatsapp.net, @c.us, @lid) to get plain number.
+    Keeps @g.us (group) intact."""
+    if not phone:
+        return phone
+    import re
+    if '@g.us' in phone:
+        return phone
+    return re.sub(r'@(s\.whatsapp\.net|c\.us|lid)$', '', phone, flags=re.IGNORECASE)
+
 def get_department_settings(department_id: str):
     try:
         conn = get_db_connection()
@@ -116,15 +126,21 @@ def log_unanswered_question(department_id: str, sender: str, question: str):
 
 def get_or_create_customer(user_id: int, phone: str, pushname: str = None):
     try:
+        # Normalize phone: strip JID suffixes
+        phone = normalize_phone(phone)
+        
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         
-        # Cek apakah sudah ada untuk User ID ini
-        cursor.execute("SELECT * FROM customers WHERE user_id = %s AND phone = %s", (user_id, phone))
+        # Cek apakah sudah ada untuk User ID ini (cek juga varian JID lama)
+        cursor.execute(
+            "SELECT * FROM customers WHERE user_id = %s AND (phone = %s OR phone = %s OR phone = %s OR phone = %s) LIMIT 1", 
+            (user_id, phone, phone + '@s.whatsapp.net', phone + '@c.us', phone + '@lid')
+        )
         customer = cursor.fetchone()
         
         if not customer:
-            # Jika belum ada, buat baru di bawah User ID ini
+            # Jika belum ada, buat baru dengan nomor yang sudah dinormalisasi
             cursor.execute(
                 "INSERT INTO customers (user_id, phone, name, created_at, updated_at) VALUES (%s, %s, %s, NOW(), NOW())",
                 (user_id, phone, pushname)
@@ -135,7 +151,7 @@ def get_or_create_customer(user_id: int, phone: str, pushname: str = None):
             customer = cursor.fetchone()
         elif pushname and not customer['name']:
             # Jika ada tapi nama kosong, update namanya
-            cursor.execute("UPDATE customers SET name = %s, updated_at = NOW() WHERE user_id = %s AND phone = %s", (pushname, user_id, phone))
+            cursor.execute("UPDATE customers SET name = %s, updated_at = NOW() WHERE id = %s", (pushname, customer['id']))
             conn.commit()
             customer['name'] = pushname
             
@@ -149,9 +165,13 @@ def get_or_create_customer(user_id: int, phone: str, pushname: str = None):
 def get_customer_ai_status(user_id: int, phone: str):
     """Cek apakah AI diaktifkan untuk customer ini."""
     try:
+        phone = normalize_phone(phone)
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT is_ai_enabled FROM customers WHERE user_id = %s AND phone = %s", (user_id, phone))
+        cursor.execute(
+            "SELECT is_ai_enabled FROM customers WHERE user_id = %s AND (phone = %s OR phone = %s OR phone = %s OR phone = %s) LIMIT 1", 
+            (user_id, phone, phone + '@s.whatsapp.net', phone + '@c.us', phone + '@lid')
+        )
         row = cursor.fetchone()
         cursor.close()
         conn.close()
@@ -163,9 +183,13 @@ def get_customer_ai_status(user_id: int, phone: str):
 def set_customer_ai_status(user_id: int, phone: str, status: bool):
     """Aktifkan atau matikan AI untuk customer ini (Human Takeover)."""
     try:
+        phone = normalize_phone(phone)
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("UPDATE customers SET is_ai_enabled = %s, updated_at = NOW() WHERE user_id = %s AND phone = %s", (1 if status else 0, user_id, phone))
+        cursor.execute(
+            "UPDATE customers SET is_ai_enabled = %s, updated_at = NOW() WHERE user_id = %s AND (phone = %s OR phone = %s OR phone = %s OR phone = %s)", 
+            (1 if status else 0, user_id, phone, phone + '@s.whatsapp.net', phone + '@c.us', phone + '@lid')
+        )
         conn.commit()
         cursor.close()
         conn.close()
@@ -176,9 +200,13 @@ def set_customer_ai_status(user_id: int, phone: str, status: bool):
 
 def update_customer_nickname(user_id: int, phone: str, nickname: str):
     try:
+        phone = normalize_phone(phone)
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("UPDATE customers SET nickname = %s, updated_at = NOW() WHERE user_id = %s AND phone = %s", (nickname, user_id, phone))
+        cursor.execute(
+            "UPDATE customers SET nickname = %s, updated_at = NOW() WHERE user_id = %s AND (phone = %s OR phone = %s OR phone = %s OR phone = %s)", 
+            (nickname, user_id, phone, phone + '@s.whatsapp.net', phone + '@c.us', phone + '@lid')
+        )
         conn.commit()
         cursor.close()
         conn.close()

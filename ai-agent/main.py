@@ -16,6 +16,16 @@ app = FastAPI(title="AIAGEN - Department-Based AI Agent")
 def read_root():
     return {"status": "AI Agent Active", "mode": "Department-Based RAG"}
 
+def normalize_phone(phone):
+    """Strip WhatsApp JID suffixes (@s.whatsapp.net, @c.us, @lid) to get plain number.
+    Keeps @g.us (group) intact."""
+    if not phone:
+        return phone
+    import re
+    if '@g.us' in phone:
+        return phone
+    return re.sub(r'@(s\.whatsapp\.net|c\.us|lid)$', '', phone, flags=re.IGNORECASE)
+
 @app.post("/webhook")
 async def handle_webhook(request: Request):
     data = await request.json()
@@ -28,16 +38,30 @@ async def handle_webhook(request: Request):
     message_id = data.get("message_id")
     real_number = data.get("real_number")
     
+    # Normalize phone numbers: strip @lid/@s.whatsapp.net suffixes
+    # agar customer_phone konsisten di database (mencegah duplikasi)
+    sender = normalize_phone(sender)
+    author = normalize_phone(author)
+    real_number = normalize_phone(real_number) if real_number else real_number
+    
+    # sender_raw / author_raw: JID asli untuk routing reply ke WhatsApp
+    # Jika gateway sudah mengirim sender_raw, gunakan itu. Jika tidak, fallback ke sender.
+    sender_raw = data.get("sender_raw") or data.get("sender") or data.get("from")
+    
     # customer_id adalah identitas unik individu untuk memori
     # Prioritaskan real_number (nomor HP asli) jika ada
     customer_id = real_number or author or sender
     # reply_to adalah tujuan kirim pesan (Grup atau Individu)
-    reply_to = sender
+    # Gunakan raw JID agar WhatsApp API bisa mengirim pesan balik
+    reply_to = sender_raw
 
     msg_body = data.get("message") or data.get("body")
     department_id = data.get("department_id", "default")
     gateway_port = data.get("gateway_port")
     pushname = data.get("pushname")
+    
+    # phone_for_db: nomor yang dinormalisasi untuk penyimpanan DB
+    phone_for_db = sender
     
     if customer_id and msg_body:
         # 1. Ambil Pengaturan & Pemilik Departemen
@@ -53,8 +77,8 @@ async def handle_webhook(request: Request):
         customer = get_or_create_customer(owner_id, customer_id, pushname)
         
         # --- LOG AWAL AGAR LANGSUNG MUNCUL DI CMS ---
-        # Gunakan reply_to/sender agar chat grup ter-grouping dengan benar
-        log_id = log_ai_response(department_id, reply_to, msg_body, "", "WAITING", 0, 0)
+        # Gunakan phone_for_db (normalized) agar tidak double di CMS
+        log_id = log_ai_response(department_id, phone_for_db, msg_body, "", "WAITING", 0, 0)
         
         # --- FITUR LOGGING CMS UNTUK SEMUA PESAN ---
         # Ambil flag is_triggered dari gateway (default True untuk PC, False untuk Grup tanpa trigger)
@@ -93,8 +117,8 @@ async def handle_webhook(request: Request):
             if clean_msg in ["YA", "TIDAK"]:
                 from services.db_service import update_last_resolved
                 is_resolved = (clean_msg == "YA")
-                # Gunakan reply_to agar update pada conversation yang benar
-                success = update_last_resolved(department_id, reply_to, is_resolved)
+                # Gunakan phone_for_db (normalized) agar query DB konsisten
+                success = update_last_resolved(department_id, phone_for_db, is_resolved)
                 if success:
                     if is_resolved:
                         next_msg = "Alhamdulillah, senang bisa membantu! 😊\n\nTerakhir, mohon kesediaannya memberikan rating layanan saya dengan membalas angka 1 (Buruk) s/d 5 (Sangat Puas) ya!"
@@ -109,7 +133,7 @@ async def handle_webhook(request: Request):
             # 2. Handle 1-5 (Rating)
             if msg_body.strip() in ["1", "2", "3", "4", "5"]:
                 from services.db_service import update_last_rating
-                success = update_last_rating(department_id, reply_to, int(msg_body.strip()))
+                success = update_last_rating(department_id, phone_for_db, int(msg_body.strip()))
                 if success:
                     thanks_msg = "Terima kasih banyak atas penilaiannya! Masukan Kakak sangat berarti bagi kami. 🙏✨"
                     await send_whatsapp_message(reply_to, thanks_msg, department_id, gateway_port, message_id)
@@ -125,7 +149,7 @@ async def handle_webhook(request: Request):
                             summary = generate_session_summary(chat_history)
                             if summary:
                                 from services.db_service import update_last_summary
-                                update_last_summary(department_id, reply_to, summary)
+                                update_last_summary(department_id, phone_for_db, summary)
                     except Exception as e:
                         print(f"[ERROR] Gagal proses summary: {e}")
                     # ------------------------------------------------

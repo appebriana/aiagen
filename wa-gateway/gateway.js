@@ -102,6 +102,18 @@ client.on('disconnected', (reason) => {
     console.log(`[${DEVICE_NAME}] WhatsApp Terputus:`, reason);
 });
 
+/**
+ * Normalize WhatsApp JID: strip @s.whatsapp.net, @c.us, @lid suffixes.
+ * Keeps @g.us (group) intact. Returns just the phone number for individual chats.
+ */
+function normalizeJid(jid) {
+    if (!jid) return jid;
+    // Keep group JIDs as-is
+    if (jid.includes('@g.us')) return jid;
+    // Strip all known JID suffixes to get just the number
+    return jid.replace(/@(s\.whatsapp\.net|c\.us|lid)$/i, '');
+}
+
 client.on('message', async msg => {
     let currentDeptSettings = null;
     let aiNameTrigger = '/ai';
@@ -141,13 +153,19 @@ client.on('message', async msg => {
     try {
         const chat = await msg.getChat();
         const contact = await msg.getContact();
-        const realNumber = contact.number || msg.from.split('@')[0];
+        const realNumber = contact.number || normalizeJid(msg.from);
         const labels = await chat.getLabels();
         isHeld = labels.some(l => l.name.toUpperCase().includes('HOLD'));
 
+        // Normalize sender & author: strip @lid/@s.whatsapp.net suffixes
+        // agar customer_phone konsisten di database (mencegah duplikasi)
+        const normalizedSender = normalizeJid(msg.from);
+        const normalizedAuthor = normalizeJid(msg.author || msg.from);
+
         const webhookUrl = process.env.AI_AGENT_WEBHOOK_URL || 'http://127.0.0.1:8000/webhook';
         await axios.post(webhookUrl, {
-            sender: msg.from,
+            sender: normalizedSender,
+            sender_raw: msg.from,  // Keep raw JID for reply routing
             real_number: realNumber,
             message: msg.body,
             department_id: DEPARTMENT_ID,
@@ -156,7 +174,8 @@ client.on('message', async msg => {
             pushname: msg._data?.notifyName || null,
             is_held_by_label: isHeld,
             is_triggered: isTriggered,
-            author: msg.author || msg.from,
+            author: normalizedAuthor,
+            author_raw: msg.author || msg.from,  // Keep raw JID for reply routing
             message_id: msg.id._serialized
         });
     } catch (error) {

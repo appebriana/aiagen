@@ -10,6 +10,16 @@ use Illuminate\Support\Facades\Auth;
 
 class CmsController extends Controller
 {
+    /**
+     * Normalize WhatsApp JID: strip @lid, @s.whatsapp.net, @c.us suffixes.
+     * Keeps @g.us (group) intact.
+     */
+    private function normalizePhone($phone)
+    {
+        if (!$phone) return $phone;
+        if (str_contains($phone, '@g.us')) return $phone;
+        return preg_replace('/@(s\.whatsapp\.net|c\.us|lid)$/i', '', $phone);
+    }
     public function index(Request $request, $departmentId = null)
     {
         $user = Auth::user();
@@ -46,17 +56,26 @@ class CmsController extends Controller
         $conversations = [];
         if ($activeDepartment) {
             $conversations = DB::table('ai_chat_logs')
-                ->select('customer_phone', DB::raw('MAX(created_at) as last_chat'))
+                ->select(
+                    DB::raw("REPLACE(REPLACE(REPLACE(customer_phone, '@s.whatsapp.net', ''), '@c.us', ''), '@lid', '') as customer_phone"),
+                    DB::raw('MAX(created_at) as last_chat')
+                )
                 ->where('department_id', $activeDepartment->id)
-                ->groupBy('customer_phone')
+                ->groupBy(DB::raw("REPLACE(REPLACE(REPLACE(customer_phone, '@s.whatsapp.net', ''), '@c.us', ''), '@lid', '')"))
                 ->orderBy('last_chat', 'desc')
                 ->get();
 
             // Ambil info detail customer (nama & is_ai_enabled)
             foreach ($conversations as $conv) {
+                $normalizedPhone = $this->normalizePhone($conv->customer_phone);
                 $customer = DB::table('customers')
                     ->where('user_id', $activeDepartment->user_id)
-                    ->where('phone', $conv->customer_phone)
+                    ->where(function($q) use ($normalizedPhone) {
+                        $q->where('phone', $normalizedPhone)
+                          ->orWhere('phone', $normalizedPhone . '@s.whatsapp.net')
+                          ->orWhere('phone', $normalizedPhone . '@c.us')
+                          ->orWhere('phone', $normalizedPhone . '@lid');
+                    })
                     ->first();
                 
                 $conv->customer_name = $customer ? ($customer->nickname ?: $customer->name) : 'Unknown';
@@ -64,7 +83,12 @@ class CmsController extends Controller
                 
                 // Ambil snippet pesan terakhir
                 $lastMsg = DB::table('ai_chat_logs')
-                    ->where('customer_phone', $conv->customer_phone)
+                    ->where(function($q) use ($normalizedPhone) {
+                        $q->where('customer_phone', $normalizedPhone)
+                          ->orWhere('customer_phone', $normalizedPhone . '@s.whatsapp.net')
+                          ->orWhere('customer_phone', $normalizedPhone . '@c.us')
+                          ->orWhere('customer_phone', $normalizedPhone . '@lid');
+                    })
                     ->where('department_id', $activeDepartment->id)
                     ->orderBy('created_at', 'desc')
                     ->first();
@@ -105,23 +129,37 @@ class CmsController extends Controller
         if (!$activeDepartment) return response()->json(['status' => 'error', 'message' => 'Dept not found']);
 
         $conversations = DB::table('ai_chat_logs')
-            ->select('customer_phone', DB::raw('MAX(created_at) as last_chat'))
+            ->select(
+                DB::raw("REPLACE(REPLACE(REPLACE(customer_phone, '@s.whatsapp.net', ''), '@c.us', ''), '@lid', '') as customer_phone"),
+                DB::raw('MAX(created_at) as last_chat')
+            )
             ->where('department_id', $activeDepartment->id)
-            ->groupBy('customer_phone')
+            ->groupBy(DB::raw("REPLACE(REPLACE(REPLACE(customer_phone, '@s.whatsapp.net', ''), '@c.us', ''), '@lid', '')"))
             ->orderBy('last_chat', 'desc')
             ->get();
 
         foreach ($conversations as $conv) {
+            $normalizedPhone = $this->normalizePhone($conv->customer_phone);
             $customer = DB::table('customers')
                 ->where('user_id', $activeDepartment->user_id)
-                ->where('phone', $conv->customer_phone)
+                ->where(function($q) use ($normalizedPhone) {
+                    $q->where('phone', $normalizedPhone)
+                      ->orWhere('phone', $normalizedPhone . '@s.whatsapp.net')
+                      ->orWhere('phone', $normalizedPhone . '@c.us')
+                      ->orWhere('phone', $normalizedPhone . '@lid');
+                })
                 ->first();
             
             $conv->customer_name = $customer ? ($customer->nickname ?: $customer->name) : 'Unknown';
             $conv->is_ai_enabled = $customer ? (bool)$customer->is_ai_enabled : true;
             
             $lastMsg = DB::table('ai_chat_logs')
-                ->where('customer_phone', $conv->customer_phone)
+                ->where(function($q) use ($normalizedPhone) {
+                    $q->where('customer_phone', $normalizedPhone)
+                      ->orWhere('customer_phone', $normalizedPhone . '@s.whatsapp.net')
+                      ->orWhere('customer_phone', $normalizedPhone . '@c.us')
+                      ->orWhere('customer_phone', $normalizedPhone . '@lid');
+                })
                 ->where('department_id', $activeDepartment->id)
                 ->orderBy('created_at', 'desc')
                 ->first();
@@ -138,11 +176,16 @@ class CmsController extends Controller
     public function getChats($departmentId, $phone)
     {
         $departmentId = (int)$departmentId;
-        $phone = trim($phone);
+        $phone = $this->normalizePhone(trim($phone));
 
         $logs = DB::table('ai_chat_logs')
             ->where('department_id', $departmentId)
-            ->where('customer_phone', $phone)
+            ->where(function($q) use ($phone) {
+                $q->where('customer_phone', $phone)
+                  ->orWhere('customer_phone', $phone . '@s.whatsapp.net')
+                  ->orWhere('customer_phone', $phone . '@c.us')
+                  ->orWhere('customer_phone', $phone . '@lid');
+            })
             ->orderBy('created_at', 'asc')
             ->orderBy('id', 'asc')
             ->get();
@@ -168,7 +211,7 @@ class CmsController extends Controller
 
         $departmentId = (int)$request->department_id;
         $deviceId = $request->device_id;
-        $phone = trim($request->phone);
+        $phone = $this->normalizePhone(trim($request->phone));
         $messageText = trim($request->message);
         
         // Jika device_id tidak dikirim, coba ambil device pertama yang connected di dept ini
@@ -204,7 +247,12 @@ class CmsController extends Controller
         // 3. Logika "Smart Pairing": Cek apakah ada pesan pelanggan terakhir yang belum dijawab
         $lastUnanswered = DB::table('ai_chat_logs')
             ->where('department_id', $departmentId)
-            ->where('customer_phone', $phone)
+            ->where(function($q) use ($phone) {
+                $q->where('customer_phone', $phone)
+                  ->orWhere('customer_phone', $phone . '@s.whatsapp.net')
+                  ->orWhere('customer_phone', $phone . '@c.us')
+                  ->orWhere('customer_phone', $phone . '@lid');
+            })
             ->where(function($query) {
                 $query->whereNull('answer')->orWhere('answer', '');
             })
@@ -242,7 +290,12 @@ class CmsController extends Controller
         if ($dept) {
             DB::table('customers')
                 ->where('user_id', $dept->user_id)
-                ->where('phone', $phone)
+                ->where(function($q) use ($phone) {
+                    $q->where('phone', $phone)
+                      ->orWhere('phone', $phone . '@s.whatsapp.net')
+                      ->orWhere('phone', $phone . '@c.us')
+                      ->orWhere('phone', $phone . '@lid');
+                })
                 ->update([
                     'is_ai_enabled' => 0,
                     'updated_at' => DB::raw('NOW()')
