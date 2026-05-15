@@ -311,6 +311,11 @@ const server = app.listen(PORT, '127.0.0.1', () => {
     console.log(`[${DEVICE_NAME}] Mencoba inisialisasi sesi...`);
     client.initialize().catch(err => {
         console.error(`[${DEVICE_NAME}] Gagal inisialisasi awal:`, err.message);
+        if (err.message.includes('already running')) {
+            console.error(`[${DEVICE_NAME}] TIP: Jalankan 'pkill -f chrome' di server untuk membersihkan browser yang menggantung.`);
+        }
+        // Keluar agar PM2 bisa restart secara bersih
+        setTimeout(() => process.exit(1), 2000);
     });
 });
 

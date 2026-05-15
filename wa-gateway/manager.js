@@ -42,11 +42,12 @@ function isPortInUse(port) {
 function killProcessOnPort(port) {
     try {
         if (process.platform === 'linux') {
-            execSync(`fuser -k ${port}/tcp 2>/dev/null || true`);
-            console.log(`[MANAGER] Membersihkan proses lama di port ${port}`);
+            // Gunakan -15 (SIGTERM) agar gateway bisa bersih-bersih (kill browser)
+            execSync(`fuser -k -15 ${port}/tcp 2>/dev/null || true`);
+            console.log(`[MANAGER] Mengirim SIGTERM ke proses di port ${port}`);
         }
     } catch (e) {
-        // Abaikan error — mungkin tidak ada proses di port ini
+        // Abaikan error
     }
 }
 
