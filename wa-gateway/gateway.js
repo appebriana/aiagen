@@ -14,7 +14,7 @@ const DEVICE_ID = process.env.DEVICE_ID || null;
 
 let connectionStatus = 'initializing';
 let currentQR = '';
-let DEVICE_NAME = `Dept ${DEPARTMENT_ID}`;
+let DEVICE_NAME = `Dept ${DEPARTMENT_ID}:${PORT}`;
 let initRequested = false;
 
 // Ambil nama perangkat asli dari DB agar log rapi
@@ -23,7 +23,7 @@ async function fetchDeviceName() {
         // Semua API (Settings & Status) dihandle oleh Python AI Agent (Port 8000)
         const settingsRes = await axios.get(`http://127.0.0.1:8000/settings/${DEPARTMENT_ID}`);
         if (settingsRes.data && settingsRes.data.name) {
-            DEVICE_NAME = settingsRes.data.name;
+            DEVICE_NAME = `${settingsRes.data.name}:${PORT}`;
         }
     } catch (e) { }
 }
