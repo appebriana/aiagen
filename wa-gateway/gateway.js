@@ -296,10 +296,30 @@ app.post('/send', async (req, res) => {
             options.quotedMessageId = reply_to_msg_id;
         }
         
-        await chat.sendMessage(message, options);
+        const sentMsg = await chat.sendMessage(message, options);
         await chat.clearState();
-        res.json({ status: 'success' });
+        res.json({ 
+            status: 'success', 
+            message_id: sentMsg.id._serialized 
+        });
     } catch (error) {
+        res.status(500).json({ status: 'error', message: error.message });
+    }
+});
+
+app.post('/delete-message', async (req, res) => {
+    const { message_id } = req.body;
+    try {
+        // Cari pesan berdasarkan ID
+        const msg = await client.getMessageById(message_id);
+        if (msg) {
+            await msg.delete(true); // true = delete for everyone
+            res.json({ status: 'success' });
+        } else {
+            res.status(404).json({ status: 'error', message: 'Message not found' });
+        }
+    } catch (error) {
+        console.error("Gagal menarik pesan:", error.message);
         res.status(500).json({ status: 'error', message: error.message });
     }
 });

@@ -38,6 +38,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
     Route::get('/cms/chats/{department}/{phone}', [CmsController::class, 'getChats'])->name('cms.chats');
     Route::get('/cms/conversations/{department}', [CmsController::class, 'getConversations'])->name('cms.conversations');
     Route::post('/cms/send', [CmsController::class, 'sendMessage'])->name('cms.send');
+    Route::post('/cms/delete', [CmsController::class, 'deleteMessage'])->name('cms.delete');
 
     // Pengaturan Section
     Route::prefix('pengaturan')->name('pengaturan.')->group(function () {
@@ -143,6 +144,7 @@ Route::middleware(['auth', 'verified', 'role:pengguna'])->prefix('pengguna')->na
     Route::get('/cms/chats/{department}/{phone}', [CmsController::class, 'getChats'])->name('cms.chats');
     Route::get('/cms/conversations/{department}', [CmsController::class, 'getConversations'])->name('cms.conversations');
     Route::post('/cms/send', [CmsController::class, 'sendMessage'])->name('cms.send');
+    Route::post('/cms/delete', [CmsController::class, 'deleteMessage'])->name('cms.delete');
 
     // Pengaturan Section
     Route::prefix('pengaturan')->name('pengaturan.')->group(function () {

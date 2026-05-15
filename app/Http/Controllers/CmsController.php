@@ -234,15 +234,22 @@ class CmsController extends Controller
                     $target = $target . '@c.us';
                 }
 
-                \Illuminate\Support\Facades\Http::timeout(5)->post("http://127.0.0.1:{$port}/send", [
+                $gatewayResponse = \Illuminate\Support\Facades\Http::timeout(10)->post("http://127.0.0.1:{$port}/send", [
                     'target' => $target,
-                    'message' => $messageText
+                    'message' => $messageText,
+                    'reply_to_msg_id' => $request->reply_to_msg_id
                 ]);
+
+                if ($gatewayResponse->successful()) {
+                    $resData = $gatewayResponse->json();
+                    $waMessageId = $resData['message_id'] ?? null;
+                }
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::error("CMS Send Error: " . $e->getMessage());
-                // Tetap lanjut simpan ke DB agar ada history, tapi mungkin pesan aslinya gagal terkirim
             }
         }
+        
+        $waMessageId = $waMessageId ?? null;
         
         // 3. Logika "Smart Pairing": Cek apakah ada pesan pelanggan terakhir yang belum dijawab
         $lastUnanswered = DB::table('ai_chat_logs')
@@ -265,6 +272,7 @@ class CmsController extends Controller
                 ->where('id', $lastUnanswered->id)
                 ->update([
                     'answer' => $messageText,
+                    'wa_message_id' => $waMessageId,
                     'model' => 'MANUAL_ADMIN',
                     'updated_at' => DB::raw('NOW()'),
                 ]);
@@ -275,6 +283,7 @@ class CmsController extends Controller
                 'customer_phone' => $phone,
                 'question' => '[ADMIN MANUAL REPLY]',
                 'answer' => $messageText,
+                'wa_message_id' => $waMessageId,
                 'model' => 'MANUAL_ADMIN',
                 'prompt_tokens' => 0,
                 'completion_tokens' => 0,
@@ -303,5 +312,39 @@ class CmsController extends Controller
         }
 
         return response()->json(['status' => 'success']);
+    }
+
+    public function deleteMessage(Request $request)
+    {
+        $request->validate([
+            'chat_id' => 'required|exists:ai_chat_logs,id',
+            'department_id' => 'required|exists:departments,id'
+        ]);
+
+        $chat = DB::table('ai_chat_logs')->where('id', $request->chat_id)->first();
+        
+        if (!$chat || !$chat->wa_message_id) {
+            return response()->json(['status' => 'error', 'message' => 'ID Pesan WhatsApp tidak ditemukan'], 400);
+        }
+
+        $port = 3000 + $request->department_id;
+
+        try {
+            $response = Http::timeout(10)->post("http://127.0.0.1:{$port}/delete-message", [
+                'message_id' => $chat->wa_message_id
+            ]);
+
+            if ($response->successful()) {
+                DB::table('ai_chat_logs')->where('id', $request->chat_id)->update([
+                    'answer' => '[PESAN DITARIK]',
+                    'updated_at' => now()
+                ]);
+                return response()->json(['status' => 'success']);
+            }
+
+            return response()->json(['status' => 'error', 'message' => 'Gagal menarik pesan di WhatsApp'], 500);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
     }
 }
