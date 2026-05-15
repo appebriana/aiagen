@@ -115,7 +115,7 @@ async def handle_webhook(request: Request):
         # ------------------------------------------------
         from services.whatsapp_service import send_whatsapp_message, send_typing_indicator, stop_typing_indicator
 
-        # Munculkan status "Mengetik" di WA (Hanya jika tidak mute)
+        # AI aktif: Munculkan status "Mengetik" dan "Dibaca" di WA
         await send_typing_indicator(reply_to, department_id, gateway_port)
 
         # ------------------------------------------------
