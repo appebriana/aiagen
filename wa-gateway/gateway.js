@@ -167,8 +167,15 @@ client.on('message', async msg => {
         const chat = await msg.getChat();
         const contact = await msg.getContact();
         const realNumber = contact.number || normalizeJid(msg.from);
-        const labels = await chat.getLabels();
-        isHeld = labels.some(l => l.name.toUpperCase().includes('HOLD'));
+        
+        // Deteksi label HOLD dengan error handling
+        let isHeld = false;
+        try {
+            const labels = await chat.getLabels();
+            isHeld = labels.some(l => l.name.toUpperCase().includes('HOLD'));
+        } catch (labelErr) {
+            console.warn(`[${DEVICE_NAME}] Gagal cek label:`, labelErr.message);
+        }
 
         // Normalize sender & author: strip @lid/@s.whatsapp.net suffixes
         // agar customer_phone konsisten di database (mencegah duplikasi)
@@ -284,6 +291,34 @@ app.post('/set-label', async (req, res) => {
     } catch (error) {
         console.error("Label Error:", error.message);
         res.status(500).json({ status: 'error', message: error.message });
+    }
+});
+
+// Endpoint untuk CMS mengecek status label HOLD secara real-time
+app.post('/check-label', async (req, res) => {
+    const { target } = req.body;
+    try {
+        const cleanNumber = target.split('@')[0].replace(/[^0-9]/g, '');
+        
+        // Coba berbagai format ID
+        let chat = null;
+        const formats = [`${cleanNumber}@c.us`, `${cleanNumber}@s.whatsapp.net`, `${cleanNumber}@lid`];
+        for (const fmt of formats) {
+            try {
+                chat = await client.getChatById(fmt);
+                if (chat) break;
+            } catch (e) {}
+        }
+        
+        if (!chat) {
+            return res.json({ status: 'success', is_held: false });
+        }
+        
+        const labels = await chat.getLabels();
+        const isHeld = labels.some(l => l.name.toUpperCase().includes('HOLD'));
+        res.json({ status: 'success', is_held: isHeld });
+    } catch (error) {
+        res.json({ status: 'success', is_held: false }); // Default ke false jika error
     }
 });
 

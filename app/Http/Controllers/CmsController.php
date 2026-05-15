@@ -178,6 +178,48 @@ class CmsController extends Controller
         $departmentId = (int)$departmentId;
         $phone = $this->normalizePhone(trim($phone));
 
+        // --- SYNC LABEL REAL-TIME: Cek status HOLD label di WhatsApp ---
+        try {
+            $dept = Department::find($departmentId);
+            if ($dept) {
+                $port = 3000 + $departmentId;
+                $customer = DB::table('customers')
+                    ->where('user_id', $dept->user_id)
+                    ->where(function($q) use ($phone) {
+                        $q->where('phone', $phone)
+                          ->orWhere('phone', $phone . '@s.whatsapp.net')
+                          ->orWhere('phone', $phone . '@c.us')
+                          ->orWhere('phone', $phone . '@lid');
+                    })
+                    ->first();
+
+                if ($customer) {
+                    $labelResponse = \Illuminate\Support\Facades\Http::timeout(2)
+                        ->post("http://127.0.0.1:{$port}/check-label", ['target' => $phone]);
+                    
+                    if ($labelResponse->successful()) {
+                        $isHeldByWA = $labelResponse->json('is_held') ?? false;
+                        $heldByLabel = (bool)($customer->held_by_label ?? false);
+                        $isAiEnabled = (bool)$customer->is_ai_enabled;
+
+                        // Label HOLD baru ditambahkan di WA → matikan AI
+                        if ($isHeldByWA && $isAiEnabled) {
+                            DB::table('customers')->where('id', $customer->id)
+                                ->update(['is_ai_enabled' => 0, 'held_by_label' => 1, 'updated_at' => DB::raw('NOW()')]);
+                        }
+                        // Label HOLD dihapus di WA + sebelumnya di-hold oleh label → hidupkan AI
+                        elseif (!$isHeldByWA && !$isAiEnabled && $heldByLabel) {
+                            DB::table('customers')->where('id', $customer->id)
+                                ->update(['is_ai_enabled' => 1, 'held_by_label' => 0, 'updated_at' => DB::raw('NOW()')]);
+                        }
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            // Jangan block loading chat jika sync gagal
+        }
+        // --- END SYNC ---
+
         $logs = DB::table('ai_chat_logs')
             ->where('department_id', $departmentId)
             ->where(function($q) use ($phone) {
