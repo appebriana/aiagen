@@ -290,50 +290,64 @@ app.post('/set-label', async (req, res) => {
 app.post('/send', async (req, res) => {
     const { target, message, reply_to_msg_id } = req.body;
     try {
-        const chat = await client.getChatById(target);
-        
         let options = {};
         if (reply_to_msg_id) {
             options.quotedMessageId = reply_to_msg_id;
         }
         
-        // 1. Resolve ID yang benar (Mencegah error No LID)
-        let finalTarget = target;
+        // Bersihkan nomor dari segala suffix
+        const cleanNumber = target.split('@')[0].replace(/[^0-9]/g, '');
+        
+        // Strategi pengiriman bertingkat untuk mengatasi "No LID for user"
+        let sentMsg = null;
+        let lastError = null;
+        
+        // Strategi 1: Resolve ID via getNumberId (paling akurat)
         try {
-            // Bersihkan nomor dari segala suffix untuk pengecekan murni
-            const cleanNumber = target.split('@')[0].replace(/[^0-9]/g, '');
             const numberId = await client.getNumberId(cleanNumber);
-            
             if (numberId) {
-                finalTarget = numberId._serialized;
-                console.log(`[${DEVICE_NAME}] ID Resolved: ${target} -> ${finalTarget}`);
-            } else {
-                // Jika tidak ditemukan, pastikan minimal menggunakan format standar @c.us
-                if (!finalTarget.includes('@')) {
-                    finalTarget = `${cleanNumber}@c.us`;
-                }
+                const resolvedId = numberId._serialized;
+                console.log(`[${DEVICE_NAME}] Strategi 1 - ID Resolved: ${cleanNumber} -> ${resolvedId}`);
+                sentMsg = await client.sendMessage(resolvedId, message, options);
             }
         } catch (e) {
-            console.warn(`[${DEVICE_NAME}] Gagal resolve ID untuk ${target}:`, e.message);
-        }
-
-        // 2. Kirim Pesan
-        let msgId = null;
-        try {
-            console.log(`[${DEVICE_NAME}] Mencoba kirim ke: ${finalTarget}`);
-            const sentMsg = await client.sendMessage(finalTarget, message, options);
-            msgId = sentMsg?.id?._serialized || null;
-            await chat.clearState();
-            console.log(`[${DEVICE_NAME}] Pesan terkirim! ID: ${msgId}`);
-        } catch(e) {
-            console.error(`[${DEVICE_NAME}] GAGAL KIRIM ke ${finalTarget}:`, e.message);
-            throw e;
+            lastError = e;
+            console.warn(`[${DEVICE_NAME}] Strategi 1 gagal:`, e.message);
         }
         
-        res.json({ 
-            status: 'success', 
-            message_id: msgId 
-        });
+        // Strategi 2: Kirim langsung ke nomor@c.us
+        if (!sentMsg) {
+            try {
+                const cUsId = `${cleanNumber}@c.us`;
+                console.log(`[${DEVICE_NAME}] Strategi 2 - Kirim ke: ${cUsId}`);
+                sentMsg = await client.sendMessage(cUsId, message, options);
+            } catch (e) {
+                lastError = e;
+                console.warn(`[${DEVICE_NAME}] Strategi 2 gagal:`, e.message);
+            }
+        }
+        
+        // Strategi 3: Kirim ke nomor@s.whatsapp.net (format alternatif)
+        if (!sentMsg) {
+            try {
+                const sNetId = `${cleanNumber}@s.whatsapp.net`;
+                console.log(`[${DEVICE_NAME}] Strategi 3 - Kirim ke: ${sNetId}`);
+                sentMsg = await client.sendMessage(sNetId, message, options);
+            } catch (e) {
+                lastError = e;
+                console.error(`[${DEVICE_NAME}] Semua strategi gagal untuk ${cleanNumber}:`, e.message);
+            }
+        }
+        
+        if (sentMsg) {
+            let msgId = null;
+            try { msgId = sentMsg.id._serialized; } catch(e) {}
+            console.log(`[${DEVICE_NAME}] Pesan terkirim! ID: ${msgId}`);
+            res.json({ status: 'success', message_id: msgId });
+        } else {
+            const errMsg = lastError ? lastError.message : 'Semua strategi pengiriman gagal';
+            res.status(500).json({ status: 'error', message: errMsg });
+        }
     } catch (error) {
         console.error(`[${DEVICE_NAME}] Gagal kirim pesan:`, error.message);
         res.status(500).json({ status: 'error', message: error.message });
