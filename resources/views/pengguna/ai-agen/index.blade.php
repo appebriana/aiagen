@@ -94,6 +94,23 @@
                 </div>
             </div>
 
+            {{-- Live Chat (Active) --}}
+            <div class="bg-white rounded-2xl shadow-sm border border-secondary-200 p-6 relative overflow-hidden group hover:shadow-xl transition-all duration-300">
+                <div class="absolute top-0 right-0 p-3">
+                    <span class="px-2 py-1 bg-green-500 text-white text-[10px] font-bold rounded uppercase tracking-wider">Tersedia</span>
+                </div>
+                <div class="w-12 h-12 bg-indigo-600 text-white rounded-xl flex items-center justify-center mb-4 shadow-lg shadow-indigo-600/30">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                </div>
+                <h3 class="text-xl font-bold text-secondary-900 mb-2">Live Chat Website</h3>
+                <p class="text-sm text-secondary-500 mb-6 leading-relaxed">Pasang widget live chat di website Anda agar terhubung dengan RAG AI Agent.</p>
+                <div class="flex items-center justify-between">
+                    <a href="{{ route('pengguna.ai-agen.connections.index', ['tab' => 'livechat']) }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 transition-colors">
+                        Konfigurasi &rarr;
+                    </a>
+                </div>
+            </div>
+
             {{-- Coming Soon Platforms --}}
             @foreach(['Telegram' => 'M4.5 12l15-9-3 15-4-3-4 3 1-6', 'Instagram' => 'M7 2h10a5 5 0 015 5v10a5 5 0 01-5 5H7a5 5 0 01-5-5V7a5 5 0 015-5zm0 2a3 3 0 00-3 3v10a3 3 0 003 3h10a3 3 0 003-3V7a3 3 0 00-3-3H7zm5 3a5 5 0 110 10 5 5 0 010-10zm0 2a3 3 0 100 6 3 3 0 000-6zm5-2a1 1 0 110 2 1 1 0 010-2z'] as $platform => $path)
             <div class="bg-secondary-50/50 rounded-2xl shadow-sm border border-secondary-200 p-6 grayscale opacity-60 relative group">

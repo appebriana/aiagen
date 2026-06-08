@@ -284,8 +284,10 @@ class CmsController extends Controller
                 $deviceId = $device ? $device->id : null;
             }
 
-            // 1. Kirim ke Gateway jika ada device yang aktif
-            if ($deviceId) {
+            $isLivechat = str_starts_with($phone, 'lc_');
+
+            // 1. Kirim ke Gateway jika ada device yang aktif dan bukan Live Chat
+            if ($deviceId && !$isLivechat) {
                 $port = 3000 + $departmentId;
                 try {
                     // Cari format nomor asli dari database (bisa @c.us, @lid, atau @s.whatsapp.net)
@@ -326,7 +328,7 @@ class CmsController extends Controller
                     \Illuminate\Support\Facades\Log::error("CMS Send Gateway Error: " . $e->getMessage());
                 }
             } else {
-                \Illuminate\Support\Facades\Log::warning("CMS Send: Tidak ada device aktif untuk dept {$departmentId}");
+                \Illuminate\Support\Facades\Log::warning("CMS Send: Mengabaikan kirim WA karena Live Chat atau tidak ada device.");
             }
 
             // 2. SELALU simpan ke database
@@ -359,6 +361,7 @@ class CmsController extends Controller
                 DB::table('ai_chat_logs')->insert([
                     'department_id' => $departmentId,
                     'customer_phone' => $phone,
+                    'channel' => $isLivechat ? 'livechat' : 'whatsapp',
                     'question' => '[ADMIN MANUAL REPLY]',
                     'answer' => $messageText,
                     'wa_message_id' => $waMessageId,

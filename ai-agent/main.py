@@ -62,6 +62,7 @@ async def handle_webhook(request: Request):
     
     # phone_for_db: nomor yang dinormalisasi untuk penyimpanan DB
     phone_for_db = sender
+    is_livechat = customer_id.startswith('lc_') if customer_id else False
     
     if customer_id and msg_body:
         # 1. Ambil Pengaturan & Pemilik Departemen
@@ -78,7 +79,13 @@ async def handle_webhook(request: Request):
         
         # --- LOG AWAL AGAR LANGSUNG MUNCUL DI CMS ---
         # Gunakan phone_for_db (normalized) agar tidak double di CMS
-        log_id = log_ai_response(department_id, phone_for_db, msg_body, "", "WAITING", 0, 0)
+        if is_livechat:
+            from services.db_service import find_latest_livechat_visitor_log
+            log_id = find_latest_livechat_visitor_log(department_id, phone_for_db)
+            if not log_id:
+                log_id = log_ai_response(department_id, phone_for_db, msg_body, "", "WAITING", 0, 0)
+        else:
+            log_id = log_ai_response(department_id, phone_for_db, msg_body, "", "WAITING", 0, 0)
         
         # --- FITUR LOGGING CMS UNTUK SEMUA PESAN ---
         # Ambil flag is_triggered dari gateway (default True untuk PC, False untuk Grup tanpa trigger)
@@ -112,7 +119,8 @@ async def handle_webhook(request: Request):
         from services.whatsapp_service import send_whatsapp_message, send_typing_indicator, stop_typing_indicator
 
         # AI aktif: Munculkan status "Mengetik" dan "Dibaca" di WA
-        await send_typing_indicator(reply_to, department_id, gateway_port)
+        if not is_livechat:
+            await send_typing_indicator(reply_to, department_id, gateway_port)
 
         # ------------------------------------------------
         # FITUR RATING (CSAT) & RESOLUTION CHECK
@@ -132,11 +140,13 @@ async def handle_webhook(request: Request):
                         next_msg = "Alhamdulillah, senang bisa membantu! 😊\n\nTerakhir, mohon kesediaannya memberikan rating layanan saya dengan membalas angka 1 (Buruk) s/d 5 (Sangat Puas) ya!"
                     else:
                         next_msg = "Mohon maaf jika jawaban saya belum memuaskan. 🙏 Kami akan terus belajar.\n\nTetap mohon bantuannya untuk memberikan rating 1-5 agar kami bisa melakukan evaluasi."
-                    await send_whatsapp_message(reply_to, next_msg, department_id, gateway_port, message_id)
+                    
+                    if not is_livechat:
+                        await send_whatsapp_message(reply_to, next_msg, department_id, gateway_port, message_id)
                     
                     # Update log awal tadi dengan jawaban CSAT
                     update_ai_response(log_id, next_msg, "SYSTEM_CSAT", 0, 0)
-                    return {"status": "resolution_saved"}
+                    return {"status": "resolution_saved", "ai_reply": next_msg}
 
             # 2. Handle 1-5 (Rating)
             if msg_body.strip() in ["1", "2", "3", "4", "5"]:
@@ -144,7 +154,9 @@ async def handle_webhook(request: Request):
                 success = update_last_rating(department_id, phone_for_db, int(msg_body.strip()))
                 if success:
                     thanks_msg = "Terima kasih banyak atas penilaiannya! Masukan Kakak sangat berarti bagi kami. 🙏✨"
-                    await send_whatsapp_message(reply_to, thanks_msg, department_id, gateway_port, message_id)
+                    
+                    if not is_livechat:
+                        await send_whatsapp_message(reply_to, thanks_msg, department_id, gateway_port, message_id)
                     
                     # Update log awal tadi dengan jawaban Rating
                     update_ai_response(log_id, thanks_msg, "SYSTEM_RATING", 0, 0)
@@ -162,23 +174,27 @@ async def handle_webhook(request: Request):
                         print(f"[ERROR] Gagal proses summary: {e}")
                     # ------------------------------------------------
 
-                    return {"status": "rating_saved"}
+                    return {"status": "rating_saved", "ai_reply": thanks_msg}
         # ------------------------------------------------
 
         # Perintah khusus
         if msg_body.lower() == "/reset":
             clear_memory(customer_id, department_id)
             answer_reset = "Memori percakapan Anda telah dibersihkan."
-            await send_whatsapp_message(reply_to, answer_reset, department_id, gateway_port, message_id)
+            
+            if not is_livechat:
+                await send_whatsapp_message(reply_to, answer_reset, department_id, gateway_port, message_id)
+            
             update_ai_response(log_id, answer_reset, "SYSTEM_RESET", 0, 0)
-            return {"status": "reset"}
+            return {"status": "reset", "ai_reply": answer_reset}
 
         # Ambil respon dari AI
         answer, p_tokens, c_tokens, sentiment = get_ai_response(customer_id, department_id, msg_body, customer=customer, is_csat_enabled=is_csat_enabled)
 
         # Jika AI di-takeover (answer=None), jangan kirim apa-apa
         if answer is None:
-            await stop_typing_indicator(reply_to, department_id, gateway_port)
+            if not is_livechat:
+                await stop_typing_indicator(reply_to, department_id, gateway_port)
             update_ai_response(log_id, "", "AI_DISABLED_MID_PROCESS", 0, 0)
             return {"status": "ai_disabled"}
 
@@ -189,6 +205,11 @@ async def handle_webhook(request: Request):
                 new_name = match.group(1).strip()
                 update_customer_nickname(owner_id, customer_id, new_name)
                 answer = re.sub(r"\[\[SET_NAME:.*?\]\]", "", answer).strip()
+
+        # Handle Live Chat Response
+        if is_livechat:
+            update_ai_response(log_id, answer, os.getenv("OPENAI_MODEL", "gpt-4o-mini"), p_tokens, c_tokens, sentiment, None)
+            return {"status": "success", "ai_reply": answer}
 
         # Kirim Balasan ke WhatsApp
         result = await send_whatsapp_message(reply_to, answer, department_id, gateway_port, message_id)

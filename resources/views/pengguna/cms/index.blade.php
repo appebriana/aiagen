@@ -35,6 +35,21 @@
                 </div>
             @endforelse
 
+            {{-- Connected Live Chat --}}
+            @if($activeDepartment && $activeDepartment->livechatWidgets()->where('is_active', true)->exists())
+                <div class="flex flex-col items-center gap-1">
+                    <button @click="activePlatform = 'livechat'; selectedDeviceId = null" 
+                            class="w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-md active:scale-90 relative group"
+                            :class="activePlatform === 'livechat' ? 'bg-indigo-600 text-white ring-4 ring-indigo-100' : 'bg-white text-secondary-400 hover:bg-secondary-50'">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                        <div class="absolute left-14 bg-secondary-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                            Live Chat
+                        </div>
+                    </button>
+                    <span class="text-[9px] font-bold text-secondary-500">LiveChat</span>
+                </div>
+            @endif
+
             <div class="h-px w-8 bg-secondary-200 my-2"></div>
 
             {{-- Connected Telegram Devices --}}
@@ -322,7 +337,12 @@
                         <div class="bg-white p-4 rounded-2xl border border-secondary-200 shadow-sm">
                             <label class="text-[10px] font-bold text-secondary-400 uppercase tracking-widest block mb-2">Platform</label>
                             <div class="flex items-center gap-2">
-                                <span class="px-3 py-1 bg-green-50 text-green-700 rounded-lg text-xs font-bold border border-green-100">WhatsApp</span>
+                                <template x-if="activePhone && activePhone.startsWith('lc_')">
+                                    <span class="px-3 py-1 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-bold border border-indigo-100">Live Chat</span>
+                                </template>
+                                <template x-if="activePhone && !activePhone.startsWith('lc_')">
+                                    <span class="px-3 py-1 bg-green-50 text-green-700 rounded-lg text-xs font-bold border border-green-100">WhatsApp</span>
+                                </template>
                             </div>
                         </div>
                     </div>
@@ -363,9 +383,16 @@
                 searchQuery: '',
 
                 get filteredConversations() {
-                    if (!this.searchQuery.trim()) return this.conversations;
+                    let list = this.conversations;
+                    if (this.activePlatform === 'livechat') {
+                        list = list.filter(c => c.customer_phone.startsWith('lc_'));
+                    } else {
+                        list = list.filter(c => !c.customer_phone.startsWith('lc_'));
+                    }
+
+                    if (!this.searchQuery.trim()) return list;
                     const query = this.searchQuery.toLowerCase();
-                    return this.conversations.filter(c => 
+                    return list.filter(c => 
                         c.customer_name.toLowerCase().includes(query) || 
                         c.customer_phone.includes(query) ||
                         (c.last_message && c.last_message.toLowerCase().includes(query))

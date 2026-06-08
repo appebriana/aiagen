@@ -6,9 +6,123 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <div class="space-y-6" x-data="connectionManager()">
+        <!-- Admin Filters -->
+        @if(auth()->user()->isAdmin())
+        <div class="bg-white rounded-2xl shadow-sm border border-secondary-200 p-4 md:p-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                <!-- User Filter -->
+                <div x-data='userSearchableSelect({ 
+                        selectedId: @json(request('user_id')),
+                        selectedName: @json(request('user_id') ? ($users->where('id', request('user_id'))->first()->name ?? "-- Semua Pengguna --") : "-- Semua Pengguna --"),
+                        users: {!! json_encode($users->map(fn($u) => ["id" => $u->id, "name" => $u->name])) !!}
+                    })' class="relative">
+                    <label class="block text-[10px] font-bold text-secondary-500 uppercase tracking-widest mb-1.5">Pilih Akun Pengguna</label>
+                    <div @click="open = !open" 
+                         class="w-full px-4 py-2.5 rounded-xl border border-secondary-200 bg-primary-50/30 flex items-center justify-between cursor-pointer hover:border-primary-500 transition-all shadow-sm">
+                        <span class="text-sm font-bold text-primary-600 truncate" x-text="selectedName"></span>
+                        <svg class="w-4 h-4 text-primary-400 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+
+                    <div x-show="open" 
+                         x-cloak
+                         style="display: none;"
+                         @click.away="open = false"
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 translate-y-2"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         class="absolute z-[105] mt-2 w-full bg-white rounded-2xl shadow-2xl border border-secondary-100 overflow-hidden min-w-[240px]">
+                        
+                        <div class="p-3 border-b border-secondary-50 bg-secondary-50/50">
+                            <input type="text" 
+                                   x-model="search" 
+                                   placeholder="Cari nama pengguna..." 
+                                   class="w-full px-3 py-2 text-xs rounded-lg border-secondary-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10"
+                                   @click.stop>
+                        </div>
+
+                        <div class="max-h-60 overflow-y-auto scrollbar-hide">
+                            <div @click="selectUser('', '-- Semua Pengguna --')" 
+                                 class="px-4 py-3 text-sm text-secondary-500 hover:bg-primary-50 hover:text-primary-600 cursor-pointer transition-colors flex items-center justify-between group">
+                                <span class="font-medium">-- Semua Pengguna --</span>
+                            </div>
+                            <template x-for="user in filteredUsers" :key="user.id">
+                                <div @click="selectUser(user.id, user.name)" 
+                                     class="px-4 py-3 text-sm text-secondary-700 hover:bg-primary-50 hover:text-primary-600 cursor-pointer transition-colors flex items-center justify-between group">
+                                    <span x-text="user.name" class="font-medium"></span>
+                                    <svg x-show="selectedId == user.id" class="w-4 h-4 text-primary-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                </div>
+                            </template>
+                            <div x-show="filteredUsers.length === 0" class="px-4 py-8 text-center text-xs text-secondary-400 italic">
+                                Pengguna tidak ditemukan
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Department Filter -->
+                <div x-data='deptSearchableSelect({ 
+                        selectedId: @json(request('department_id')),
+                        selectedName: @json(request('department_id') ? ($filterDepartments->where('id', request('department_id'))->first()->name ?? "-- Semua Departemen --") : "-- Semua Departemen --"),
+                        depts: {!! json_encode($filterDepartments->map(fn($d) => ["id" => $d->id, "name" => $d->name])) !!}
+                    })' class="relative">
+                    <label class="block text-[10px] font-bold text-secondary-500 uppercase tracking-widest mb-1.5">Pilih Departemen</label>
+                    <div @click="open = !open" 
+                         class="w-full px-4 py-2.5 rounded-xl border border-secondary-200 bg-primary-50/30 flex items-center justify-between cursor-pointer hover:border-primary-500 transition-all shadow-sm">
+                        <span class="text-sm font-bold text-primary-600 truncate" x-text="selectedName"></span>
+                        <svg class="w-4 h-4 text-primary-400 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+
+                    <div x-show="open" 
+                         x-cloak
+                         style="display: none;"
+                         @click.away="open = false"
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 translate-y-2"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         class="absolute z-[105] mt-2 w-full bg-white rounded-2xl shadow-2xl border border-secondary-100 overflow-hidden min-w-[240px]">
+                        
+                        <div class="p-3 border-b border-secondary-50 bg-secondary-50/50">
+                            <input type="text" 
+                                   x-model="search" 
+                                   placeholder="Cari departemen..." 
+                                   class="w-full px-3 py-2 text-xs rounded-lg border-secondary-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10"
+                                   @click.stop>
+                        </div>
+
+                        <div class="max-h-60 overflow-y-auto scrollbar-hide">
+                            <div @click="selectDept('', '-- Semua Departemen --')" 
+                                 class="px-4 py-3 text-sm text-secondary-500 hover:bg-primary-50 hover:text-primary-600 cursor-pointer transition-colors flex items-center justify-between group">
+                                <span class="font-medium">-- Semua Departemen --</span>
+                            </div>
+                            <template x-for="d in filteredDepts" :key="d.id">
+                                <div @click="selectDept(d.id, d.name)" 
+                                     class="px-4 py-3 text-sm text-secondary-700 hover:bg-primary-50 hover:text-primary-600 cursor-pointer transition-colors flex items-center justify-between group">
+                                    <span x-text="d.name" class="font-medium"></span>
+                                    <svg x-show="selectedId == d.id" class="w-4 h-4 text-primary-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                </div>
+                            </template>
+                            <div x-show="filteredDepts.length === 0" class="px-4 py-8 text-center text-xs text-secondary-400 italic">
+                                Departemen tidak ditemukan
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                @if(request('user_id') || request('department_id'))
+                <div>
+                    <a href="{{ route(auth()->user()->role . '.ai-agen.connections.index', ['tab' => request('tab', 'whatsapp')]) }}" 
+                       class="px-5 py-2.5 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-bold rounded-xl transition-all shadow-sm inline-flex items-center gap-2">
+                        Reset Filter
+                    </a>
+                </div>
+                @endif
+            </div>
+        </div>
+        @endif
+
         <!-- Tab Navigation -->
         <div class="bg-white rounded-2xl shadow-sm border border-secondary-200 p-2 flex gap-2 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:display-none">
-            @foreach(['whatsapp' => 'WhatsApp', 'telegram' => 'Telegram', 'facebook' => 'Facebook', 'instagram' => 'Instagram', 'tiktok' => 'TikTok'] as $id => $label)
+            @foreach(['whatsapp' => 'WhatsApp', 'livechat' => 'Live Chat', 'telegram' => 'Telegram', 'facebook' => 'Facebook', 'instagram' => 'Instagram', 'tiktok' => 'TikTok'] as $id => $label)
                 <button @click="tab = '{{ $id }}'" 
                         :class="tab === '{{ $id }}' ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/20' : 'text-secondary-500 hover:bg-secondary-50'"
                         class="px-6 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap">
@@ -229,8 +343,161 @@
             @endif
         </div>
 
+        <!-- Live Chat Content -->
+        <div x-show="tab === 'livechat'" x-cloak class="space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-secondary-900">Widget Live Chat Website</h2>
+                    <p class="text-sm text-secondary-500">Pasang widget chat di website Anda agar pengunjung dapat berkomunikasi langsung dengan AI Agent.</p>
+                </div>
+                <button @click="openAddLivechatModal()" 
+                        class="px-5 py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/20 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    Tambah Widget Live Chat
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                @forelse($livechatWidgets as $widget)
+                    <div class="bg-white rounded-2xl shadow-sm border border-secondary-200 overflow-hidden flex flex-col">
+                        <div class="p-6 flex-1 space-y-4">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-secondary-900">{{ $widget->name }}</h3>
+                                        <p class="text-xs text-secondary-500">Departemen: <span class="font-bold text-primary-600">{{ $widget->department->name }}</span></p>
+                                        <div class="mt-1 flex items-center gap-1.5">
+                                            @if($widget->target_domain)
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-green-50 text-green-700 text-[10px] font-medium rounded-full border border-green-200">
+                                                    <svg class="w-3 h-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                                                    Tersambung ke: {{ parse_url($widget->target_domain, PHP_URL_HOST) ?? $widget->target_domain }}
+                                                </span>
+                                            @else
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-yellow-50 text-yellow-700 text-[10px] font-medium rounded-full border border-yellow-200">
+                                                    <svg class="w-3 h-3 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                                    Dapat digunakan di semua website
+                                                </span>
+                                            @endif
+                                        </div>
+                                        <p class="text-[10px] text-secondary-400 mt-1">Pemilik: {{ $widget->user->name ?? 'System' }}</p>
+                                    </div>
+                                </div>
+                                <span class="px-2.5 py-1 {{ $widget->is_active ? 'bg-green-100 text-green-700' : 'bg-secondary-100 text-secondary-500' }} rounded-lg text-[10px] font-bold uppercase">
+                                    {{ $widget->is_active ? 'Aktif' : 'Nonaktif' }}
+                                </span>
+                            </div>
+
+                            <form action="{{ route(auth()->user()->role . '.ai-agen.connections.livechat.update', $widget) }}" method="POST" class="space-y-4 pt-2 border-t border-secondary-100">
+                                @csrf
+                                @method('PUT')
+                                
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-secondary-700 uppercase mb-1.5">Nama Widget</label>
+                                        <input type="text" name="name" value="{{ $widget->name }}" required class="w-full bg-secondary-50 border border-secondary-200 rounded-xl px-3 py-2 text-xs">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-secondary-700 uppercase mb-1.5">Status Widget</label>
+                                        <select name="livechat_active" class="w-full bg-secondary-50 border border-secondary-200 rounded-xl px-3 py-2.5 text-xs">
+                                            <option value="1" {{ $widget->is_active ? 'selected' : '' }}>Aktif</option>
+                                            <option value="0" {{ !$widget->is_active ? 'selected' : '' }}>Nonaktif</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 gap-4">
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-secondary-700 uppercase mb-1.5">Domain Website yang Diizinkan (Wajib)</label>
+                                        <input type="text" name="target_domain" value="{{ $widget->target_domain }}" required placeholder="Contoh: sekolah.sch.id atau https://sekolah.sch.id" class="w-full bg-secondary-50 border border-secondary-200 rounded-xl px-3 py-2 text-xs">
+                                        <span class="text-[9px] text-secondary-400 mt-1 block">Wajib diisi agar widget tidak disalahgunakan di website lain.</span>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-secondary-700 uppercase mb-1.5">Warna Utama</label>
+                                        <div class="flex gap-2">
+                                            <input type="color" name="livechat_primary_color" value="{{ $widget->primary_color ?: '#4f46e5' }}" class="w-10 h-10 rounded-xl border-0 p-0 cursor-pointer">
+                                            <input type="text" value="{{ $widget->primary_color ?: '#4f46e5' }}" disabled class="flex-1 bg-secondary-50 border border-secondary-200 rounded-xl px-3 py-2 text-xs font-mono">
+                                        </div>
+                                    </div>
+                                    <div class="flex items-end justify-end">
+                                        <button type="submit" class="px-5 py-2.5 bg-indigo-600 text-white text-xs font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-sm">
+                                            Simpan Pengaturan
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-[10px] font-bold text-secondary-700 uppercase mb-1.5">Pesan Pembuka</label>
+                                    <textarea name="livechat_welcome_message" rows="2" placeholder="Pesan selamat datang otomatis saat pengunjung membuka chat..."
+                                              class="w-full bg-secondary-50 border border-secondary-200 rounded-xl px-3 py-2 text-xs resize-none">{{ $widget->welcome_message }}</textarea>
+                                </div>
+                            </form>
+
+                            <div class="pt-4 border-t border-secondary-100 flex items-center justify-between">
+                                <label class="block text-[10px] font-bold text-secondary-700 uppercase">Informasi Widget</label>
+                                <form action="{{ route(auth()->user()->role . '.ai-agen.connections.livechat.destroy', $widget) }}" method="POST" onsubmit="return confirm('Hapus widget Live Chat ini?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="p-1.5 text-secondary-400 hover:text-red-500 transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                    </button>
+                                </form>
+                            </div>
+                            @if($widget->token)
+                                <div class="space-y-3">
+                                    {{-- Widget ID --}}
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-secondary-500 uppercase tracking-widest mb-1">Widget ID</label>
+                                        <div class="flex items-center gap-2">
+                                            <input type="text" value="{{ $widget->token }}" readonly 
+                                                   id="widget-id-{{ $widget->id }}"
+                                                   class="flex-1 bg-secondary-900 text-secondary-100 px-3 py-2 rounded-lg text-xs font-mono select-all border-0 focus:ring-0">
+                                            <button type="button" onclick="copyToClipboard('widget-id-{{ $widget->id }}', this)" 
+                                                    class="px-3 py-2 bg-secondary-100 hover:bg-secondary-200 text-secondary-600 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 whitespace-nowrap">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                                                Copy
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {{-- URL Domain --}}
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-secondary-500 uppercase tracking-widest mb-1">URL Domain AIagen</label>
+                                        <div class="flex items-center gap-2">
+                                            <input type="text" value="{{ url('/') }}" readonly 
+                                                   id="widget-url-{{ $widget->id }}"
+                                                   class="flex-1 bg-secondary-900 text-secondary-100 px-3 py-2 rounded-lg text-xs font-mono select-all border-0 focus:ring-0">
+                                            <button type="button" onclick="copyToClipboard('widget-url-{{ $widget->id }}', this)" 
+                                                    class="px-3 py-2 bg-secondary-100 hover:bg-secondary-200 text-secondary-600 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 whitespace-nowrap">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                                                Copy
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <p class="text-[10px] text-secondary-400 italic">Gunakan Widget ID dan URL Domain di atas untuk memasang widget Live Chat di website Anda.</p>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                @empty
+                    <div class="lg:col-span-2 py-16 text-center bg-white rounded-3xl border border-secondary-200">
+                        <div class="w-16 h-16 bg-secondary-50 text-secondary-300 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                        </div>
+                        <p class="text-secondary-400 font-bold uppercase tracking-widest text-xs">Belum ada widget Live Chat ditambahkan.</p>
+                    </div>
+                @endforelse
+            </div>
+        </div>
+
         {{-- Other Platforms (Coming Soon) --}}
-        <div x-show="tab !== 'whatsapp'" x-cloak class="min-h-[400px] flex flex-col items-center justify-center text-center p-8 bg-white rounded-3xl border border-secondary-200 shadow-sm">
+        <div x-show="tab !== 'whatsapp' && tab !== 'livechat'" x-cloak class="min-h-[400px] flex flex-col items-center justify-center text-center p-8 bg-white rounded-3xl border border-secondary-200 shadow-sm">
             <div class="w-20 h-20 bg-secondary-100 text-secondary-400 rounded-3xl flex items-center justify-center mb-6">
                 <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
             </div>
@@ -271,7 +538,16 @@
             <div class="flex items-center justify-center min-h-screen p-4">
                 <div class="fixed inset-0 bg-secondary-900/60 transition-opacity" @click="closeAddModal()"></div>
                 <div class="relative bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden">
-                    <form action="{{ auth()->user()->isAdmin() ? route('admin.ai-agen.connections.whatsapp.store') : route('pengguna.ai-agen.connections.whatsapp.store') }}" method="POST">
+                    <form action="{{ auth()->user()->isAdmin() ? route('admin.ai-agen.connections.whatsapp.store') : route('pengguna.ai-agen.connections.whatsapp.store') }}" method="POST"
+                          x-data="{
+                              selectedUser: '',
+                              allDepts: {!! json_encode($departments->map(fn($d) => ['id' => $d->id, 'name' => $d->name, 'user_id' => $d->user_id, 'user_name' => $d->user->name ?? 'System'])) !!},
+                              get filteredDepts() {
+                                  var self = this;
+                                  if (!self.selectedUser) return self.allDepts;
+                                  return self.allDepts.filter(function(d) { return d.user_id == self.selectedUser; });
+                              }
+                          }">
                         @csrf
                         <div class="p-6">
                             <h3 class="text-lg font-bold text-secondary-900 mb-4">Tambah Perangkat WhatsApp</h3>
@@ -279,7 +555,7 @@
                                 @if(auth()->user()->isAdmin())
                                 <div>
                                     <label class="block text-xs font-bold text-secondary-700 uppercase mb-2">Pemilik Akun</label>
-                                    <select name="user_id" required class="w-full bg-secondary-50 border border-secondary-200 rounded-xl px-4 py-2.5 text-sm">
+                                    <select name="user_id" required x-model="selectedUser" class="w-full bg-secondary-50 border border-secondary-200 rounded-xl px-4 py-2.5 text-sm">
                                         <option value="">-- Pilih User --</option>
                                         @foreach($users as $user)
                                             <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->role }})</option>
@@ -296,8 +572,11 @@
                                     <label class="block text-xs font-bold text-secondary-700 uppercase mb-2">Pilih Departemen</label>
                                     <select name="department_id" required class="w-full bg-secondary-50 border border-secondary-200 rounded-xl px-4 py-2.5 text-sm">
                                         <option value="">-- Pilih Departemen --</option>
-                                        @foreach($departments as $dept)
-                                            <option value="{{ $dept->id }}">[{{ $dept->user->name ?? 'System' }}] {{ $dept->name }}</option>
+                                        @foreach($allDepartments as $dept)
+                                            <option value="{{ $dept->id }}" 
+                                                    :hidden="selectedUser && selectedUser != '{{ $dept->user_id }}'">
+                                                [{{ $dept->user->name ?? 'System' }}] {{ $dept->name }}
+                                            </option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -306,6 +585,95 @@
                         <div class="p-6 bg-secondary-50 pb-12 sm:pb-6 flex justify-end gap-3">
                             <button type="button" @click="closeAddModal()" class="text-sm font-bold text-secondary-500">Batal</button>
                             <button type="submit" class="px-6 py-2 bg-green-600 text-white text-sm font-bold rounded-xl hover:bg-green-700 shadow-lg shadow-green-500/20">Simpan</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        {{-- Add Live Chat Modal --}}
+        <div id="addLivechatModal" class="hidden fixed inset-0 z-[110] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-center justify-center min-h-screen p-4">
+                <div class="fixed inset-0 bg-secondary-900/60 transition-opacity" @click="closeAddLivechatModal()"></div>
+                <div class="relative bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden">
+                    <form action="{{ auth()->user()->isAdmin() ? route('admin.ai-agen.connections.livechat.store') : route('pengguna.ai-agen.connections.livechat.store') }}" 
+                          method="POST"
+                          x-data="{
+                              selectedUser: '',
+                              allDepts: {!! json_encode($departments->map(fn($d) => ['id' => $d->id, 'name' => $d->name, 'user_id' => $d->user_id, 'user_name' => $d->user->name ?? 'System'])) !!},
+                              get filteredDepts() {
+                                  var self = this;
+                                  if (!self.selectedUser) return self.allDepts;
+                                  return self.allDepts.filter(function(d) { return d.user_id == self.selectedUser; });
+                              }
+                          }">
+                        @csrf
+                        <div class="p-6 space-y-4">
+                            <h3 class="text-lg font-bold text-secondary-900 mb-4">Tambah Widget Live Chat</h3>
+                            
+                            @if(auth()->user()->isAdmin())
+                            <div>
+                                <label class="block text-xs font-bold text-secondary-700 uppercase mb-2">Pemilik Akun</label>
+                                <select name="user_id" required x-model="selectedUser" class="w-full bg-secondary-50 border border-secondary-200 rounded-xl px-4 py-2.5 text-sm">
+                                    <option value="">-- Pilih User --</option>
+                                    @foreach($users as $user)
+                                        <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->role }})</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            @endif
+
+                            <div>
+                                <label class="block text-xs font-bold text-secondary-700 uppercase mb-2">Nama Widget</label>
+                                <input type="text" name="name" required placeholder="Contoh: Widget Live Chat Toko A"
+                                       class="w-full bg-secondary-50 border border-secondary-200 rounded-xl px-4 py-2.5 text-sm">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-secondary-700 uppercase mb-2">Pilih Departemen</label>
+                                <select name="department_id" required class="w-full bg-secondary-50 border border-secondary-200 rounded-xl px-4 py-2.5 text-sm">
+                                    <option value="">-- Pilih Departemen --</option>
+                                    @foreach($allDepartments as $dept)
+                                        <option value="{{ $dept->id }}" 
+                                                :hidden="selectedUser && selectedUser != '{{ $dept->user_id }}'">
+                                            [{{ $dept->user->name ?? 'System' }}] {{ $dept->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-secondary-700 uppercase mb-2">Domain Website yang Diizinkan (Wajib)</label>
+                                <input type="text" name="target_domain" required placeholder="Contoh: sekolah.sch.id atau https://sekolah.sch.id"
+                                       class="w-full bg-secondary-50 border border-secondary-200 rounded-xl px-4 py-2.5 text-sm">
+                                <span class="text-[10px] text-secondary-400 mt-1 block">Wajib diisi agar widget tidak disalahgunakan di website lain.</span>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-secondary-700 uppercase mb-2">Status Widget</label>
+                                    <select name="livechat_active" class="w-full bg-secondary-50 border border-secondary-200 rounded-xl px-4 py-2.5 text-sm">
+                                        <option value="1">Aktif</option>
+                                        <option value="0">Nonaktif</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-secondary-700 uppercase mb-2">Warna Utama</label>
+                                    <div class="flex gap-2">
+                                        <input type="color" name="livechat_primary_color" value="#4f46e5" class="w-10 h-10 rounded-xl border-0 p-0 cursor-pointer">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-secondary-700 uppercase mb-2">Pesan Pembuka</label>
+                                <textarea name="livechat_welcome_message" rows="2" placeholder="Pesan selamat datang otomatis..."
+                                          class="w-full bg-secondary-50 border border-secondary-200 rounded-xl px-4 py-2.5 text-sm resize-none"></textarea>
+                            </div>
+                        </div>
+                        <div class="p-6 bg-secondary-50 pb-12 sm:pb-6 flex justify-end gap-3">
+                            <button type="button" @click="closeAddLivechatModal()" class="text-sm font-bold text-secondary-500">Batal</button>
+                            <button type="submit" class="px-6 py-2 bg-indigo-600 text-white text-sm font-bold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-500/20">Simpan</button>
                         </div>
                     </form>
                 </div>
@@ -324,6 +692,7 @@
                 activeDeviceId: null,
                 bgPollingInterval: null,
                 isAddingDevice: false,
+                isAddingLivechat: false,
                 init() {
                     this.$watch('currentQR', value => {
                         if (value) {
@@ -354,6 +723,14 @@
                 closeAddModal() {
                     this.isAddingDevice = false;
                     document.getElementById('addDeviceModal').classList.add('hidden');
+                },
+                openAddLivechatModal() {
+                    this.isAddingLivechat = true;
+                    document.getElementById('addLivechatModal').classList.remove('hidden');
+                },
+                closeAddLivechatModal() {
+                    this.isAddingLivechat = false;
+                    document.getElementById('addLivechatModal').classList.add('hidden');
                 },
                 startBackgroundPolling() {
                     const prefix = '{{ auth()->user()->isAdmin() ? "admin" : "pengguna" }}';
@@ -443,6 +820,78 @@
                     this.stopPolling();
                 }
             }
+        }
+
+        function userSearchableSelect(config) {
+            return {
+                open: false,
+                search: '',
+                selectedId: config.selectedId,
+                selectedName: config.selectedName,
+                users: config.users,
+                get filteredUsers() {
+                    if (!this.search) return this.users;
+                    return this.users.filter(u => 
+                        u.name && u.name.toLowerCase().includes(this.search.toLowerCase())
+                    );
+                },
+                selectUser(id, name) {
+                    this.selectedId = id;
+                    this.selectedName = name;
+                    this.open = false;
+                    const url = new URL(window.location.href);
+                    if (id) {
+                        url.searchParams.set('user_id', id);
+                    } else {
+                        url.searchParams.delete('user_id');
+                    }
+                    url.searchParams.delete('department_id'); // Reset department filter if user changes
+                    window.location.href = url.toString();
+                }
+            }
+        }
+
+        function deptSearchableSelect(config) {
+            return {
+                open: false,
+                search: '',
+                selectedId: config.selectedId,
+                selectedName: config.selectedName,
+                depts: config.depts,
+                get filteredDepts() {
+                    if (!this.search) return this.depts;
+                    return this.depts.filter(d => 
+                        d.name && d.name.toLowerCase().includes(this.search.toLowerCase())
+                    );
+                },
+                selectDept(id, name) {
+                    this.selectedId = id;
+                    this.selectedName = name;
+                    this.open = false;
+                    const url = new URL(window.location.href);
+                    if (id) {
+                        url.searchParams.set('department_id', id);
+                    } else {
+                        url.searchParams.delete('department_id');
+                    }
+                    window.location.href = url.toString();
+                }
+            }
+        }
+        function copyToClipboard(inputId, btn) {
+            const input = document.getElementById(inputId);
+            input.select();
+            navigator.clipboard.writeText(input.value).then(function() {
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Copied!';
+                btn.classList.remove('bg-secondary-100', 'text-secondary-600');
+                btn.classList.add('bg-green-100', 'text-green-700');
+                setTimeout(function() {
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('bg-green-100', 'text-green-700');
+                    btn.classList.add('bg-secondary-100', 'text-secondary-600');
+                }, 2000);
+            });
         }
     </script>
 </x-aiagen-layout>

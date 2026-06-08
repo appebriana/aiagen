@@ -25,4 +25,9 @@ class Department extends Model
     {
         return $this->hasMany(WhatsappDevice::class);
     }
+
+    public function livechatWidgets()
+    {
+        return $this->hasMany(LivechatWidget::class);
+    }
 }

@@ -323,15 +323,13 @@ def get_ai_response(customer_id: str, department_id: str, user_message: str, sys
             model_used = response.model
             prompt_tokens = response.usage.prompt_tokens
             completion_tokens = response.usage.completion_tokens
-            print(f"[DEBUG] Logging AI Response: {prompt_tokens} + {completion_tokens} tokens using {model_used}")
-            from services.db_service import log_ai_response
-            success = log_ai_response(department_id, customer_id, user_message, ai_reply, model_used, prompt_tokens, completion_tokens)
-            if success:
-                print("[DEBUG] Log AI berhasil disimpan ke database.")
-            else:
-                print("[DEBUG] Log AI GAGAL disimpan ke database.")
+            # Di-comment out karena log_ai_response dipanggil & diupdate secara terpusat di main.py untuk menghindari duplikasi log.
+            # from services.db_service import log_ai_response
+            # success = log_ai_response(department_id, customer_id, user_message, ai_reply, model_used, prompt_tokens, completion_tokens)
         except Exception as log_err:
-            print(f"[ERROR] Gagal mencatat log pemakaian: {log_err}")
+            print(f"[ERROR] Gagal membaca token pemakaian: {log_err}")
+            prompt_tokens = 0
+            completion_tokens = 0
 
         # 7. EVALUASI JAWABAN AI (Logging jika tidak tahu)
         # Daftar kalimat kunci yang menandakan AI tidak tahu (Safety Net)

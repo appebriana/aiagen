@@ -422,19 +422,31 @@
                                                       placeholder="Contoh: Anda adalah asisten penjualan yang ramah. Tugas Anda adalah membantu pelanggan memilih produk..."
                                                       class="w-full bg-white border border-secondary-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500"></textarea>
                                         </div>
+                                    </div>
+
+                                    {{-- WhatsApp Configuration Section --}}
+                                    <div class="space-y-4 p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100">
+                                        <h4 class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest border-b border-emerald-100 pb-1 flex items-center gap-1.5">
+                                            <svg class="w-3.5 h-3.5 text-emerald-600" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.733-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.859-4.407 9.862-9.843.002-2.634-1.02-5.11-2.881-6.973-1.86-1.864-4.332-2.891-6.97-2.893-5.44 0-9.865 4.408-9.867 9.846-.001 1.73.457 3.42 1.326 4.928l-.995 3.633 3.7-.95zm11.196-6.106c-.302-.15-1.787-.882-2.05-.978-.262-.096-.453-.144-.644.144-.191.288-.74.912-.907 1.104-.167.192-.334.216-.636.066-2.056-1.03-3.385-1.74-4.745-4.068-.36-.617.36-.573 1.028-1.911.11-.22.055-.412-.028-.562-.083-.15-.74-1.787-1.013-2.447-.267-.64-.539-.553-.74-.563-.19-.01-.41-.01-.63-.01-.22 0-.58.08-.88.41-.3.33-1.16 1.13-1.16 2.76s1.19 3.2 1.36 3.42c.17.22 2.34 3.57 5.67 5.01 2.77 1.2 3.32 1.3 4.5.95 1.21-.36 2.62-1.07 2.99-2.1.37-1.03.37-1.91.26-2.1-.11-.19-.41-.3-.71-.45z"/>
+                                            </svg>
+                                            Konfigurasi Khusus WhatsApp
+                                        </h4>
                                         <div class="flex items-center justify-between p-3 bg-white rounded-xl border border-secondary-200">
                                             <div class="flex items-center gap-3">
-                                                <div class="w-8 h-8 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center">
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                                <div class="w-8 h-8 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                                    </svg>
                                                 </div>
                                                 <div>
                                                     <p class="text-xs font-bold text-secondary-900">Izinkan AI Balas di Grup</p>
-                                                    <p class="text-[10px] text-secondary-500">AI hanya akan membalas jika dimention / nama dipanggil.</p>
+                                                    <p class="text-[10px] text-secondary-500">AI hanya akan membalas di grup WhatsApp jika dimention atau dipanggil.</p>
                                                 </div>
                                             </div>
                                             <label class="relative inline-flex items-center cursor-pointer">
                                                 <input type="checkbox" name="reply_to_groups" x-model="currentDept.reply_to_groups" value="1" class="sr-only peer">
-                                                <div class="w-11 h-6 bg-secondary-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-secondary-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
+                                                <div class="w-11 h-6 bg-secondary-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-secondary-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
                                             </label>
                                         </div>
                                     </div>

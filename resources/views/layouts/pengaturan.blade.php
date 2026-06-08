@@ -204,6 +204,10 @@
                                            class="block py-2 text-sm font-medium text-secondary-500">
                                             WhatsApp
                                         </a>
+                                        <a href="{{ auth()->user()->isAdmin() ? route('admin.laporan.interaksi.livechat') : route('pengguna.laporan.interaksi.livechat') }}"
+                                           class="block py-2 text-sm font-medium text-secondary-500">
+                                            Livechat
+                                        </a>
                                         <a href="{{ auth()->user()->isAdmin() ? route('admin.laporan.kepuasan') : route('pengguna.laporan.kepuasan') }}"
                                            class="block py-2 text-sm font-medium text-secondary-500">
                                             Laporan Kepuasan

@@ -53,4 +53,9 @@ class User extends Authenticatable
     {
         return $this->role === $role;
     }
+
+    public function livechatWidgets()
+    {
+        return $this->hasMany(LivechatWidget::class);
+    }
 }

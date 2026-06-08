@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uji Coba Live Chat AIAGEN</title>
+    <!-- Outfit Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            padding: 40px;
+            border-radius: 30px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            text-align: center;
+        }
+        h1 {
+            color: #1e293b;
+            font-weight: 800;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        p {
+            color: #64748b;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 14px;
+            font-size: 14px;
+            font-family: inherit;
+            color: #1e293b;
+            box-sizing: border-box;
+            outline: none;
+            transition: all 0.2s;
+        }
+        input:focus {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+            border: none;
+            border-radius: 14px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.2);
+            margin-top: 10px;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 25px rgba(79, 70, 229, 0.3);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .status {
+            margin-top: 25px;
+            font-size: 12px;
+            color: #64748b;
+            padding: 10px;
+            border-radius: 10px;
+            background: rgba(0,0,0,0.02);
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Uji Coba Live Chat</h1>
+    <p>Gunakan halaman ini untuk memuat widget Live Chat AIAGEN Anda secara dinamis untuk pengujian.</p>
+    
+    <div class="form-group">
+        <label for="app-url">URL Aplikasi AIAGEN</label>
+        <input type="text" id="app-url" value="http://localhost:8000" placeholder="Contoh: http://localhost:8000 atau http://aiagen.test">
+    </div>
+
+    <div class="form-group">
+        <label for="widget-token">Live Chat Token Departemen</label>
+        <input type="text" id="widget-token" placeholder="Masukkan Token Departemen Anda">
+    </div>
+
+    <button id="load-widget-btn">Muat Widget Chat</button>
+
+    <div id="status-box" class="status"></div>
+</div>
+
+<script>
+    document.getElementById('load-widget-btn').addEventListener('click', () => {
+        const appUrl = document.getElementById('app-url').value.trim();
+        const token = document.getElementById('widget-token').value.trim();
+        const statusBox = document.getElementById('status-box');
+
+        if (!appUrl || !token) {
+            alert('Silakan isi URL Aplikasi dan Token Departemen.');
+            return;
+        }
+
+        statusBox.style.display = 'block';
+        statusBox.innerText = 'Menghubungkan ke widget...';
+
+        // Remove old widget if exists
+        const oldWidget = document.querySelector('script[src*="livechat/widget.js"]');
+        if (oldWidget) {
+            oldWidget.remove();
+            const container = document.getElementById('aiagen-livechat-container');
+            if (container) container.remove();
+        }
+
+        // Load new widget
+        const script = document.createElement('script');
+        script.src = `${appUrl}/livechat/widget.js?token=${token}`;
+        script.onload = () => {
+            statusBox.innerText = `Widget berhasil dimuat dari ${appUrl}!`;
+            statusBox.style.color = '#16a34a';
+        };
+        script.onerror = () => {
+            statusBox.innerText = `Gagal memuat widget dari ${appUrl}. Pastikan URL server aktif dan token valid.`;
+            statusBox.style.color = '#dc2626';
+        };
+        document.body.appendChild(script);
+    });
+</script>
+
+</body>
+</html>

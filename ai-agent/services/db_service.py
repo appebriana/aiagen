@@ -240,15 +240,17 @@ def log_ai_response(department_id, customer_phone, question, answer, model, prom
         cost = (prompt_tokens * 0.00000015) + (completion_tokens * 0.00000060)
         total_tokens = prompt_tokens + completion_tokens
 
+        channel = 'livechat' if str(customer_phone).startswith('lc_') else 'whatsapp'
+
         conn = get_db_connection()
         cursor = conn.cursor()
         query = """
             INSERT INTO ai_chat_logs 
-            (department_id, customer_phone, question, answer, model, prompt_tokens, completion_tokens, total_tokens, cost, sentiment, created_at, updated_at) 
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
+            (department_id, customer_phone, channel, question, answer, model, prompt_tokens, completion_tokens, total_tokens, cost, sentiment, created_at, updated_at) 
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
         """
         cursor.execute(query, (
-            department_id, customer_phone, question, answer, model, 
+            department_id, customer_phone, channel, question, answer, model, 
             prompt_tokens, completion_tokens, total_tokens, cost, sentiment
         ))
         last_id = cursor.lastrowid
@@ -348,3 +350,23 @@ def update_last_resolved(department_id, customer_phone, is_resolved):
     except Exception as e:
         print(f"Error Database (update_last_resolved): {e}")
         return False
+
+def find_latest_livechat_visitor_log(department_id, customer_phone):
+    """Cari ID log pesan pengunjung livechat terakhir yang dimasukkan oleh Laravel."""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        query = """
+            SELECT id FROM ai_chat_logs 
+            WHERE department_id = %s AND customer_phone = %s AND model = 'WIDGET_VISITOR' AND (answer IS NULL OR answer = '')
+            ORDER BY created_at DESC LIMIT 1
+        """
+        cursor.execute(query, (department_id, customer_phone))
+        row = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        return row[0] if row else None
+    except Exception as e:
+        print(f"Error Database (find_latest_livechat_visitor_log): {e}")
+        return None
+

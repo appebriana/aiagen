@@ -276,6 +276,10 @@
                                            class="block py-2 text-sm font-medium {{ request()->routeIs('*.laporan.interaksi.wa') ? 'text-primary-600' : 'text-secondary-500' }}">
                                             WhatsApp
                                         </a>
+                                        <a href="{{ route($routePrefix . '.laporan.interaksi.livechat') }}"
+                                           class="block py-2 text-sm font-medium {{ request()->routeIs('*.laporan.interaksi.livechat') ? 'text-primary-600' : 'text-secondary-500' }}">
+                                            Livechat
+                                        </a>
                                         <a href="{{ route($routePrefix . '.laporan.kepuasan') }}"
                                            class="block py-2 text-sm font-medium {{ request()->routeIs('*.laporan.kepuasan*') ? 'text-primary-600' : 'text-secondary-500' }}">
                                             Laporan Kepuasan

@@ -27,6 +27,12 @@ Route::get('/design-system', function () {
 Route::post('/api/check-username', [ValidationController::class, 'checkUsername'])->name('api.check-username');
 Route::post('/api/check-email', [ValidationController::class, 'checkEmail'])->name('api.check-email');
 
+// Livechat public routes
+Route::get('/livechat/widget.js', [\App\Http\Controllers\LivechatController::class, 'widgetJs']);
+Route::get('/api/livechat/init', [\App\Http\Controllers\LivechatController::class, 'initChat']);
+Route::get('/api/livechat/chats', [\App\Http\Controllers\LivechatController::class, 'getChats']);
+Route::post('/api/livechat/send', [\App\Http\Controllers\LivechatController::class, 'sendMessage']);
+
 /*
 |--------------------------------------------------------------------------
 | Admin Routes (prefix: /admin)
@@ -75,6 +81,9 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
         Route::delete('/connections/whatsapp/{whatsappDevice}', [ConnectionController::class, 'destroyWhatsapp'])->name('connections.whatsapp.destroy');
         Route::post('/connections/whatsapp/{device}/disconnect', [ConnectionController::class, 'disconnectWhatsapp'])->name('connections.whatsapp.disconnect');
         Route::post('/connections/whatsapp/{device}/init', [ConnectionController::class, 'initWhatsapp'])->name('connections.whatsapp.init');
+        Route::post('/connections/livechat', [ConnectionController::class, 'storeLivechat'])->name('connections.livechat.store');
+        Route::put('/connections/livechat/{widget}', [ConnectionController::class, 'updateLivechat'])->name('connections.livechat.update');
+        Route::delete('/connections/livechat/{widget}', [ConnectionController::class, 'destroyLivechat'])->name('connections.livechat.destroy');
 
         Route::get('/unanswered', [UnansweredQuestionController::class, 'index'])->name('unanswered.index');
         Route::get('/unanswered/{unansweredQuestion}/suggest', [UnansweredQuestionController::class, 'suggest'])->name('unanswered.suggest');
@@ -103,6 +112,12 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
         Route::get('/interaksi/wa/detail/{phone}', [ReportController::class, 'interactionDetail'])->name('interaksi.wa.detail');
         Route::get('/interaksi/wa/export/excel', [ReportController::class, 'exportExcel'])->name('interaksi.wa.export.excel');
         Route::get('/interaksi/wa/export/pdf', [ReportController::class, 'exportPdf'])->name('interaksi.wa.export.pdf');
+
+        // Livechat Reports
+        Route::get('/interaksi/livechat', [ReportController::class, 'interactionLivechat'])->name('interaksi.livechat');
+        Route::get('/interaksi/livechat/detail/{phone}', [ReportController::class, 'interactionLivechatDetail'])->name('interaksi.livechat.detail');
+        Route::get('/interaksi/livechat/export/excel', [ReportController::class, 'exportExcelLivechat'])->name('interaksi.livechat.export.excel');
+        Route::get('/interaksi/livechat/export/pdf', [ReportController::class, 'exportPdfLivechat'])->name('interaksi.livechat.export.pdf');
         Route::post('/interaksi/wa/toggle-ai', [ReportController::class, 'toggleAi'])->name('interaksi.wa.toggle-ai');
 
         Route::get('/kepuasan', [ReportController::class, 'satisfaction'])->name('kepuasan');
@@ -173,6 +188,9 @@ Route::middleware(['auth', 'verified', 'role:pengguna'])->prefix('pengguna')->na
         Route::delete('/connections/whatsapp/{whatsappDevice}', [ConnectionController::class, 'destroyWhatsapp'])->name('connections.whatsapp.destroy');
         Route::post('/connections/whatsapp/{device}/disconnect', [ConnectionController::class, 'disconnectWhatsapp'])->name('connections.whatsapp.disconnect');
         Route::post('/connections/whatsapp/{device}/init', [ConnectionController::class, 'initWhatsapp'])->name('connections.whatsapp.init');
+        Route::post('/connections/livechat', [ConnectionController::class, 'storeLivechat'])->name('connections.livechat.store');
+        Route::put('/connections/livechat/{widget}', [ConnectionController::class, 'updateLivechat'])->name('connections.livechat.update');
+        Route::delete('/connections/livechat/{widget}', [ConnectionController::class, 'destroyLivechat'])->name('connections.livechat.destroy');
 
         Route::get('/unanswered', [UnansweredQuestionController::class, 'index'])->name('unanswered.index');
         Route::get('/unanswered/{unansweredQuestion}/suggest', [UnansweredQuestionController::class, 'suggest'])->name('unanswered.suggest');
@@ -205,6 +223,12 @@ Route::middleware(['auth', 'verified', 'role:pengguna'])->prefix('pengguna')->na
         Route::get('/interaksi/wa/detail/{phone}', [ReportController::class, 'interactionDetail'])->name('interaksi.wa.detail');
         Route::get('/interaksi/wa/export/excel', [ReportController::class, 'exportExcel'])->name('interaksi.wa.export.excel');
         Route::get('/interaksi/wa/export/pdf', [ReportController::class, 'exportPdf'])->name('interaksi.wa.export.pdf');
+
+        // Livechat Reports
+        Route::get('/interaksi/livechat', [ReportController::class, 'interactionLivechat'])->name('interaksi.livechat');
+        Route::get('/interaksi/livechat/detail/{phone}', [ReportController::class, 'interactionLivechatDetail'])->name('interaksi.livechat.detail');
+        Route::get('/interaksi/livechat/export/excel', [ReportController::class, 'exportExcelLivechat'])->name('interaksi.livechat.export.excel');
+        Route::get('/interaksi/livechat/export/pdf', [ReportController::class, 'exportPdfLivechat'])->name('interaksi.livechat.export.pdf');
         Route::post('/interaksi/wa/toggle-ai', [ReportController::class, 'toggleAi'])->name('interaksi.wa.toggle-ai');
 
         Route::get('/kepuasan', [ReportController::class, 'satisfaction'])->name('kepuasan');
