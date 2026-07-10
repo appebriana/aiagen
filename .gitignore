@@ -30,3 +30,5 @@ Thumbs.db
 
 /ai-agent/venv
 /ai-agent/__pycache__
+/ai-agent/faiss_indexes/
+
